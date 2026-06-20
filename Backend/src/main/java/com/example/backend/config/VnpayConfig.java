@@ -9,9 +9,9 @@ import java.security.NoSuchAlgorithmException;
 @Configuration
 public class VnpayConfig {
     
-    // TODO: Cường thay 2 biến này bằng thông tin lấy trên web Sandbox nhé!
-    public static final String vnp_TmnCode = "YOUR_TMN_CODE"; 
-    public static final String vnp_HashSecret = "YOUR_HASH_SECRET";
+
+    public static final String vnp_TmnCode = "RNYN4WA1"; 
+    public static final String vnp_HashSecret = "WN43Q6CMN822SOO36MNI8FIAKC9YBDJJ";
     
     public static final String vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     public static final String vnp_ReturnUrl = "http://localhost:8080/api/payment/vnpay-return";

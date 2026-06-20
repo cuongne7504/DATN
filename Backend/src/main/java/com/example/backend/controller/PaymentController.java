@@ -1,7 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.config.VnpayConfig;
-import com.example.backend.entity.ApiResponse;
+import com.example.backend.dto.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
@@ -69,7 +69,7 @@ public class PaymentController {
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = VnpayConfig.vnp_Url + "?" + queryUrl;
 
-        return new ApiResponse<>(200, "Tạo URL thanh toán thành công", paymentUrl);
+        return ApiResponse.ok("Tạo URL thanh toán thành công", paymentUrl);
     }
 
     // 2. Webhook IPN (VNPAY tự động gọi ngầm vào đây sau khi khách trả tiền xong)

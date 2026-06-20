@@ -1,6 +1,6 @@
 package com.example.backend.controller;
 
-import com.example.backend.entity.ApiResponse;
+import com.example.backend.dto.ApiResponse;
 import com.example.backend.entity.ChiTietSanPham;
 import com.example.backend.repository.ChiTietSanPhamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +24,9 @@ public class PosController {
         Optional<ChiTietSanPham> chiTiet = chiTietSanPhamRepository.findByMaVachSku(maVachSku);
         
         if (chiTiet.isPresent()) {
-            return new ApiResponse<>(200, "Tít mã vạch thành công!", chiTiet.get());
+            return ApiResponse.ok("Tít mã vạch thành công!", chiTiet.get());
         } else {
-            return new ApiResponse<>(404, "Sản phẩm không tồn tại trong hệ thống!", null);
+            return ApiResponse.fail("Sản phẩm không tồn tại trong hệ thống!");
         }
     }
 }

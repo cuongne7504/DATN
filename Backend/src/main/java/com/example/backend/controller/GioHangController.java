@@ -1,6 +1,6 @@
 package com.example.backend.controller;
 
-import com.example.backend.entity.ApiResponse;
+import com.example.backend.dto.ApiResponse;
 import com.example.backend.entity.ChiTietGioHang;
 import com.example.backend.service.GioHangService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class GioHangController {
 
     @GetMapping("/cua-toi/{maNguoiDung}")
     public ApiResponse<List<ChiTietGioHang>> getGioHang(@PathVariable Integer maNguoiDung) {
-        return new ApiResponse<>(200, "Lấy giỏ hàng thành công", gioHangService.getChiTietGioHang(maNguoiDung));
+        return ApiResponse.ok("Lấy giỏ hàng thành công", gioHangService.getChiTietGioHang(maNguoiDung));
     }
 
     @PostMapping("/them/{maNguoiDung}")
@@ -27,19 +27,19 @@ public class GioHangController {
         Integer maChiTietSp = payload.get("maChiTietSp");
         Integer soLuong = payload.get("soLuong");
         ChiTietGioHang saved = gioHangService.themVaoGio(maNguoiDung, maChiTietSp, soLuong);
-        return new ApiResponse<>(201, "Đã thêm vào giỏ hàng", saved);
+        return ApiResponse.ok("Đã thêm vào giỏ hàng", saved);
     }
 
     @PutMapping("/cap-nhat/{maCtGioHang}")
     public ApiResponse<ChiTietGioHang> capNhat(@PathVariable Integer maCtGioHang, @RequestBody Map<String, Integer> payload) {
         Integer soLuong = payload.get("soLuong");
         ChiTietGioHang updated = gioHangService.capNhatSoLuong(maCtGioHang, soLuong);
-        return new ApiResponse<>(200, "Cập nhật số lượng thành công", updated);
+        return ApiResponse.ok("Cập nhật số lượng thành công", updated);
     }
 
     @DeleteMapping("/xoa/{maCtGioHang}")
     public ApiResponse<String> xoa(@PathVariable Integer maCtGioHang) {
         gioHangService.xoaKhoiGio(maCtGioHang);
-        return new ApiResponse<>(200, "Đã xóa khỏi giỏ hàng", null);
+        return ApiResponse.ok("Đã xóa khỏi giỏ hàng", null);
     }
 }
