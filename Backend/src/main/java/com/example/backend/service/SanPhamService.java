@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +21,11 @@ public class SanPhamService {
     public List<SanPham> getAll() {
         return sanPhamRepository.findAll();
     }
+
+    public List<SanPham> search(String ten, Integer maDanhMuc, Integer maThuongHieu, BigDecimal minGia, BigDecimal maxGia, String kichCo, String mauSac) {
+        return sanPhamRepository.searchProducts(ten, maDanhMuc, maThuongHieu, minGia, maxGia, kichCo, mauSac);
+    }
+
 
     public SanPham getById(Integer id) {
         return sanPhamRepository.findById(id)
