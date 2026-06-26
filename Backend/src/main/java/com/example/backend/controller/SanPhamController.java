@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -24,6 +25,20 @@ public class SanPhamController {
     public ResponseEntity<ApiResponse<List<SanPham>>> getAll() {
         return ResponseEntity.ok(ApiResponse.ok(sanPhamService.getAll()));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<SanPham>>> search(
+            @RequestParam(required = false) String ten,
+            @RequestParam(required = false) Integer maDanhMuc,
+            @RequestParam(required = false) Integer maThuongHieu,
+            @RequestParam(required = false) BigDecimal minGia,
+            @RequestParam(required = false) BigDecimal maxGia,
+            @RequestParam(required = false) String kichCo,
+            @RequestParam(required = false) String mauSac) {
+        List<SanPham> results = sanPhamService.search(ten, maDanhMuc, maThuongHieu, minGia, maxGia, kichCo, mauSac);
+        return ResponseEntity.ok(ApiResponse.ok("Tìm kiếm thành công", results));
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SanPham>> getById(@PathVariable Integer id) {
