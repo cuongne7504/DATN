@@ -1,0 +1,189 @@
+:root {
+  --sportpro-accent: #f97316;
+  --sportpro-accent-dark: #ea580c;
+  --sportpro-dark: #0f172a;
+  --sportpro-muted: #64748b;
+  --sportpro-bg: #f8fafc;
+  --navbar-height: 64px;
+  --sticky-offset: 76px;
+  --page-gutter: 1rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #334155;
+  background: var(--sportpro-bg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.customer-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.section-title {
+  font-weight: 800;
+  color: var(--sportpro-dark);
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+}
+
+.btn-accent {
+  background: var(--sportpro-accent);
+  border: none;
+  color: #fff;
+}
+
+.btn-accent:hover {
+  background: var(--sportpro-accent-dark);
+  color: #fff;
+}
+
+/* Page header — responsive */
+.page-header {
+  padding-block: clamp(1.5rem, 5vw, 2.5rem);
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #fff;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
+}
+
+.page-header h1 {
+  font-weight: 800;
+  margin: 0;
+  font-size: clamp(1.35rem, 4.5vw, 2rem);
+  line-height: 1.25;
+}
+
+.page-header p {
+  opacity: 0.85;
+  margin: 0.5rem 0 0;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
+}
+
+/* Checkout / cart step breadcrumb */
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  font-size: clamp(0.72rem, 2.2vw, 0.85rem);
+}
+
+.checkout-steps .step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.checkout-steps .step.active {
+  color: var(--sportpro-accent);
+}
+
+.checkout-steps .step.muted {
+  opacity: 0.55;
+}
+
+.checkout-steps .step.done {
+  color: #86efac;
+}
+
+.checkout-steps .step-divider {
+  opacity: 0.4;
+  font-size: 0.7rem;
+}
+
+/* Sticky panels below navbar */
+.sticky-summary {
+  position: sticky;
+  top: var(--sticky-offset);
+  z-index: 2;
+}
+
+/* Mobile filter collapse — always visible on lg+ */
+@media (min-width: 992px) {
+  .filter-collapse.collapse {
+    display: block !important;
+    height: auto !important;
+    visibility: visible;
+  }
+}
+
+/* Touch-friendly controls */
+@media (max-width: 767.98px) {
+  .form-control,
+  .form-select,
+  .btn {
+    min-height: 44px;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+  }
+
+  .form-select-sm,
+  .btn.btn-sm.rounded-pill.px-3 {
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  :root {
+    --sticky-offset: 12px;
+  }
+
+  .container {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+  }
+}
+
+@media (max-width: 575.98px) {
+  :root {
+    --page-gutter: 0.85rem;
+  }
+}
+
+/* Reduce hover motion on touch devices */
+@media (hover: none) {
+  .product-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .product-card:hover .product-image {
+    transform: none !important;
+  }
+}
