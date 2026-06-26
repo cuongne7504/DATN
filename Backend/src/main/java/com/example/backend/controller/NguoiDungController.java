@@ -57,4 +57,16 @@ public class NguoiDungController {
         nguoiDungService.delete(id);
         return ResponseEntity.ok(ApiResponse.ok("Xóa người dùng thành công", null));
     }
+
+    @PostMapping("/reset-password/{id}")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@PathVariable Integer id) {
+        nguoiDungService.resetPassword(id, "123456");
+        return ResponseEntity.ok(ApiResponse.ok("Reset mật khẩu thành công về 123456", null));
+    }
+
+    @PostMapping("/reset-all-passwords")
+    public ResponseEntity<ApiResponse<String>> resetAllPasswords() {
+        int count = nguoiDungService.resetAllPasswords("123456");
+        return ResponseEntity.ok(ApiResponse.ok("Đã reset mật khẩu " + count + " tài khoản về 123456", "OK"));
+    }
 }

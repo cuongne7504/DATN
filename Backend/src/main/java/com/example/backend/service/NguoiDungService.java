@@ -97,6 +97,24 @@ public class NguoiDungService {
         nguoiDungRepository.delete(nguoiDung);
     }
 
+    @Transactional
+    public void resetPassword(Integer id, String newPassword) {
+        NguoiDung nguoiDung = nguoiDungRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có mã: " + id));
+        nguoiDung.setMatKhau(passwordEncoder.encode(newPassword));
+        nguoiDungRepository.save(nguoiDung);
+    }
+
+    @Transactional
+    public int resetAllPasswords(String newPassword) {
+        List<NguoiDung> allUsers = nguoiDungRepository.findAll();
+        for (NguoiDung user : allUsers) {
+            user.setMatKhau(passwordEncoder.encode(newPassword));
+        }
+        nguoiDungRepository.saveAll(allUsers);
+        return allUsers.size();
+    }
+
     private Integer generateNextId() {
         return nguoiDungRepository.findAll().stream()
                 .mapToInt(NguoiDung::getMaNguoiDung)
