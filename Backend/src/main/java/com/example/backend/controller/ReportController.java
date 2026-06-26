@@ -16,20 +16,19 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reports")
+@RequestMapping("/api/bao-cao")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ReportController {
 
     private final ReportService reportService;
 
-    @GetMapping("/profit")
+    @GetMapping("/loi-nhuan")
     public ResponseEntity<ApiResponse<List<ProfitReportItemDto>>> getProfitReport() {
-        List<ProfitReportItemDto> report = reportService.calculateProfitReport();
-        return ResponseEntity.ok(ApiResponse.ok("Lấy báo cáo lợi nhuận thành công", report));
+        return ResponseEntity.ok(ApiResponse.ok("OK", reportService.calculateProfitReport()));
     }
 
-    @GetMapping("/profit/export/excel")
+    @GetMapping("/loi-nhuan/export")
     public ResponseEntity<byte[]> exportProfitReportToExcel() throws IOException {
         List<ProfitReportItemDto> report = reportService.calculateProfitReport();
         byte[] excelBytes = reportService.exportProfitReportToExcel(report);
@@ -42,5 +41,4 @@ public class ReportController {
                 .headers(headers)
                 .body(excelBytes);
     }
-
 }

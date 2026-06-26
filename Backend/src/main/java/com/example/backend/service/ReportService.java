@@ -33,20 +33,23 @@ public class ReportService {
     private final ChiTietSanPhamRepository chiTietSanPhamRepository;
     private final SanPhamRepository sanPhamRepository;
 
+    // TODO: Cần tối ưu lại đoạn query này vì đang dùng vòng lặp lồng nhau, 
+    // nếu dữ liệu lớn sẽ bị chậm. Có thể dùng Join query ở Repository để tốt hơn.
     public List<ProfitReportItemDto> calculateProfitReport() {
-        List<ProfitReportItemDto> reportItems = new ArrayList<>();
         List<DonHang> allOrders = donHangRepository.findAll();
+        List<ProfitReportItemDto> reportItems = new ArrayList<>();
 
         for (DonHang donHang : allOrders) {
             List<ChiTietDonHang> chiTietDonHangs = chiTietDonHangRepository.findByMaDonHang(donHang.getMaDonHang());
             for (ChiTietDonHang ctdh : chiTietDonHangs) {
-                ChiTietSanPham ctsp = chiTietSanPhamRepository.findById(ctdh.getMaChiTietSp())
-                        .orElseThrow(() -> new ResourceNotFoundException("Chi tiết sản phẩm không tìm thấy"));
-                SanPham sanPham = sanPhamRepository.findById(ctsp.getMaSanPham())
-                        .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm không tìm thấy"));
+                ChiTietSanPham ctsp = chiTietSanPhamRepository.findById(ctdh.getMaChiTietSp()).orElse(null);
+                if (ctsp == null) continue;
+                
+                SanPham sanPham = sanPhamRepository.findById(ctsp.getMaSanPham()).orElse(null);
+                if (sanPham == null) continue;
 
                 BigDecimal donGiaBan = ctdh.getDonGia();
-                BigDecimal giaGoc = sanPham.getGiaGoc();
+                BigDecimal giaGoc = sanPham.getGiaGoc() != null ? sanPham.getGiaGoc() : BigDecimal.ZERO;
                 BigDecimal loiNhuanTrenMotSp = donGiaBan.subtract(giaGoc);
                 BigDecimal tongLoiNhuanItem = loiNhuanTrenMotSp.multiply(BigDecimal.valueOf(ctdh.getSoLuong()));
 
