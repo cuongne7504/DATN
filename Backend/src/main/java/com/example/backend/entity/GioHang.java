@@ -1,9 +1,6 @@
 package com.example.backend.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 public class GioHang {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ma_gio_hang")
     private Integer maGioHang;
 
@@ -23,5 +21,5 @@ public class GioHang {
     private Integer maNguoiDung;
 
     @Column(name = "ngay_tao")
-    private LocalDateTime ngayTao;
+    private LocalDateTime ngayTao = LocalDateTime.now();
 }

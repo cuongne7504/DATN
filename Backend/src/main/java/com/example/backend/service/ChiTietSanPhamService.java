@@ -18,6 +18,7 @@ public class ChiTietSanPhamService {
 
     private final ChiTietSanPhamRepository chiTietSanPhamRepository;
     private final SanPhamRepository sanPhamRepository;
+    private final SkuGeneratorService skuGeneratorService;
 
     public List<ChiTietSanPham> getAll() {
         return chiTietSanPhamRepository.findAll();
@@ -75,6 +76,38 @@ public class ChiTietSanPhamService {
     public void delete(Integer id) {
         ChiTietSanPham chiTiet = getById(id);
         chiTietSanPhamRepository.delete(chiTiet);
+    }
+
+    // Thêm biến thể mới (Tự động sinh mã vạch)
+    @Transactional
+    public ChiTietSanPham themMoi(ChiTietSanPham chiTiet) {
+        // Tự động cấp phát mã vạch SKU độc nhất cho biến thể này
+        String uniqueSku = skuGeneratorService.generateUniqueSku();
+        chiTiet.setMaVachSku(uniqueSku);
+        if (chiTiet.getMaChiTietSp() == null) {
+            chiTiet.setMaChiTietSp(generateNextId());
+        }
+        return chiTietSanPhamRepository.save(chiTiet);
+    }
+
+    // Cập nhật số lượng hoặc giá cộng thêm
+    @Transactional
+    public ChiTietSanPham capNhat(Integer id, ChiTietSanPham data) {
+        ChiTietSanPham existing = chiTietSanPhamRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể SP này!"));
+        
+        existing.setMauSac(data.getMauSac());
+        existing.setKichCo(data.getKichCo());
+        existing.setSoLuongTon(data.getSoLuongTon());
+        existing.setGiaCongThem(data.getGiaCongThem());
+        // KHÔNG cho phép sửa mã vạch SKU vì mã vạch là cố định
+        
+        return chiTietSanPhamRepository.save(existing);
+    }
+
+    @Transactional
+    public void xoa(Integer id) {
+        chiTietSanPhamRepository.deleteById(id);
     }
 
     private void mapRequestToEntity(ChiTietSanPhamRequest request, ChiTietSanPham chiTiet) {

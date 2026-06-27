@@ -55,7 +55,7 @@ public class GioHangService {
         List<ChiTietGioHang> items = chiTietGioHangRepository.findByMaGioHang(gioHang.getMaGioHang());
 
         List<GioHangDetailResponse.GioHangItemDetail> itemDetails = items.stream()
-                .map(item -> buildItemDetail(item))
+                .map(this::buildItemDetail)
                 .filter(item -> item != null)
                 .collect(Collectors.toList());
 
@@ -172,5 +172,47 @@ public class GioHangService {
     private Integer generateNextCtGioHangId() {
         return chiTietGioHangRepository.findAll().stream()
                 .mapToInt(ChiTietGioHang::getMaCtGioHang).max().orElse(0) + 1;
+    }
+
+    // --- CÁC PHƯƠNG THỨC COMPATIBILITY TỪ NHÁNH MAIN ---
+
+    public GioHang getOrCreateGioHang(Integer maNguoiDung) {
+        return getOrCreateCart(maNguoiDung);
+    }
+
+    public List<ChiTietGioHang> getChiTietGioHang(Integer maNguoiDung) {
+        GioHang cart = getOrCreateCart(maNguoiDung);
+        return chiTietGioHangRepository.findByMaGioHang(cart.getMaGioHang());
+    }
+
+    @Transactional
+    public ChiTietGioHang themVaoGio(Integer maNguoiDung, Integer maChiTietSp, Integer soLuong) {
+        GioHang cart = getOrCreateCart(maNguoiDung);
+        Optional<ChiTietGioHang> existingItem = chiTietGioHangRepository.findByMaGioHangAndMaChiTietSp(cart.getMaGioHang(), maChiTietSp);
+        if (existingItem.isPresent()) {
+            ChiTietGioHang item = existingItem.get();
+            item.setSoLuong(item.getSoLuong() + soLuong);
+            return chiTietGioHangRepository.save(item);
+        } else {
+            ChiTietGioHang newItem = new ChiTietGioHang();
+            newItem.setMaCtGioHang(generateNextCtGioHangId());
+            newItem.setMaGioHang(cart.getMaGioHang());
+            newItem.setMaChiTietSp(maChiTietSp);
+            newItem.setSoLuong(soLuong);
+            return chiTietGioHangRepository.save(newItem);
+        }
+    }
+
+    @Transactional
+    public ChiTietGioHang capNhatSoLuong(Integer maCtGioHang, Integer soLuongMoi) {
+        ChiTietGioHang item = chiTietGioHangRepository.findById(maCtGioHang)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ"));
+        item.setSoLuong(soLuongMoi);
+        return chiTietGioHangRepository.save(item);
+    }
+
+    @Transactional
+    public void xoaKhoiGio(Integer maCtGioHang) {
+        chiTietGioHangRepository.deleteById(maCtGioHang);
     }
 }
