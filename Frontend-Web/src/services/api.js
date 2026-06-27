@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -47,3 +47,12 @@ export async function createPayment(payload) {
 }
 
 export default api
+
+api.interceptors.response.use((response) => {
+    const box = response.data;
+    if (box && typeof box.success !== 'undefined') {
+        if (box.success) return { data: box.data, message: box.message };
+        return Promise.reject(new Error(box.message || 'L?i API'));
+    }
+    return response;
+}, (error) => Promise.reject(error));
