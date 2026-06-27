@@ -58,11 +58,6 @@ public class KhuyenMaiService {
             }
         });
 
-        // Kiểm tra ngày kết thúc phải sau ngày bắt đầu
-        if (request.getNgayKetThuc().isBefore(request.getNgayBatDau())) {
-            throw new BadRequestException("Ngày kết thúc phải sau ngày bắt đầu");
-        }
-
         mapRequestToEntity(request, km);
         return khuyenMaiRepository.save(km);
     }

@@ -1,4 +1,4 @@
-package com.example.backend.controller;
+﻿package com.example.backend.controller;
 
 import com.example.backend.entity.DanhMuc;
 import com.example.backend.service.DanhMucService;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/danhmuc")
+@RequestMapping("/api/danh-muc")
 @CrossOrigin(origins = "*")
 public class DanhMucController {
 
@@ -51,3 +51,4 @@ public class DanhMucController {
         return ResponseEntity.ok().build();
     }
 }
+

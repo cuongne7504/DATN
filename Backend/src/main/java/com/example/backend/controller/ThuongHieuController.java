@@ -1,4 +1,4 @@
-package com.example.backend.controller;
+﻿package com.example.backend.controller;
 
 import com.example.backend.entity.ThuongHieu;
 import com.example.backend.service.ThuongHieuService;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/thuonghieu")
+@RequestMapping("/api/thuong-hieu")
 @CrossOrigin(origins = "*")
 public class ThuongHieuController {
 
@@ -51,3 +51,4 @@ public class ThuongHieuController {
         return ResponseEntity.ok().build();
     }
 }
+
