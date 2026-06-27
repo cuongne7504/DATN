@@ -1,169 +1,190 @@
 <template>
-  <div class="home-page">
-    <Banner />
-    <BenefitsBar />
-    <CategorySection />
+  <div class="container mt-4">
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <h1 class="text-primary fw-bold">SportPro</h1>
+        <p class="text-muted">Cửa hàng thể thao chuyên nghiệp</p>
+      </div>
+    </div>
 
-    <section class="py-5 bg-light">
-      <div class="container">
-        <div class="section-header d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
-          <div>
-            <h2 class="section-title mb-1">Sản phẩm nổi bật</h2>
-            <p class="section-subtitle text-muted mb-0">
-              Được yêu thích nhất tại SportPro
-            </p>
+    <!-- Bộ lọc tìm kiếm -->
+    <div class="card mb-4 bg-light">
+      <div class="card-body">
+        <h5 class="card-title">Bộ lọc sản phẩm</h5>
+        <div class="row">
+          <div class="col-md-3 mb-2">
+            <input type="text" v-model="searchForm.ten" class="form-control" placeholder="Tên sản phẩm">
           </div>
-          <RouterLink to="/shop" class="btn btn-outline-dark rounded-pill px-3 px-md-4 w-100 w-sm-auto">
-            Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
-          </RouterLink>
+          <div class="col-md-2 mb-2">
+            <select v-model="searchForm.maDanhMuc" class="form-select">
+              <option value="">Tất cả danh mục</option>
+              <option v-for="cat in categories" :key="cat.maDanhMuc" :value="cat.maDanhMuc">
+                {{ cat.tenDanhMuc }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-2">
+            <select v-model="searchForm.maThuongHieu" class="form-select">
+              <option value="">Tất cả thương hiệu</option>
+              <option v-for="brand in brands" :key="brand.maThuongHieu" :value="brand.maThuongHieu">
+                {{ brand.tenThuongHieu }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-2">
+            <input type="number" v-model="searchForm.minGia" class="form-control" placeholder="Giá min">
+          </div>
+          <div class="col-md-2 mb-2">
+            <input type="number" v-model="searchForm.maxGia" class="form-control" placeholder="Giá max">
+          </div>
+          <div class="col-md-1 mb-2">
+            <button @click="searchProducts" class="btn btn-primary w-100">Tìm</button>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <div v-if="loading" class="text-center text-muted py-4">Đang tải...</div>
-        <div v-else class="row g-4">
-          <div
-            v-for="product in featuredProducts"
-            :key="product.ma_san_pham"
-            class="col-12 col-sm-6 col-lg-4"
+    <!-- Danh sách sản phẩm -->
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2">Đang tải...</p>
+    </div>
+
+    <div v-else-if="products.length === 0" class="text-center py-5">
+      <p class="text-muted">Không có sản phẩm nào</p>
+    </div>
+
+    <div v-else class="row">
+      <div v-for="product in products" :key="product.maSanPham" class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          <img 
+            :src="getProductImage(product.maSanPham)" 
+            class="card-img-top" 
+            :alt="product.tenSanPham"
+            style="height: 200px; object-fit: cover;"
           >
-            <ProductCard :product="product" />
+          <div class="card-body">
+            <h5 class="card-title">{{ product.tenSanPham }}</h5>
+            <p class="card-text text-muted small">{{ product.moTa }}</p>
+            <p class="card-text">
+              <span class="text-decoration-line-through text-muted">{{ formatPrice(product.giaGoc) }}</span>
+              <span class="text-danger fw-bold ms-2">{{ formatPrice(product.giaKhuyenMai) }}</span>
+            </p>
+            <router-link :to="`/product/${product.maSanPham}`" class="btn btn-primary w-100">Xem chi tiết</router-link>
           </div>
         </div>
       </div>
-    </section>
-
-    <section class="promo-banner py-5">
-      <div class="container">
-        <div class="promo-card rounded-4 overflow-hidden">
-          <div class="row g-0 align-items-center">
-            <div class="col-lg-6 p-4 p-lg-5 text-white">
-              <span class="promo-label">Giảm giá</span>
-              <h2 class="promo-title">Sản phẩm đang khuyến mãi</h2>
-              <p class="promo-desc opacity-90">
-                Khám phá các sản phẩm có giá khuyến mãi hấp dẫn từ SportPro.
-              </p>
-              <RouterLink to="/giam-gia" class="btn btn-light rounded-pill px-4 fw-bold">
-                Săn deal ngay
-              </RouterLink>
-            </div>
-            <div class="col-lg-6">
-              <AppImage
-                :src="promoImageSrc"
-                alt="Giày thể thao"
-                img-class="promo-image w-100"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="brands-section py-5 bg-light">
-      <div class="container text-center">
-        <h2 class="section-title mb-4">Thương hiệu đối tác</h2>
-        <div class="row g-4 align-items-center justify-content-center">
-          <div v-for="brand in brands" :key="brand.ma_thuong_hieu" class="col-6 col-sm-4 col-md-3">
-            <div class="brand-logo">
-              <AppImage
-                :src="brand.logo"
-                :alt="brand.ten_thuong_hieu"
-                img-class="brand-img"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import Banner from '../components/Banner.vue'
-import BenefitsBar from '../components/BenefitsBar.vue'
-import CategorySection from '../components/CategorySection.vue'
-import ProductCard from '../components/ProductCard.vue'
-import AppImage from '../components/AppImage.vue'
-import { fetchSanPham, fetchThuongHieu } from '../services/catalogService'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
-const loading = ref(true)
+const API_URL = 'http://localhost:8080'
+
 const products = ref([])
+const categories = ref([])
 const brands = ref([])
-
-const featuredProducts = computed(() =>
-  [...products.value]
-    .sort((a, b) => (b.so_luong_danh_gia || 0) - (a.so_luong_danh_gia || 0))
-    .slice(0, 3)
-)
-
-const promoImageSrc = computed(() => {
-  const first = products.value[0]
-  if (!first) return null
-  const main = first.hinh_anh_sp?.find((h) => h.la_anh_chinh) || first.hinh_anh_sp?.[0]
-  return main?.duong_dan_anh ?? first.duong_dan_anh ?? null
+const productImages = ref({})
+const loading = ref(false)
+const searchForm = ref({
+  ten: '',
+  maDanhMuc: '',
+  maThuongHieu: '',
+  minGia: '',
+  maxGia: ''
 })
 
-onMounted(async () => {
-  const [productList, brandList] = await Promise.all([
-    fetchSanPham(),
-    fetchThuongHieu(),
-  ])
-  products.value = productList
-  brands.value = brandList
-  loading.value = false
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
+}
+
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/api/danh-muc`)
+    if (response.data && response.data.success) {
+      categories.value = response.data.data
+    }
+  } catch (error) {
+    console.error('Lỗi khi tải danh mục:', error)
+  }
+}
+
+const fetchBrands = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/api/thuong-hieu`)
+    if (response.data && response.data.success) {
+      brands.value = response.data.data
+    }
+  } catch (error) {
+    console.error('Lỗi khi tải thương hiệu:', error)
+  }
+}
+
+const fetchProducts = async () => {
+  loading.value = true
+  try {
+    const response = await axios.get(`${API_URL}/api/san-pham`)
+    if (response.data && response.data.success) {
+      products.value = response.data.data
+      // Lấy ảnh cho từng sản phẩm
+      for (const product of products.value) {
+        await fetchProductImages(product.maSanPham)
+      }
+    }
+  } catch (error) {
+    console.error('Lỗi khi tải sản phẩm:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchProductImages = async (maSanPham) => {
+  try {
+    const response = await axios.get(`${API_URL}/api/hinh-anh/san-pham/${maSanPham}`)
+    if (response.data && response.data.success) {
+      const images = response.data.data
+      // Tìm ảnh chính hoặc lấy ảnh đầu tiên
+      const mainImage = images.find(img => img.laAnhChinh === true) || images[0]
+      if (mainImage) {
+        productImages.value[maSanPham] = mainImage.duongDanAnh
+      }
+    }
+  } catch (error) {
+    console.error('Lỗi khi tải ảnh sản phẩm:', error)
+  }
+}
+
+const getProductImage = (maSanPham) => {
+  return productImages.value[maSanPham] || 'https://placehold.co/300x200?text=No+Image'
+}
+
+const searchProducts = async () => {
+  loading.value = true
+  try {
+    const params = {}
+    if (searchForm.value.ten) params.ten = searchForm.value.ten
+    if (searchForm.value.maDanhMuc) params.maDanhMuc = Number(searchForm.value.maDanhMuc)
+    if (searchForm.value.maThuongHieu) params.maThuongHieu = Number(searchForm.value.maThuongHieu)
+    if (searchForm.value.minGia) params.minGia = Number(searchForm.value.minGia)
+    if (searchForm.value.maxGia) params.maxGia = Number(searchForm.value.maxGia)
+
+    const response = await axios.get(`${API_URL}/api/san-pham/search`, { params })
+    if (response.data && response.data.success) {
+      products.value = response.data.data
+    }
+  } catch (error) {
+    console.error('Lỗi khi tìm kiếm:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchCategories()
+  fetchBrands()
+  fetchProducts()
 })
 </script>
-
-<style scoped>
-.section-subtitle {
-  font-size: clamp(0.9rem, 2.5vw, 1rem);
-}
-
-.promo-card {
-  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-}
-
-.promo-label {
-  display: inline-block;
-  padding: 0.3rem 0.85rem;
-  margin-bottom: 1rem;
-  border-radius: 50rem;
-  background: var(--sportpro-accent);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.promo-title {
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  font-weight: 800;
-  margin-bottom: 1rem;
-}
-
-.promo-desc {
-  margin-bottom: 1.5rem;
-  max-width: 420px;
-}
-
-.promo-image {
-  height: 100%;
-  min-height: 260px;
-  object-fit: cover;
-}
-
-.brand-logo {
-  padding: 1rem;
-}
-
-.brand-img {
-  max-height: 40px;
-  object-fit: contain;
-  filter: grayscale(1);
-  opacity: 0.75;
-  transition: opacity 0.2s;
-}
-
-.brand-logo:hover .brand-img {
-  opacity: 1;
-  filter: grayscale(0);
-}
-</style>

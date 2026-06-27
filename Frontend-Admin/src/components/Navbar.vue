@@ -1,20 +1,26 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <router-link class="navbar-brand fw-bold" to="/">SportPro Web</router-link>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <router-link class="navbar-brand fw-bold" to="/admin/dashboard">SportPro Admin</router-link>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAdmin">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
+      <div class="collapse navbar-collapse" id="navbarNavAdmin">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <router-link class="nav-link" to="/">Trang chủ</router-link>
+            <router-link class="nav-link" to="/admin/dashboard">Thống kê doanh thu</router-link>
           </li>
-          <li v-if="user" class="nav-item">
-            <router-link class="nav-link" to="/cart">Giỏ hàng</router-link>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/products">Quản lý Sản phẩm</router-link>
           </li>
-          <li v-if="user" class="nav-item">
-            <router-link class="nav-link" to="/orders">Lịch sử đơn hàng</router-link>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/variants">Quản lý Biến thể</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/orders">Quản lý Đơn hàng</router-link>
+          </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/admin/pos">Bán hàng tại quầy</router-link>
           </li>
         </ul>
         <ul class="navbar-nav">
@@ -22,15 +28,12 @@
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
               Xin chào, {{ user.hoTen || user.email }}
             </a>
-            <ul class="dropdown-menu">
+            <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="#" @click="logout">Đăng xuất</a></li>
             </ul>
           </li>
           <li v-if="!user" class="nav-item">
             <router-link class="nav-link" to="/login">Đăng nhập</router-link>
-          </li>
-          <li v-if="!user" class="nav-item">
-            <router-link class="nav-link" to="/register">Đăng ký</router-link>
           </li>
         </ul>
       </div>
