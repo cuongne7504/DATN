@@ -1,4 +1,4 @@
-﻿package com.example.backend.controller;
+package com.example.backend.controller;
 
 import com.example.backend.entity.ThuongHieu;
 import com.example.backend.service.ThuongHieuService;

@@ -5,19 +5,8 @@ import GioHang from '../views/GioHang.vue'
 import ThanhToan from '../views/ThanhToan.vue'
 import LichSuDonHang from '../views/LichSuDonHang.vue'
 import DangNhap from '../views/DangNhap.vue'
-import DangKy from '../views/DangKy.vue'
 
 const routes = [
-  {
-    path: '/login',
-    name: 'DangNhap',
-    component: DangNhap
-  },
-  {
-    path: '/register',
-    name: 'DangKy',
-    component: DangKy
-  },
   {
     path: '/',
     name: 'TrangChu',
@@ -31,17 +20,32 @@ const routes = [
   {
     path: '/cart',
     name: 'GioHang',
-    component: GioHang
+    component: GioHang,
+    meta: { requiresAuth: true }
   },
   {
     path: '/checkout',
     name: 'ThanhToan',
-    component: ThanhToan
+    component: ThanhToan,
+    meta: { requiresAuth: true }
   },
   {
-    path: '/orders',
+    path: '/history',
     name: 'LichSuDonHang',
-    component: LichSuDonHang
+    component: LichSuDonHang,
+    meta: { requiresAuth: true }
+  },
+
+  {
+    path: '/account',
+    name: 'TaiKhoan',
+    component: () => import('../views/TaiKhoan.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/login',
+    name: 'DangNhap',
+    component: DangNhap
   }
 ]
 
@@ -53,12 +57,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem('user'))
   
-  if (to.meta.requiresAuth) {
-    if (!user) {
-      next('/login')
-    } else {
-      next()
-    }
+  if (to.meta.requiresAuth && !user) {
+    next('/login')
   } else {
     next()
   }

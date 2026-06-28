@@ -30,6 +30,13 @@ public class DonHangService {
     private final ChiTietSanPhamRepository chiTietSanPhamRepository;
     private final NguoiDungRepository nguoiDungRepository;
 
+    private List<DonHangDetailResponse.ChiTietDonHangDto> mapChiTietList(List<ChiTietDonHang> chiTietList) {
+        return chiTietList.stream().map(ct -> {
+            ChiTietSanPham ctsp = chiTietSanPhamRepository.findById(ct.getMaChiTietSp()).orElse(null);
+            return new DonHangDetailResponse.ChiTietDonHangDto(ct, ctsp);
+        }).collect(Collectors.toList());
+    }
+
     public List<DonHang> getAll() {
         return donHangRepository.findAll();
     }
@@ -45,7 +52,7 @@ public class DonHangService {
         DonHang donHang = donHangRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng có mã: " + id));
         List<ChiTietDonHang> chiTietList = chiTietDonHangRepository.findByMaDonHang(id);
-        return new DonHangDetailResponse(donHang, chiTietList);
+        return new DonHangDetailResponse(donHang, mapChiTietList(chiTietList));
     }
 
     @Transactional
@@ -79,7 +86,6 @@ public class DonHangService {
 
         // Tạo đơn hàng
         DonHang donHang = new DonHang();
-        donHang.setMaDonHang(generateNextDonHangId());
         donHang.setMaNguoiDung(request.getMaNguoiDung());
         donHang.setMaKhuyenMai(request.getMaKhuyenMai());
         donHang.setNgayDat(LocalDateTime.now());
@@ -92,11 +98,9 @@ public class DonHangService {
 
         // Lưu chi tiết đơn hàng
         final Integer maDonHang = donHang.getMaDonHang();
-        int[] idCounter = {generateNextChiTietId()};
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
-            ctdh.setMaCtDonHang(idCounter[0]++);
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());
@@ -104,7 +108,7 @@ public class DonHangService {
             return chiTietDonHangRepository.save(ctdh);
         }).collect(Collectors.toList());
 
-        return new DonHangDetailResponse(donHang, chiTietList);
+        return new DonHangDetailResponse(donHang, mapChiTietList(chiTietList));
     }
 
     @Transactional
@@ -144,25 +148,31 @@ public class DonHangService {
 
         // Tạo đơn hàng POS
         DonHang donHang = new DonHang();
-        donHang.setMaDonHang(generateNextDonHangId());
         donHang.setMaNguoiDung(null); // POS order không có khách hàng
         donHang.setMaNhanVien(request.getMaNhanVien());
         donHang.setMaKhuyenMai(null);
         donHang.setNgayDat(LocalDateTime.now());
         donHang.setTongTien(tongTien);
         donHang.setPhiShip(BigDecimal.ZERO); // POS không có phí ship
-        donHang.setDiaChiGiao("Bán tại quầy");
+
+        String diaChi = "Bán tại quầy";
+        if (request.getTenNguoiNhan() != null && !request.getTenNguoiNhan().trim().isEmpty()) {
+            diaChi = request.getTenNguoiNhan();
+            if (request.getSoDienThoai() != null && !request.getSoDienThoai().trim().isEmpty()) {
+                diaChi += " - " + request.getSoDienThoai();
+            }
+        }
+        donHang.setDiaChiGiao(diaChi);
+
         donHang.setPhuongThucTt("Tiền mặt");
         donHang.setTrangThai("Đã giao hàng"); // POS tự động chuyển sang Đã giao hàng
         donHang = donHangRepository.save(donHang);
 
         // Lưu chi tiết đơn hàng
         final Integer maDonHang = donHang.getMaDonHang();
-        int[] idCounter = {generateNextChiTietId()};
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
-            ctdh.setMaCtDonHang(idCounter[0]++);
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());
@@ -170,7 +180,7 @@ public class DonHangService {
             return chiTietDonHangRepository.save(ctdh);
         }).collect(Collectors.toList());
 
-        return new DonHangDetailResponse(donHang, chiTietList);
+        return new DonHangDetailResponse(donHang, mapChiTietList(chiTietList));
     }
 
     private Integer generateNextDonHangId() {
@@ -183,3 +193,4 @@ public class DonHangService {
                 .mapToInt(ChiTietDonHang::getMaCtDonHang).max().orElse(0) + 1;
     }
 }
+

@@ -1,87 +1,49 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">Dashboard Tài chính</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Thống kê Doanh thu</h2>
+      <button @click="exportExcel" class="btn btn-success" :disabled="loadingExport">
+        <i class="bi bi-file-earmark-excel"></i> 
+        {{ loadingExport ? 'Đang xuất...' : 'Xuất Excel' }}
+      </button>
+    </div>
 
-    <!-- Thống kê tổng quan -->
     <div class="row mb-4">
-      <div class="col-md-3">
-        <div class="card text-white bg-primary">
+      <div class="col-md-4">
+        <div class="card text-white bg-primary shadow-sm h-100">
           <div class="card-body">
-            <h5 class="card-title">Tổng doanh thu</h5>
-            <h3 class="card-text">{{ formatPrice(stats.totalRevenue) }}</h3>
+            <h5 class="card-title">Tổng Doanh thu</h5>
+            <h3 class="fw-bold">{{ formatPrice(totalRevenue) }}</h3>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-success">
+      <div class="col-md-4">
+        <div class="card text-white bg-success shadow-sm h-100">
           <div class="card-body">
-            <h5 class="card-title">Tổng lợi nhuận</h5>
-            <h3 class="card-text">{{ formatPrice(stats.totalProfit) }}</h3>
+            <h5 class="card-title">Tổng Lợi nhuận</h5>
+            <h3 class="fw-bold">{{ formatPrice(totalProfit) }}</h3>
           </div>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-info">
+      <div class="col-md-4">
+        <div class="card text-white bg-info shadow-sm h-100">
           <div class="card-body">
-            <h5 class="card-title">Tổng đơn hàng</h5>
-            <h3 class="card-text">{{ stats.totalOrders }}</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card text-white bg-warning">
-          <div class="card-body">
-            <h5 class="card-title">Đơn hoàn thành</h5>
-            <h3 class="card-text">{{ stats.completedOrders }}</h3>
+            <h5 class="card-title">Sản phẩm đã bán</h5>
+            <h3 class="fw-bold">{{ totalSold }}</h3>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Thông tin bổ sung -->
-    <div class="row mb-4">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h5>Tỷ lệ hoàn thành đơn</h5>
-            <h3>{{ ((stats.completedOrders / stats.totalOrders) * 100).toFixed(1) }}%</h3>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-body">
-            <h5>Tỷ lệ lợi nhuận</h5>
-            <h3>{{ ((stats.totalProfit / stats.totalRevenue) * 100).toFixed(1) }}%</h3>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bảng top sản phẩm bán chạy -->
-    <div class="card">
+    <div class="card shadow-sm mb-4">
       <div class="card-body">
-        <h5>Top sản phẩm bán chạy</h5>
-        <div v-if="loading" class="text-center py-3">
-          <div class="spinner-border text-primary"></div>
+        <h5 class="mb-4">Biểu đồ Lợi nhuận</h5>
+        <div v-if="loading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
         </div>
-        <div v-else class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Tên sản phẩm</th>
-                <th>Số lượng bán</th>
-                <th>Doanh thu</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="product in topProducts" :key="product.maSanPham">
-                <td>{{ product.tenSanPham }}</td>
-                <td>{{ product.soLuongBan }}</td>
-                <td>{{ formatPrice(product.doanhThu) }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div v-else style="height: 400px">
+          <Bar v-if="chartData.labels.length > 0" :data="chartData" :options="chartOptions" />
+          <div v-else class="text-center text-muted py-5">Chưa có dữ liệu thống kê</div>
         </div>
       </div>
     </div>
@@ -89,50 +51,106 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import {
+  Chart as ChartJS,
+  Title,
+  Tooltip,
+  Legend,
+  BarElement,
+  CategoryScale,
+  LinearScale
+} from 'chart.js'
+import { Bar } from 'vue-chartjs'
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const API_URL = 'http://localhost:8080'
-
+const reportData = ref([])
 const loading = ref(false)
-const stats = ref({
-  totalRevenue: 0,
-  totalProfit: 0,
-  totalOrders: 0,
-  completedOrders: 0
-})
-const topProducts = ref([])
+const loadingExport = ref(false)
 
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
+  return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
 }
 
-const fetchStats = async () => {
+const totalRevenue = computed(() => {
+  return reportData.value.reduce((sum, item) => sum + ((item.donGiaBan || 0) * (item.soLuong || 0)), 0)
+})
+
+const totalProfit = computed(() => {
+  return reportData.value.reduce((sum, item) => sum + (item.tongLoiNhuanItem || 0), 0)
+})
+
+const totalSold = computed(() => {
+  return reportData.value.reduce((sum, item) => sum + (item.soLuong || 0), 0)
+})
+
+const chartData = computed(() => {
+  return {
+    labels: reportData.value.map(item => item.tenSanPham),
+    datasets: [
+      {
+        label: 'Doanh thu',
+        backgroundColor: '#0d6efd',
+        data: reportData.value.map(item => (item.donGiaBan || 0) * (item.soLuong || 0))
+      },
+      {
+        label: 'Lợi nhuận',
+        backgroundColor: '#198754',
+        data: reportData.value.map(item => item.tongLoiNhuanItem || 0)
+      }
+    ]
+  }
+})
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top',
+    }
+  }
+}
+
+const fetchReport = async () => {
   loading.value = true
   try {
-    // Giả lập dữ liệu thống kê (cần backend API thực tế)
-    stats.value = {
-      totalRevenue: 150000000,
-      totalProfit: 45000000,
-      totalOrders: 150,
-      completedOrders: 120
-    }
-    
-    topProducts.value = [
-      { maSanPham: 1, tenSanPham: 'Giày chạy bộ Nike', soLuongBan: 50, doanhThu: 25000000 },
-      { maSanPham: 2, tenSanPham: 'Áo thể thao Adidas', soLuongBan: 35, doanhThu: 17500000 },
-      { maSanPham: 3, tenSanPham: 'Quần short Puma', soLuongBan: 30, doanhThu: 12000000 },
-      { maSanPham: 4, tenSanPham: 'Bóng đá FIFA', soLuongBan: 25, doanhThu: 7500000 },
-      { maSanPham: 5, tenSanPham: 'Túi thể thao', soLuongBan: 20, doanhThu: 6000000 }
-    ]
+    const res = await axios.get(`${API_URL}/api/bao-cao/loi-nhuan`)
+    reportData.value = res.data.data || res.data || []
   } catch (error) {
-    console.error('Lỗi khi tải thống kê:', error)
+    console.error('Lỗi tải báo cáo:', error)
   } finally {
     loading.value = false
   }
 }
 
+const exportExcel = async () => {
+  loadingExport.value = true
+  try {
+    const res = await axios.get(`${API_URL}/api/bao-cao/loi-nhuan/export`, {
+      responseType: 'blob'
+    })
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'bao_cao_loi_nhuan.xlsx')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (error) {
+    console.error('Lỗi xuất Excel:', error)
+    alert('Không thể xuất Excel')
+  } finally {
+    loadingExport.value = false
+  }
+}
+
 onMounted(() => {
-  fetchStats()
+  fetchReport()
 })
 </script>

@@ -44,7 +44,6 @@ public class NguoiDungService {
         }
 
         NguoiDung nguoiDung = new NguoiDung();
-        nguoiDung.setMaNguoiDung(generateNextId());
         nguoiDung.setMaQuyen(3); // Mặc định là Khách hàng
         nguoiDung.setHoTen(request.getHoTen());
         nguoiDung.setEmail(request.getEmail());
@@ -122,3 +121,4 @@ public class NguoiDungService {
                 .orElse(0) + 1;
     }
 }
+

@@ -42,7 +42,6 @@ public class KhuyenMaiService {
         }
 
         KhuyenMai km = new KhuyenMai();
-        km.setMaKhuyenMai(generateNextId());
         mapRequestToEntity(request, km);
         return khuyenMaiRepository.save(km);
     }
@@ -133,3 +132,4 @@ public class KhuyenMaiService {
                 .mapToInt(KhuyenMai::getMaKhuyenMai).max().orElse(0) + 1;
     }
 }
+

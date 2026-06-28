@@ -13,6 +13,10 @@ public class TaoDonHangPosRequest {
     @NotNull(message = "Mã nhân viên không được để trống")
     private Integer maNhanVien;
 
+    private String tenNguoiNhan;
+    
+    private String soDienThoai;
+
     @Valid
     @NotNull(message = "Danh sách sản phẩm không được để trống")
     private List<DonHangItemRequest> items;

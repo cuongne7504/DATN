@@ -1,63 +1,71 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">POS - Bán tại quầy</h2>
+    <h2 class="mb-4 text-warning fw-bold">POS - Bán tại quầy</h2>
 
     <div class="row">
       <div class="col-md-4">
-        <div class="card">
-          <div class="card-body">
-            <h5>Thêm sản phẩm vào đơn</h5>
+        <div class="card shadow-sm border-0">
+          <div class="card-body bg-light rounded">
+            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-cart-plus"></i> Thêm sản phẩm vào đơn</h5>
             
-            <!-- Quét mã vạch -->
             <div class="mb-3">
-              <label class="form-label">Quét mã vạch / Mã biến thể</label>
+              <label class="form-label fw-semibold">Quét mã vạch / Mã biến thể</label>
               <input 
                 type="text" 
                 v-model="barcodeInput" 
                 @keyup.enter="scanBarcode"
                 ref="barcodeInputRef"
-                class="form-control" 
+                class="form-control form-control-lg border-primary" 
                 placeholder="Quét hoặc nhập mã..."
                 autofocus
               >
+              <div class="form-text">Nhập mã biến thể (SKU) hoặc ID và nhấn Enter.</div>
             </div>
             
             <div class="mb-3">
-              <label class="form-label">Số lượng</label>
+              <label class="form-label fw-semibold">Số lượng</label>
               <input type="number" v-model="tempForm.soLuong" class="form-control" value="1" min="1">
             </div>
             
-            <div v-if="scannedProduct" class="alert alert-info mb-3">
-              <strong>{{ scannedProduct.tenSanPham }}</strong><br>
-              <small>{{ scannedProduct.mauSac }} / {{ scannedProduct.kichCo }}</small><br>
-              <strong>Giá: {{ formatPrice(scannedProduct.giaBan) }}</strong>
+            <div v-if="scannedProduct" class="alert alert-info border-info mb-3">
+              <strong>{{ scannedProduct.tenSanPham || 'Sản phẩm' }}</strong><br>
+              <small>Màu: {{ scannedProduct.mauSac }} - Size: {{ scannedProduct.kichCo }}</small><br>
+              <strong>Giá: <span class="text-danger">{{ formatPrice(scannedProduct.giaBan || scannedProduct.giaKhuyenMai || scannedProduct.GiBan) }}</span></strong><br>
+              <small>Tồn kho: {{ scannedProduct.soLuongTon }}</small>
             </div>
             
-            <button @click="addItem" class="btn btn-primary w-100">Thêm vào đơn</button>
+            <button @click="addItem" class="btn btn-primary btn-lg w-100 fw-bold">Thêm vào đơn</button>
           </div>
         </div>
       </div>
 
       <div class="col-md-8">
-        <div class="card">
+        <div class="card shadow-sm border-0 h-100">
           <div class="card-body">
-            <h5>Chi tiết đơn hàng</h5>
-            <div class="mb-3">
-              <label class="form-label">Mã nhân viên</label>
-              <input type="number" v-model="posForm.maNhanVien" class="form-control" value="1">
+            <h5 class="fw-bold mb-3"><i class="bi bi-receipt"></i> Chi tiết đơn hàng mới</h5>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Khách hàng (Tùy chọn)</label>
+                <input type="text" v-model="posForm.tenNguoiNhan" class="form-control" placeholder="Tên khách hàng">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Số điện thoại</label>
+                <input type="text" v-model="posForm.soDienThoai" class="form-control" placeholder="SĐT khách hàng">
+              </div>
             </div>
 
-            <div v-if="posForm.items.length === 0" class="text-muted mb-3">
-              Chưa có sản phẩm nào
+            <div v-if="posForm.items.length === 0" class="text-center text-muted p-5 bg-light rounded border border-dashed">
+              <i class="bi bi-cart-x" style="font-size: 2rem;"></i><br>
+              Chưa có sản phẩm nào trong đơn
             </div>
 
             <div v-else class="table-responsive mb-3">
-              <table class="table table-sm">
-                <thead>
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
                   <tr>
                     <th>Sản phẩm</th>
                     <th>Biến thể</th>
-                    <th>Số lượng</th>
+                    <th style="width: 100px">Số lượng</th>
                     <th>Đơn giá</th>
                     <th>Thành tiền</th>
                     <th></th>
@@ -65,34 +73,33 @@
                 </thead>
                 <tbody>
                   <tr v-for="(item, index) in posForm.items" :key="index">
-                    <td>{{ item.tenSanPham }}</td>
+                    <td class="fw-bold">{{ item.tenSanPham }}</td>
                     <td>{{ item.mauSac }} / {{ item.kichCo }}</td>
                     <td>
                       <input 
                         type="number" 
                         v-model="item.soLuong" 
                         class="form-control form-control-sm" 
-                        style="width: 60px;"
                         min="1"
                         @change="updateItemTotal(index)"
                       >
                     </td>
                     <td>{{ formatPrice(item.donGia) }}</td>
-                    <td>{{ formatPrice(item.soLuong * item.donGia) }}</td>
+                    <td class="fw-bold text-danger">{{ formatPrice(item.soLuong * item.donGia) }}</td>
                     <td>
-                      <button @click="removeItem(index)" class="btn btn-sm btn-danger">×</button>
+                      <button @click="removeItem(index)" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Xóa</button>
                     </td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
               <div>
-                <h4>Tổng: {{ formatPrice(calculateTotal()) }}</h4>
+                <h4 class="fw-bold mb-0">Tổng: <span class="text-danger">{{ formatPrice(calculateTotal()) }}</span></h4>
               </div>
-              <button @click="createPosOrder" class="btn btn-success btn-lg" :disabled="posForm.items.length === 0 || loading">
-                {{ loading ? 'Đang xử lý...' : 'Thanh toán' }}
+              <button @click="createPosOrder" class="btn btn-success btn-lg px-5 fw-bold" :disabled="posForm.items.length === 0 || loading">
+                {{ loading ? 'Đang xử lý...' : 'THANH TOÁN' }}
               </button>
             </div>
           </div>
@@ -114,7 +121,9 @@ const barcodeInputRef = ref(null)
 const scannedProduct = ref(null)
 
 const posForm = ref({
-  maNhanVien: 1,
+  maNhanVien: 1, // ID của nhân viên bán hàng (từ localStorage)
+  tenNguoiNhan: '',
+  soDienThoai: '',
   items: []
 })
 
@@ -123,7 +132,7 @@ const tempForm = ref({
 })
 
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
+  return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
 }
 
 const calculateTotal = () => {
@@ -132,63 +141,101 @@ const calculateTotal = () => {
 
 const scanBarcode = async () => {
   if (!barcodeInput.value) return
+  const input = barcodeInput.value.trim()
   
   try {
-    // Tìm biến thể theo mã vạch hoặc mã chi tiết
-    const response = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${barcodeInput.value}`)
-    if (response.data && response.data.success) {
-      scannedProduct.value = response.data.data
+    let data = null
+    
+    // Thử tìm bằng mã SKU trước
+    try {
+      const skuRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/sku/${input}`)
+      data = skuRes.data.data || skuRes.data
+    } catch (e) {
+      // Nếu không tìm thấy bằng SKU, thử bằng ID số
+      if (!isNaN(input)) {
+        const idRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${input}`)
+        data = idRes.data.data || idRes.data
+      }
+    }
+    
+    if (data && data.maChiTietSp) {
+      scannedProduct.value = data
+      
+      // Lấy tên sản phẩm và giá
+      try {
+        const prodRes = await axios.get(`${API_URL}/api/san-pham/${data.maSanPham}`)
+        const prodData = prodRes.data.data || prodRes.data
+        if (prodData) {
+          scannedProduct.value.tenSanPham = prodData.tenSanPham
+          scannedProduct.value.giaBan = prodData.giaKhuyenMai || prodData.giaGoc || 0
+        }
+      } catch (e) {}
+
     } else {
-      alert('Không tìm thấy sản phẩm với mã này')
+      alert('Không tìm thấy biến thể với mã: ' + input)
       scannedProduct.value = null
     }
   } catch (error) {
     console.error('Lỗi khi quét mã:', error)
-    alert('Không tìm thấy sản phẩm với mã này')
+    alert('Không tìm thấy biến thể với mã: ' + input)
     scannedProduct.value = null
   }
 }
 
-const addItem = () => {
+const addItem = async () => {
   if (!scannedProduct.value) {
-    alert('Vui lòng quét mã sản phẩm trước')
-    return
+    if (barcodeInput.value) {
+      await scanBarcode()
+      if (!scannedProduct.value) return // If still null after scan, stop
+    } else {
+      alert('Vui lòng quét mã và tìm sản phẩm trước')
+      return
+    }
   }
   
-  // Kiểm tra xem sản phẩm đã có trong đơn chưa
+  if (tempForm.value.soLuong > scannedProduct.value.soLuongTon) {
+    alert(`Tồn kho không đủ! Chỉ còn ${scannedProduct.value.soLuongTon} sản phẩm.`)
+    return
+  }
+
   const existingIndex = posForm.value.items.findIndex(
     item => item.maChiTietSp === scannedProduct.value.maChiTietSp
   )
   
   if (existingIndex >= 0) {
-    // Cập nhật số lượng nếu đã có
-    posForm.value.items[existingIndex].soLuong += parseInt(tempForm.value.soLuong)
+    const newQty = posForm.value.items[existingIndex].soLuong + parseInt(tempForm.value.soLuong)
+    if (newQty > scannedProduct.value.soLuongTon) {
+      alert('Số lượng cộng dồn vượt quá tồn kho!')
+      return
+    }
+    posForm.value.items[existingIndex].soLuong = newQty
   } else {
-    // Thêm mới
     posForm.value.items.push({
       maChiTietSp: scannedProduct.value.maChiTietSp,
-      tenSanPham: scannedProduct.value.tenSanPham,
+      tenSanPham: scannedProduct.value.tenSanPham || 'Sản phẩm ID ' + scannedProduct.value.maSanPham,
       mauSac: scannedProduct.value.mauSac,
       kichCo: scannedProduct.value.kichCo,
       soLuong: parseInt(tempForm.value.soLuong),
-      donGia: scannedProduct.value.giaBan
+      donGia: scannedProduct.value.giaBan || scannedProduct.value.giaKhuyenMai || scannedProduct.value.GiBan || 0,
+      tonKho: scannedProduct.value.soLuongTon
     })
   }
 
-  // Reset
   scannedProduct.value = null
   barcodeInput.value = ''
   tempForm.value.soLuong = 1
   
-  // Focus lại vào input để quét tiếp
   nextTick(() => {
     barcodeInputRef.value?.focus()
   })
 }
 
 const updateItemTotal = (index) => {
-  // Tự động tính lại thành tiền khi thay đổi số lượng
-  // Không cần làm gì vì tính toán được thực hiện trong template
+  const item = posForm.value.items[index]
+  if (item.soLuong > item.tonKho) {
+    alert('Vượt quá số lượng tồn kho!')
+    item.soLuong = item.tonKho
+  }
 }
 
 const removeItem = (index) => {
@@ -203,8 +250,14 @@ const createPosOrder = async () => {
 
   loading.value = true
   try {
+    const user = JSON.parse(localStorage.getItem('user'))
     const payload = {
-      maNhanVien: posForm.value.maNhanVien,
+      maNhanVien: user ? user.maNguoiDung : 1, // ID của nv
+      tenNguoiNhan: posForm.value.tenNguoiNhan || 'Khách Mua Tại Quầy',
+      soDienThoai: posForm.value.soDienThoai || '0000000000',
+      loaiDonHang: 'TaiQuay',
+      phuongThucThanhToan: 'TienMat',
+      trangThai: 'HoanThanh', // Đơn POS thì hoàn thành luôn
       items: posForm.value.items.map(item => ({
         maChiTietSp: item.maChiTietSp,
         soLuong: item.soLuong,
@@ -212,17 +265,20 @@ const createPosOrder = async () => {
       }))
     }
     
+    // Gửi POST tới API backend
     const response = await axios.post(`${API_URL}/api/don-hang/pos`, payload)
-    if (response.data && response.data.success) {
-      alert('Tạo đơn POS thành công!')
-      posForm.value = {
-        maNhanVien: 1,
-        items: []
-      }
+    alert('Thanh toán thành công! Mã đơn: ' + (response.data.data?.maDonHang || ''))
+    
+    // Reset form
+    posForm.value = {
+      maNhanVien: user ? user.maNguoiDung : 1,
+      tenNguoiNhan: '',
+      soDienThoai: '',
+      items: []
     }
   } catch (error) {
-    console.error('Lỗi khi tạo đơn POS:', error)
-    alert('Lỗi khi tạo đơn POS')
+    console.error('Lỗi khi thanh toán:', error)
+    alert('Lỗi: ' + (error.response?.data?.message || error.message))
   } finally {
     loading.value = false
   }
@@ -232,3 +288,10 @@ onMounted(() => {
   barcodeInputRef.value?.focus()
 })
 </script>
+
+<style scoped>
+.border-dashed {
+  border-style: dashed !important;
+  border-width: 2px !important;
+}
+</style>

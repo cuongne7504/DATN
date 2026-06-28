@@ -2,27 +2,17 @@
   <footer class="bg-dark text-light py-4 mt-5">
     <div class="container">
       <div class="row">
-        <div class="col-md-4">
-          <h5>SportPro</h5>
-          <p class="text-muted">Cửa hàng thể thao chuyên nghiệp</p>
+        <div class="col-md-6 mb-3">
+          <h5 class="text-primary fw-bold">SportPro Admin</h5>
+          <p class="text-muted">Hệ thống quản trị Cửa hàng thể thao</p>
         </div>
-        <div class="col-md-4">
-          <h5>Liên kết</h5>
-          <ul class="list-unstyled">
-            <li><router-link class="text-muted text-decoration-none" to="/">Trang chủ</router-link></li>
-            <li><router-link class="text-muted text-decoration-none" to="/cart">Giỏ hàng</router-link></li>
-            <li><router-link class="text-muted text-decoration-none" to="/orders">Đơn hàng</router-link></li>
-          </ul>
-        </div>
-        <div class="col-md-4">
-          <h5>Liên hệ</h5>
-          <p class="text-muted mb-1">Email: info@sportpro.com</p>
-          <p class="text-muted mb-1">Hotline: 1900 xxxx</p>
-          <p class="text-muted">Địa chỉ: Hà Nội, Việt Nam</p>
+        <div class="col-md-6 mb-3 text-md-end">
+          <p class="text-muted mb-1"><i class="bi bi-envelope"></i> Hỗ trợ kỹ thuật: it@sportpro.com</p>
+          <p class="text-muted"><i class="bi bi-telephone"></i> Hotline nội bộ: 1900 xxxx</p>
         </div>
       </div>
       <hr class="my-4 border-secondary">
-      <p class="text-center text-muted mb-0">&copy; 2024 SportPro. All rights reserved.</p>
+      <p class="text-center text-muted mb-0">&copy; 2026 SportPro. All rights reserved.</p>
     </div>
   </footer>
 </template>

@@ -3,6 +3,8 @@ package com.example.backend.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +18,7 @@ import java.math.BigDecimal;
 public class ChiTietDonHang {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ma_ct_don_hang")
     private Integer maCtDonHang;
 
@@ -31,3 +34,5 @@ public class ChiTietDonHang {
     @Column(name = "don_gia")
     private BigDecimal donGia;
 }
+
+

@@ -1,222 +1,193 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">Quản lý Biến thể Sản phẩm</h2>
+    <h2 class="mb-4">Quản lý Biến thể (Màu sắc & Kích cỡ)</h2>
 
-    <!-- Chọn sản phẩm -->
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
       <div class="card-body">
-        <div class="row">
-          <div class="col-md-6">
-            <label class="form-label">Chọn sản phẩm</label>
-            <select v-model="selectedProductId" @change="loadProductVariants" class="form-select">
-              <option value="">-- Chọn sản phẩm --</option>
-              <option v-for="product in products" :key="product.maSanPham" :value="product.maSanPham">
-                {{ product.tenSanPham }}
-              </option>
-            </select>
+        <h5 class="mb-3">{{ isEditing ? 'Cập nhật Biến thể' : 'Thêm Biến thể mới' }}</h5>
+        <form @submit.prevent="saveVariant">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
+              <select v-model="form.maSanPham" class="form-select" @change="fetchVariants" required>
+                <option value="">Chọn sản phẩm</option>
+                <option v-for="p in products" :key="p.maSanPham" :value="p.maSanPham">{{ p.tenSanPham }}</option>
+              </select>
+            </div>
+            <div class="col-md-2 mb-3">
+              <label class="form-label">Màu sắc <span class="text-danger">*</span></label>
+              <input type="text" v-model="form.mauSac" class="form-control" required placeholder="VD: Đỏ">
+            </div>
+            <div class="col-md-2 mb-3">
+              <label class="form-label">Kích cỡ <span class="text-danger">*</span></label>
+              <input type="text" v-model="form.kichCo" class="form-control" required placeholder="VD: XL">
+            </div>
+            <div class="col-md-2 mb-3">
+              <label class="form-label">Số lượng tồn <span class="text-danger">*</span></label>
+              <input type="number" v-model="form.soLuongTon" class="form-control" min="0" required>
+            </div>
+            <div class="col-md-2 mb-3 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100" :disabled="loading">
+                {{ loading ? 'Đang lưu...' : (isEditing ? 'Cập nhật' : 'Thêm') }}
+              </button>
+            </div>
           </div>
-        </div>
+          <button type="button" v-if="isEditing" @click="resetForm" class="btn btn-secondary">Hủy</button>
+        </form>
       </div>
     </div>
 
-    <!-- Ma trận biến thể -->
-    <div v-if="selectedProductId" class="card mb-4">
-      <div class="card-body">
-        <h5>Ma trận Biến thể</h5>
-        
-        <!-- Nhập màu sắc và kích thước -->
-        <div class="row mb-3">
-          <div class="col-md-5">
-            <label class="form-label">Màu sắc (ngăn cách bằng dấu phẩy)</label>
-            <input type="text" v-model="colorsInput" placeholder="Đỏ, Xanh, Đen" class="form-control">
-          </div>
-          <div class="col-md-5">
-            <label class="form-label">Kích thước (ngăn cách bằng dấu phẩy)</label>
-            <input type="text" v-model="sizesInput" placeholder="S, M, L, XL" class="form-control">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label">&nbsp;</label>
-            <button @click="generateMatrix" class="btn btn-primary w-100">Tạo ma trận</button>
-          </div>
-        </div>
-
-        <!-- Bảng ma trận -->
-        <div v-if="variantMatrix.length > 0" class="table-responsive">
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Màu sắc</th>
-                <th v-for="size in sizes" :key="size">{{ size }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="color in colors" :key="color">
-                <td>{{ color }}</td>
-                <td v-for="size in sizes" :key="size">
-                  <input 
-                    type="number" 
-                    v-model="variantMatrix[`${color}-${size}`].soLuong" 
-                    class="form-control form-control-sm"
-                    placeholder="SL"
-                    min="0"
-                  >
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div v-if="variantMatrix.length > 0" class="mt-3">
-          <button @click="saveVariants" class="btn btn-success" :disabled="loading">
-            {{ loading ? 'Đang lưu...' : 'Lưu biến thể' }}
-          </button>
-        </div>
-      </div>
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
     </div>
 
-    <!-- Danh sách biến thể hiện tại -->
-    <div v-if="selectedProductId" class="card">
-      <div class="card-body">
-        <h5>Danh sách biến thể hiện tại</h5>
-        <div v-if="loading" class="text-center py-3">
-          <div class="spinner-border text-primary"></div>
-        </div>
-        <div v-else-if="variants.length === 0" class="text-muted">
-          Chưa có biến thể nào
-        </div>
-        <div v-else class="table-responsive">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Mã biến thể</th>
-                <th>Màu sắc</th>
-                <th>Kích thước</th>
-                <th>Số lượng tồn</th>
-                <th>Giá bán</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="variant in variants" :key="variant.maChiTietSp">
-                <td>{{ variant.maChiTietSp }}</td>
-                <td>{{ variant.mauSac }}</td>
-                <td>{{ variant.kichCo }}</td>
-                <td>{{ variant.soLuongTon }}</td>
-                <td>{{ formatPrice(variant.giaBan) }}</td>
-                <td>
-                  <button @click="deleteVariant(variant.maChiTietSp)" class="btn btn-sm btn-danger">Xóa</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div v-else class="table-responsive bg-white rounded shadow-sm p-3">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID (Mã vạch)</th>
+            <th>Sản phẩm</th>
+            <th>Màu sắc</th>
+            <th>Kích cỡ</th>
+            <th>Tồn kho</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="variant in variants" :key="variant.maChiTietSp">
+            <td class="fw-bold text-secondary">{{ variant.maChiTietSp }}</td>
+            <td class="fw-bold">{{ getProductName(variant.maSanPham) }}</td>
+            <td>{{ variant.mauSac }}</td>
+            <td>{{ variant.kichCo }}</td>
+            <td>
+              <span class="badge" :class="variant.soLuongTon > 0 ? 'bg-success' : 'bg-danger'">
+                {{ variant.soLuongTon > 0 ? variant.soLuongTon : 'Hết hàng' }}
+              </span>
+            </td>
+            <td>
+              <button @click="editVariant(variant)" class="btn btn-sm btn-outline-primary me-2">Sửa</button>
+              <button @click="deleteVariant(variant.maChiTietSp)" class="btn btn-sm btn-outline-danger">Xóa</button>
+            </td>
+          </tr>
+          <tr v-if="variants.length === 0">
+            <td colspan="6" class="text-center text-muted py-3">Chưa có dữ liệu biến thể</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
 const API_URL = 'http://localhost:8080'
-
-const products = ref([])
 const variants = ref([])
-const selectedProductId = ref(null)
+const products = ref([])
 const loading = ref(false)
+const isEditing = ref(false)
+const editingId = ref(null)
 
-const colorsInput = ref('')
-const sizesInput = ref('')
-const variantMatrix = ref({})
+const form = ref({
+  maSanPham: '',
+  mauSac: '',
+  kichCo: '',
+  soLuongTon: 0
+})
 
-const colors = computed(() => colorsInput.value.split(',').map(c => c.trim()).filter(c => c))
-const sizes = computed(() => sizesInput.value.split(',').map(s => s.trim()).filter(s => s))
-
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)
+const getProductName = (id) => {
+  const p = products.value.find(x => x.maSanPham === id)
+  return p ? p.tenSanPham : id
 }
 
-const fetchProducts = async () => {
+const fetchData = async () => {
+  loading.value = true
   try {
-    const response = await axios.get(`${API_URL}/api/san-pham`)
-    if (response.data && response.data.success) {
-      products.value = response.data.data
-    }
+    const prodRes = await axios.get(`${API_URL}/api/san-pham`)
+    products.value = prodRes.data.data || prodRes.data || []
   } catch (error) {
-    console.error('Lỗi khi tải sản phẩm:', error)
+    console.error('Lỗi khi tải dữ liệu sản phẩm:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-const loadProductVariants = async () => {
-  if (!selectedProductId.value) return
-  
-  loading.value = true
+const fetchVariants = async () => {
+  if (!form.value.maSanPham) {
+    variants.value = []
+    return
+  }
   try {
-    const response = await axios.get(`${API_URL}/api/san-pham/${selectedProductId.value}/variants`)
-    if (response.data && response.data.success) {
-      variants.value = response.data.data
-    }
+    const res = await axios.get(`${API_URL}/api/chi-tiet-san-pham/san-pham/${form.value.maSanPham}`)
+    variants.value = res.data.data || res.data || []
   } catch (error) {
     console.error('Lỗi khi tải biến thể:', error)
     variants.value = []
-  } finally {
-    loading.value = false
   }
 }
 
-const generateMatrix = () => {
-  variantMatrix.value = {}
-  for (const color of colors.value) {
-    for (const size of sizes.value) {
-      variantMatrix.value[`${color}-${size}`] = {
-        mauSac: color,
-        kichCo: size,
-        soLuong: 0,
-        giaBan: 0
-      }
-    }
-  }
-}
-
-const saveVariants = async () => {
+const saveVariant = async () => {
   loading.value = true
   try {
-    const variantsToSave = Object.values(variantMatrix.value).filter(v => v.soLuong > 0)
-    
-    for (const variant of variantsToSave) {
-      const payload = {
-        maSanPham: selectedProductId.value,
-        mauSac: variant.mauSac,
-        kichCo: variant.kichCo,
-        soLuongTon: variant.soLuong,
-        giaBan: 100000 // Giá mặc định, có thể chỉnh sau
-      }
+    const payload = {
+      maSanPham: Number(form.value.maSanPham),
+      mauSac: form.value.mauSac,
+      kichCo: form.value.kichCo,
+      soLuongTon: Number(form.value.soLuongTon)
+    }
+
+    if (isEditing.value) {
+      await axios.put(`${API_URL}/api/chi-tiet-san-pham/${editingId.value}`, payload)
+      alert('Cập nhật thành công!')
+    } else {
       await axios.post(`${API_URL}/api/chi-tiet-san-pham`, payload)
+      alert('Thêm mới thành công!')
     }
     
-    alert('Đã lưu biến thể thành công!')
-    await loadProductVariants()
-    variantMatrix.value = {}
+    resetForm()
+    await fetchVariants()
   } catch (error) {
-    console.error('Lỗi khi lưu biến thể:', error)
-    alert('Lỗi khi lưu biến thể')
+    alert('Lỗi: ' + (error.response?.data?.message || error.message))
   } finally {
     loading.value = false
+  }
+}
+
+const editVariant = (variant) => {
+  isEditing.value = true
+  editingId.value = variant.maChiTietSp
+  form.value = {
+    maSanPham: variant.maSanPham,
+    mauSac: variant.mauSac,
+    kichCo: variant.kichCo,
+    soLuongTon: variant.soLuongTon
   }
 }
 
 const deleteVariant = async (id) => {
-  if (!confirm('Bạn có chắc muốn xóa?')) return
+  if (!confirm('Bạn có chắc muốn xóa biến thể này?')) return
   try {
     await axios.delete(`${API_URL}/api/chi-tiet-san-pham/${id}`)
-    await loadProductVariants()
+    await fetchVariants()
   } catch (error) {
-    console.error('Lỗi khi xóa:', error)
+    alert('Không thể xóa biến thể này!')
+  }
+}
+
+const resetForm = () => {
+  isEditing.value = false
+  editingId.value = null
+  const currentMaSP = form.value.maSanPham
+  form.value = {
+    maSanPham: currentMaSP,
+    mauSac: '',
+    kichCo: '',
+    soLuongTon: 0
   }
 }
 
 onMounted(() => {
-  fetchProducts()
+  fetchData()
 })
 </script>
