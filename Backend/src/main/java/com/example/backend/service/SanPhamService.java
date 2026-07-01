@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,6 +22,11 @@ public class SanPhamService {
         return sanPhamRepository.findAll();
     }
 
+    public List<SanPham> search(String ten, Integer maDanhMuc, Integer maThuongHieu, BigDecimal minGia, BigDecimal maxGia, String kichCo, String mauSac) {
+        return sanPhamRepository.searchProducts(ten, maDanhMuc, maThuongHieu, minGia, maxGia, kichCo, mauSac);
+    }
+
+
     public SanPham getById(Integer id) {
         return sanPhamRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm có mã: " + id));
@@ -29,7 +35,6 @@ public class SanPhamService {
     @Transactional
     public SanPham create(SanPhamRequest request) {
         SanPham sanPham = new SanPham();
-        sanPham.setMaSanPham(generateNextId());
         mapRequestToEntity(request, sanPham);
         sanPham.setNgayTao(LocalDateTime.now());
         return sanPhamRepository.save(sanPham);
@@ -64,3 +69,4 @@ public class SanPhamService {
                 .orElse(0) + 1;
     }
 }
+

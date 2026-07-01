@@ -21,6 +21,16 @@ public class ChiTietSanPhamService {
         return chiTietSanPhamRepository.findByMaSanPham(maSanPham);
     }
 
+    public ChiTietSanPham getById(Integer id) {
+        return chiTietSanPhamRepository.findById(id)
+            .orElseThrow(() -> new com.example.backend.exception.ResourceNotFoundException("Không tìm thấy biến thể"));
+    }
+
+    public ChiTietSanPham getByMaVachSku(String sku) {
+        return chiTietSanPhamRepository.findByMaVachSku(sku)
+            .orElseThrow(() -> new com.example.backend.exception.ResourceNotFoundException("Không tìm thấy biến thể với SKU: " + sku));
+    }
+
     // Thêm biến thể mới (Tự động sinh mã vạch)
     public ChiTietSanPham themMoi(ChiTietSanPham chiTiet) {
         // Tự động cấp phát mã vạch SKU độc nhất cho biến thể này

@@ -23,6 +23,20 @@ public class ChiTietSanPhamController {
         return ApiResponse.ok("Lấy danh sách biến thể thành công", list);
     }
 
+    // Lấy 1 biến thể bằng ID
+    @GetMapping("/{id}")
+    public ApiResponse<ChiTietSanPham> getById(@PathVariable Integer id) {
+        ChiTietSanPham chiTiet = chiTietSanPhamService.getById(id);
+        return ApiResponse.ok("Lấy biến thể thành công", chiTiet);
+    }
+
+    // Tìm biến thể bằng mã SKU
+    @GetMapping("/sku/{sku}")
+    public ApiResponse<ChiTietSanPham> getBySku(@PathVariable String sku) {
+        ChiTietSanPham chiTiet = chiTietSanPhamService.getByMaVachSku(sku);
+        return ApiResponse.ok("Tìm biến thể bằng SKU thành công", chiTiet);
+    }
+
     // Thêm 1 màu/size mới (Tự sinh mã vạch)
     @PostMapping
     public ApiResponse<ChiTietSanPham> themMoi(@RequestBody ChiTietSanPham chiTiet) {

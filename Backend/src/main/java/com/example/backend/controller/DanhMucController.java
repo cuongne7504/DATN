@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/danhmuc")
+@RequestMapping("/api/danh-muc")
 @CrossOrigin(origins = "*")
 public class DanhMucController {
 
@@ -51,3 +51,4 @@ public class DanhMucController {
         return ResponseEntity.ok().build();
     }
 }
+

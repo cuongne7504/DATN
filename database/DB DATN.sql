@@ -1,4 +1,4 @@
-﻿-- Dòng này đảm bảo bạn đang tạo bảng vào đúng Database SportPro
+-- Dòng này đảm bảo bạn đang tạo bảng vào đúng Database SportPro
 create database SportPro
 
 USE SportPro;
@@ -142,7 +142,15 @@ CREATE TABLE DANH_GIA (
   FOREIGN KEY (ma_san_pham) REFERENCES SAN_PHAM(ma_san_pham)
 );
 
-USE SportPro;
+CREATE TABLE KHACH_HANG (
+  ma_khach_hang INT PRIMARY KEY,
+  ma_nguoi_dung INT NOT NULL UNIQUE,
+  ten_khach_hang NVARCHAR(255),
+  gioi_tinh NVARCHAR(10),
+  ngay_sinh DATE,
+  trang_thai BIT NOT NULL DEFAULT 1,
+  FOREIGN KEY (ma_nguoi_dung) REFERENCES NGUOI_DUNG(ma_nguoi_dung)
+);
 GO
 
 -- 1. Thêm Phân Quyền
@@ -153,16 +161,42 @@ INSERT INTO PHAN_QUYEN (ma_quyen, ten_quyen, mo_ta) VALUES
 GO
 
 -- 2. Thêm Người Dùng
--- (Mật khẩu đang giả lập là đã mã hóa hoặc dùng pass mặc định 123456)
 INSERT INTO NGUOI_DUNG (ma_nguoi_dung, ma_quyen, ho_ten, email, mat_khau, so_dien_thoai, dia_chi, ngay_tao) VALUES
-(1, 1, N'Nguyễn Trùm Cuối', 'admin@sportpro.com', '123456', '0999999999', N'Hà Nội', GETDATE()),
-(2, 2, N'Trần Nhân Viên', 'nhanvien1@sportpro.com', '123456', '0888888888', N'Đà Nẵng', GETDATE()),
-(3, 3, N'Lê Khách Mua', 'khachhang1@gmail.com', '123456', '0777777777', N'Hồ Chí Minh', GETDATE()),
-(4, 3, N'Phạm Khách Sộp', 'khachhang2@gmail.com', '123456', '0666666666', N'Hải Phòng', GETDATE());
+(1, 1, N'Nguyễn Trùm Cuối', 'admin@sportpro.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0999999999', N'Hà Nội', GETDATE()),
+(2, 2, N'Trần Nhân Viên', 'nhanvien1@sportpro.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0888888888', N'Đà Nẵng', GETDATE()),
+(3, 3, N'Lê Khách Mua', 'khachhang1@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0777777777', N'Hồ Chí Minh', GETDATE()),
+(4, 3, N'Phạm Khách Sộp', 'khachhang2@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0666666666', N'Hải Phòng', GETDATE()),
+(5, 3, N'Nguyễn Văn An', 'customer5@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345671', N'Hà Nội', GETDATE()),
+(6, 3, N'Trần Thị Bình', 'customer6@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345672', N'Hồ Chí Minh', GETDATE()),
+(7, 3, N'Lê Hoàng Cường', 'customer7@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345673', N'Đà Nẵng', GETDATE()),
+(8, 3, N'Phạm Minh Đức', 'customer8@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345674', N'Hải Phòng', GETDATE()),
+(9, 3, N'Vũ Thị Giang', 'customer9@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345675', N'Cần Thơ', GETDATE()),
+(10, 3, N'Đỗ Anh Hùng', 'customer10@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345676', N'Huế', GETDATE()),
+(11, 3, N'Bùi Quang Huy', 'customer11@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345677', N'Nha Trang', GETDATE()),
+(12, 3, N'Hoàng Lan Hương', 'customer12@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345678', N'Đà Lạt', GETDATE()),
+(13, 3, N'Phan Thanh Hải', 'customer13@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345679', N'Vũng Tàu', GETDATE()),
+(14, 3, N'Dương Thùy Linh', 'customer14@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345680', N'Quảng Ninh', GETDATE()),
+(15, 3, N'Ngô Quốc Khánh', 'customer15@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345681', N'Bắc Ninh', GETDATE());
+GO
+
+-- Thêm Khách hàng chi tiết
+INSERT INTO KHACH_HANG (ma_khach_hang, ma_nguoi_dung, ten_khach_hang, gioi_tinh, ngay_sinh, trang_thai) VALUES
+(1, 3, N'Lê Khách Mua', N'Nam', '1998-05-12', 1),
+(2, 4, N'Phạm Khách Sộp', N'Nữ', '1996-10-20', 1),
+(3, 5, N'Nguyễn Văn An', N'Nam', '2000-02-18', 1),
+(4, 6, N'Trần Thị Bình', N'Nữ', '1999-07-25', 1),
+(5, 7, N'Lê Hoàng Cường', N'Nam', '1995-11-09', 1),
+(6, 8, N'Phạm Minh Đức', N'Nữ', '2001-03-15', 1),
+(7, 9, N'Vũ Thị Giang', N'Nam', '1997-08-28', 1),
+(8, 10, N'Đỗ Anh Hùng', N'Nữ', '1994-12-01', 1),
+(9, 11, N'Bùi Quang Huy', N'Nam', '1993-04-05', 1),
+(10, 12, N'Hoàng Lan Hương', N'Nữ', '2002-09-17', 1),
+(11, 13, N'Phan Thanh Hải', N'Nam', '1996-01-30', 0),
+(12, 14, N'Dương Thùy Linh', N'Nữ', '1998-06-11', 1),
+(13, 15, N'Ngô Quốc Khánh', N'Nam', '1999-10-22', 1);
 GO
 
 -- 3. Thêm Danh Mục
--- (Danh mục cha không có ma_danh_muc_cha -> gán NULL)
 INSERT INTO DANH_MUC (ma_danh_muc, ma_danh_muc_cha, ten_danh_muc, hinh_anh) VALUES
 (1, NULL, N'Quần áo thể thao', 'quan-ao.jpg'),
 (2, NULL, N'Giày thể thao', 'giay.jpg'),
@@ -193,7 +227,7 @@ INSERT INTO CHI_TIET_SAN_PHAM (ma_chi_tiet_sp, ma_san_pham, ma_vach_sku, mau_sac
 (5, 3, 'VN-RED-FREESIZE', N'Đỏ', 'FreeSize', 100, 0);
 GO
 
--- 7. Thêm Hình Ảnh Sản Phẩm (BIT: 1 là TRUE/Có, 0 là FALSE/Không)
+-- 7. Thêm Hình Ảnh Sản Phẩm
 INSERT INTO HINH_ANH_SP (ma_hinh_anh, ma_san_pham, duong_dan_anh, la_anh_chinh) VALUES
 (1, 1, 'mu_front.jpg', 1),
 (2, 1, 'mu_back.jpg', 0),
@@ -207,7 +241,7 @@ INSERT INTO KHUYEN_MAI (ma_khuyen_mai, ma_code, phan_tram_giam, so_tien_giam, do
 (2, 'FREESHIP', 0, 30000, 150000, '2024-05-01', '2024-06-01', 500);
 GO
 
--- 9. Thêm Đơn Hàng (Khách 3 mua, Nhân viên 2 duyệt, Áp mã KM 1)
+-- 9. Thêm Đơn Hàng
 INSERT INTO DON_HANG (ma_don_hang, ma_nguoi_dung, ma_nhan_vien, ma_khuyen_mai, ngay_dat, tong_tien, phi_ship, dia_chi_giao, phuong_thuc_tt, trang_thai) VALUES
 (1, 3, 2, 1, GETDATE(), 450000, 30000, N'123 Lê Lợi, Q1, TPHCM', N'Chuyển khoản', N'Đã giao hàng'),
 (2, 4, 2, NULL, GETDATE(), 2100000, 0, N'456 Lạch Tray, Hải Phòng', N'Tiền mặt (COD)', N'Đang xử lý');
@@ -215,18 +249,18 @@ GO
 
 -- 10. Thêm Chi Tiết Đơn Hàng
 INSERT INTO CHI_TIET_DON_HANG (ma_ct_don_hang, ma_don_hang, ma_chi_tiet_sp, so_luong, don_gia) VALUES
-(1, 1, 1, 1, 450000), -- Khách 3 mua 1 áo MU size M
-(2, 2, 3, 1, 2100000); -- Khách 4 mua 1 đôi Nike size 42
+(1, 1, 1, 1, 450000),
+(2, 2, 3, 1, 2100000);
 GO
 
--- 11. Thêm Giỏ Hàng (Khách 3 đang để dành đồ)
+-- 11. Thêm Giỏ Hàng
 INSERT INTO GIO_HANG (ma_gio_hang, ma_nguoi_dung, ngay_tao) VALUES
 (1, 3, GETDATE());
 GO
 
 -- 12. Thêm Chi Tiết Giỏ Hàng
 INSERT INTO CHI_TIET_GIO_HANG (ma_ct_gio_hang, ma_gio_hang, ma_chi_tiet_sp, so_luong) VALUES
-(1, 1, 4, 1); -- Khách 3 đang bỏ Giày Nike Trắng vào giỏ nhưng chưa thanh toán
+(1, 1, 4, 1);
 GO
 
 -- 13. Thêm Lịch Sử Thanh Toán
