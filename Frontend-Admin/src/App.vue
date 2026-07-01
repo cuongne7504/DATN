@@ -43,6 +43,11 @@
               <i class="bi bi-ticket-perforated me-2"></i> Khuyến mãi
             </router-link>
           </li>
+          <li class="nav-item mb-2" v-if="user?.maQuyen === 1">
+            <router-link class="nav-link text-white sidebar-link" active-class="active bg-white text-black fw-bold" to="/admin/customers">
+              <i class="bi bi-people me-2"></i> Khách hàng
+            </router-link>
+          </li>
           <li class="nav-item mb-2 mt-4 pt-3 border-top border-secondary">
             <router-link class="nav-link text-white sidebar-link bg-secondary bg-opacity-25" active-class="active bg-white text-black fw-bold" to="/admin/pos">
               <i class="bi bi-shop me-2"></i> Bán tại quầy (POS)

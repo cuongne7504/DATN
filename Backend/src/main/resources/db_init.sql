@@ -1,9 +1,5 @@
--- Dòng này đảm bảo bạn đang tạo bảng vào đúng Database SportPro
 create database SportPro
-
-USE SportPro;
-GO
-
+use SportPro
 CREATE TABLE PHAN_QUYEN (
   ma_quyen INT PRIMARY KEY,
   ten_quyen NVARCHAR(255),
@@ -151,14 +147,12 @@ CREATE TABLE KHACH_HANG (
   trang_thai BIT NOT NULL DEFAULT 1,
   FOREIGN KEY (ma_nguoi_dung) REFERENCES NGUOI_DUNG(ma_nguoi_dung)
 );
-GO
 
 -- 1. Thêm Phân Quyền
 INSERT INTO PHAN_QUYEN (ma_quyen, ten_quyen, mo_ta) VALUES
 (1, N'Quản trị viên', N'Full quyền hệ thống'),
 (2, N'Nhân viên', N'Quyền quản lý đơn hàng và sản phẩm'),
 (3, N'Khách hàng', N'Quyền mua hàng và đánh giá');
-GO
 
 -- 2. Thêm Người Dùng
 INSERT INTO NGUOI_DUNG (ma_nguoi_dung, ma_quyen, ho_ten, email, mat_khau, so_dien_thoai, dia_chi, ngay_tao) VALUES
@@ -177,7 +171,6 @@ INSERT INTO NGUOI_DUNG (ma_nguoi_dung, ma_quyen, ho_ten, email, mat_khau, so_die
 (13, 3, N'Phan Thanh Hải', 'customer13@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345679', N'Vũng Tàu', GETDATE()),
 (14, 3, N'Dương Thùy Linh', 'customer14@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345680', N'Quảng Ninh', GETDATE()),
 (15, 3, N'Ngô Quốc Khánh', 'customer15@gmail.com', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', '0912345681', N'Bắc Ninh', GETDATE());
-GO
 
 -- Thêm Khách hàng chi tiết
 INSERT INTO KHACH_HANG (ma_khach_hang, ma_nguoi_dung, ten_khach_hang, gioi_tinh, ngay_sinh, trang_thai) VALUES
@@ -194,7 +187,6 @@ INSERT INTO KHACH_HANG (ma_khach_hang, ma_nguoi_dung, ten_khach_hang, gioi_tinh,
 (11, 13, N'Phan Thanh Hải', N'Nam', '1996-01-30', 0),
 (12, 14, N'Dương Thùy Linh', N'Nữ', '1998-06-11', 1),
 (13, 15, N'Ngô Quốc Khánh', N'Nam', '1999-10-22', 1);
-GO
 
 -- 3. Thêm Danh Mục
 INSERT INTO DANH_MUC (ma_danh_muc, ma_danh_muc_cha, ten_danh_muc, hinh_anh) VALUES
@@ -202,21 +194,18 @@ INSERT INTO DANH_MUC (ma_danh_muc, ma_danh_muc_cha, ten_danh_muc, hinh_anh) VALU
 (2, NULL, N'Giày thể thao', 'giay.jpg'),
 (3, 1, N'Áo bóng đá', 'ao-bong-da.jpg'),
 (4, 2, N'Giày chạy bộ', 'giay-chay-bo.jpg');
-GO
 
 -- 4. Thêm Thương Hiệu
 INSERT INTO THUONG_HIEU (ma_thuong_hieu, ten_thuong_hieu, logo) VALUES
 (1, N'Nike', 'nike-logo.png'),
 (2, N'Adidas', 'adidas-logo.png'),
 (3, N'Puma', 'puma-logo.png');
-GO
 
 -- 5. Thêm Sản Phẩm
 INSERT INTO SAN_PHAM (ma_san_pham, ma_danh_muc, ma_thuong_hieu, ten_san_pham, mo_ta, gia_goc, gia_khuyen_mai, ngay_tao) VALUES
 (1, 3, 2, N'Áo thi đấu CLB Manchester United 23/24', N'Áo sân nhà mùa giải mới, vải thoáng mát.', 500000, 450000, GETDATE()),
 (2, 4, 1, N'Giày chạy bộ Nike Air Zoom Pegasus 40', N'Giày chạy siêu nhẹ, đệm êm ái.', 2500000, 2100000, GETDATE()),
 (3, 3, 1, N'Áo đội tuyển Việt Nam sân nhà', N'Áo cổ vũ đội tuyển quốc gia.', 300000, 300000, GETDATE());
-GO
 
 -- 6. Thêm Chi Tiết Sản Phẩm (Các Size và Màu)
 INSERT INTO CHI_TIET_SAN_PHAM (ma_chi_tiet_sp, ma_san_pham, ma_vach_sku, mau_sac, kich_co, so_luong_ton, gia_cong_them) VALUES
@@ -225,7 +214,6 @@ INSERT INTO CHI_TIET_SAN_PHAM (ma_chi_tiet_sp, ma_san_pham, ma_vach_sku, mau_sac
 (3, 2, 'NKPEG40-BLK-42', N'Đen', '42', 20, 0),
 (4, 2, 'NKPEG40-WHT-43', N'Trắng', '43', 15, 0),
 (5, 3, 'VN-RED-FREESIZE', N'Đỏ', 'FreeSize', 100, 0);
-GO
 
 -- 7. Thêm Hình Ảnh Sản Phẩm
 INSERT INTO HINH_ANH_SP (ma_hinh_anh, ma_san_pham, duong_dan_anh, la_anh_chinh) VALUES
@@ -233,42 +221,34 @@ INSERT INTO HINH_ANH_SP (ma_hinh_anh, ma_san_pham, duong_dan_anh, la_anh_chinh) 
 (2, 1, 'mu_back.jpg', 0),
 (3, 2, 'nike_pegasus_main.jpg', 1),
 (4, 3, 'vn_ao.jpg', 1);
-GO
 
 -- 8. Thêm Khuyến Mãi
 INSERT INTO KHUYEN_MAI (ma_khuyen_mai, ma_code, phan_tram_giam, so_tien_giam, don_toi_thieu, ngay_bat_dau, ngay_ket_thuc, so_luong_dung) VALUES
 (1, 'WELCOME50', 10, 50000, 200000, '2024-01-01', '2024-12-31', 1000),
 (2, 'FREESHIP', 0, 30000, 150000, '2024-05-01', '2024-06-01', 500);
-GO
 
 -- 9. Thêm Đơn Hàng
 INSERT INTO DON_HANG (ma_don_hang, ma_nguoi_dung, ma_nhan_vien, ma_khuyen_mai, ngay_dat, tong_tien, phi_ship, dia_chi_giao, phuong_thuc_tt, trang_thai) VALUES
 (1, 3, 2, 1, GETDATE(), 450000, 30000, N'123 Lê Lợi, Q1, TPHCM', N'Chuyển khoản', N'Đã giao hàng'),
 (2, 4, 2, NULL, GETDATE(), 2100000, 0, N'456 Lạch Tray, Hải Phòng', N'Tiền mặt (COD)', N'Đang xử lý');
-GO
 
 -- 10. Thêm Chi Tiết Đơn Hàng
 INSERT INTO CHI_TIET_DON_HANG (ma_ct_don_hang, ma_don_hang, ma_chi_tiet_sp, so_luong, don_gia) VALUES
 (1, 1, 1, 1, 450000),
 (2, 2, 3, 1, 2100000);
-GO
 
 -- 11. Thêm Giỏ Hàng
 INSERT INTO GIO_HANG (ma_gio_hang, ma_nguoi_dung, ngay_tao) VALUES
 (1, 3, GETDATE());
-GO
 
 -- 12. Thêm Chi Tiết Giỏ Hàng
 INSERT INTO CHI_TIET_GIO_HANG (ma_ct_gio_hang, ma_gio_hang, ma_chi_tiet_sp, so_luong) VALUES
 (1, 1, 4, 1);
-GO
 
 -- 13. Thêm Lịch Sử Thanh Toán
 INSERT INTO LICH_SU_THANH_TOAN (ma_thanh_toan, ma_don_hang, ma_giao_dich, so_tien, trang_thai, ngay_tao) VALUES
 (1, 1, 'VNPT_99887766', 480000, N'Thành công', GETDATE());
-GO
 
 -- 14. Thêm Đánh Giá
 INSERT INTO DANH_GIA (ma_danh_gia, ma_nguoi_dung, ma_san_pham, so_sao, noi_dung, ngay_tao) VALUES
 (1, 3, 1, 5, N'Áo đẹp, vải xịn mặc mát lắm shop ơi. Sẽ ủng hộ thêm!', GETDATE());
-GO
