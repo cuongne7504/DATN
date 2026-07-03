@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.ChiTietSanPhamRequest;
+import com.example.backend.dto.TonKhoResponse;
 import com.example.backend.entity.ChiTietSanPham;
 import com.example.backend.exception.ResourceNotFoundException;
 import com.example.backend.repository.ChiTietSanPhamRepository;
@@ -28,19 +29,26 @@ public class ChiTietSanPhamService {
         return chiTietSanPhamRepository.findByMaSanPham(maSanPham);
     }
 
+    public List<TonKhoResponse> layDanhSachTonKho() {
+        return chiTietSanPhamRepository.layDanhSachTonKho();
+    }
+
     public ChiTietSanPham getById(Integer id) {
         return chiTietSanPhamRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi tiết sản phẩm có mã: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy biến thể có mã: " + id));
+    }
+
+    public ChiTietSanPham getByMaVachSku(String sku) {
+        return chiTietSanPhamRepository.findByMaVachSku(sku)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy biến thể với SKU: " + sku));
     }
 
     @Transactional
     public ChiTietSanPham create(ChiTietSanPhamRequest request) {
-        // Kiểm tra sản phẩm gốc tồn tại
         if (!sanPhamRepository.existsById(request.getMaSanPham())) {
             throw new ResourceNotFoundException("Không tìm thấy sản phẩm có mã: " + request.getMaSanPham());
         }
 
-        // Kiểm tra trùng mã vạch SKU
         Optional<ChiTietSanPham> duplicate = chiTietSanPhamRepository.findByMaVachSku(request.getMaVachSku());
         if (duplicate.isPresent()) {
             throw new IllegalArgumentException("Mã vạch SKU đã tồn tại trong hệ thống: " + request.getMaVachSku());
@@ -49,7 +57,6 @@ public class ChiTietSanPhamService {
         ChiTietSanPham chiTiet = new ChiTietSanPham();
         chiTiet.setMaChiTietSp(generateNextId());
         mapRequestToEntity(request, chiTiet);
-
         return chiTietSanPhamRepository.save(chiTiet);
     }
 
@@ -57,12 +64,10 @@ public class ChiTietSanPhamService {
     public ChiTietSanPham update(Integer id, ChiTietSanPhamRequest request) {
         ChiTietSanPham chiTiet = getById(id);
 
-        // Kiểm tra sản phẩm gốc tồn tại
         if (!sanPhamRepository.existsById(request.getMaSanPham())) {
             throw new ResourceNotFoundException("Không tìm thấy sản phẩm có mã: " + request.getMaSanPham());
         }
 
-        // Kiểm tra trùng mã vạch SKU của bản ghi khác
         Optional<ChiTietSanPham> duplicate = chiTietSanPhamRepository.findByMaVachSku(request.getMaVachSku());
         if (duplicate.isPresent() && !duplicate.get().getMaChiTietSp().equals(id)) {
             throw new IllegalArgumentException("Mã vạch SKU đã được sử dụng bởi biến thể khác: " + request.getMaVachSku());
@@ -78,30 +83,34 @@ public class ChiTietSanPhamService {
         chiTietSanPhamRepository.delete(chiTiet);
     }
 
-    // Thêm biến thể mới (Tự động sinh mã vạch)
     @Transactional
     public ChiTietSanPham themMoi(ChiTietSanPham chiTiet) {
-        // Tự động cấp phát mã vạch SKU độc nhất cho biến thể này
-        String uniqueSku = skuGeneratorService.generateUniqueSku();
-        chiTiet.setMaVachSku(uniqueSku);
+        if (chiTiet.getMaVachSku() == null || chiTiet.getMaVachSku().trim().isEmpty()) {
+            chiTiet.setMaVachSku(skuGeneratorService.generateUniqueSku());
+        }
         if (chiTiet.getMaChiTietSp() == null) {
             chiTiet.setMaChiTietSp(generateNextId());
         }
         return chiTietSanPhamRepository.save(chiTiet);
     }
 
-    // Cập nhật số lượng hoặc giá cộng thêm
     @Transactional
     public ChiTietSanPham capNhat(Integer id, ChiTietSanPham data) {
-        ChiTietSanPham existing = chiTietSanPhamRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể SP này!"));
-        
+        ChiTietSanPham existing = getById(id);
+
         existing.setMauSac(data.getMauSac());
         existing.setKichCo(data.getKichCo());
         existing.setSoLuongTon(data.getSoLuongTon());
         existing.setGiaCongThem(data.getGiaCongThem());
-        // KHÔNG cho phép sửa mã vạch SKU vì mã vạch là cố định
-        
+
+        if (data.getMaVachSku() != null && !data.getMaVachSku().trim().isEmpty()) {
+            Optional<ChiTietSanPham> duplicate = chiTietSanPhamRepository.findByMaVachSku(data.getMaVachSku());
+            if (duplicate.isPresent() && !duplicate.get().getMaChiTietSp().equals(id)) {
+                throw new IllegalArgumentException("Mã vạch SKU đã được sử dụng: " + data.getMaVachSku());
+            }
+            existing.setMaVachSku(data.getMaVachSku());
+        }
+
         return chiTietSanPhamRepository.save(existing);
     }
 

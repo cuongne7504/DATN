@@ -50,7 +50,9 @@ public class ReportService {
 
                 BigDecimal donGiaBan = ctdh.getDonGia();
                 BigDecimal giaGoc = sanPham.getGiaGoc() != null ? sanPham.getGiaGoc() : BigDecimal.ZERO;
-                BigDecimal loiNhuanTrenMotSp = donGiaBan.subtract(giaGoc);
+                // Giả định giá nhập = 70% giá gốc để tính lợi nhuận (vì DB không có trường giá nhập)
+                BigDecimal giaNhap = giaGoc.multiply(BigDecimal.valueOf(0.7));
+                BigDecimal loiNhuanTrenMotSp = donGiaBan.subtract(giaNhap);
                 BigDecimal tongLoiNhuanItem = loiNhuanTrenMotSp.multiply(BigDecimal.valueOf(ctdh.getSoLuong()));
 
                 reportItems.add(new ProfitReportItemDto(

@@ -21,7 +21,7 @@ public class GioHangController {
 
     private final GioHangService gioHangService;
 
-    // --- CÁC ENDPOINT TỪ NHÁNH KY (Frontend chính đang gọi) ---
+    // --- API nhánh ky ---
 
     @GetMapping("/{maNguoiDung}")
     public ResponseEntity<ApiResponse<GioHangDetailResponse>> getCartDetail(@PathVariable Integer maNguoiDung) {
@@ -56,7 +56,7 @@ public class GioHangController {
         return ResponseEntity.ok(ApiResponse.ok("Xóa giỏ hàng thành công", null));
     }
 
-    // --- CÁC ENDPOINT TỪ NHÁNH MAIN ---
+    // --- API nhánh main ---
 
     @GetMapping("/cua-toi/{maNguoiDung}")
     public ApiResponse<List<ChiTietGioHang>> getGioHang(@PathVariable Integer maNguoiDung) {

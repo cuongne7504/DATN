@@ -33,7 +33,7 @@ public class DonHangController {
     }
 
     @GetMapping("/nguoi-dung/{maNguoiDung}")
-    public ResponseEntity<ApiResponse<List<DonHang>>> getByMaNguoiDung(@PathVariable Integer maNguoiDung) {
+    public ResponseEntity<ApiResponse<List<DonHangDetailResponse>>> getByMaNguoiDung(@PathVariable Integer maNguoiDung) {
         return ResponseEntity.ok(ApiResponse.ok(donHangService.getByMaNguoiDung(maNguoiDung)));
     }
 

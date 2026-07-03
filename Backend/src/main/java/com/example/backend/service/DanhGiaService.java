@@ -45,7 +45,6 @@ public class DanhGiaService {
         }
 
         DanhGia danhGia = new DanhGia();
-        danhGia.setMaDanhGia(generateNextId());
         danhGia.setMaNguoiDung(request.getMaNguoiDung());
         danhGia.setMaSanPham(request.getMaSanPham());
         danhGia.setSoSao(request.getSoSao());
@@ -67,3 +66,4 @@ public class DanhGiaService {
                 .mapToInt(DanhGia::getMaDanhGia).max().orElse(0) + 1;
     }
 }
+

@@ -35,7 +35,6 @@ public class SanPhamService {
     @Transactional
     public SanPham create(SanPhamRequest request) {
         SanPham sanPham = new SanPham();
-        sanPham.setMaSanPham(generateNextId());
         mapRequestToEntity(request, sanPham);
         sanPham.setNgayTao(LocalDateTime.now());
         return sanPhamRepository.save(sanPham);
@@ -70,3 +69,4 @@ public class SanPhamService {
                 .orElse(0) + 1;
     }
 }
+
