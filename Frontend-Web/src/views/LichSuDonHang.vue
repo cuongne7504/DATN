@@ -31,7 +31,7 @@
             <!-- Sản phẩm -->
             <div class="d-flex border-bottom pb-3 mb-3" v-for="item in orderInfo.chiTietList" :key="item.maCtDonHang">
               <div class="flex-grow-1">
-                <h6 class="fw-bold mb-1">{{ item.chiTietSanPham?.sanPham?.tenSanPham || 'Sản phẩm (Mã SKU: ' + (item.chiTietSanPham?.maVachSku || item.maChiTietSp) + ')' }}</h6>
+                <h6 class="fw-bold mb-1">{{ item.sanPham?.tenSanPham || 'Sản phẩm (Mã SKU: ' + (item.chiTietSanPham?.maVachSku || item.maChiTietSp) + ')' }}</h6>
                 <div class="text-muted small mb-2">
                   Phân loại: Màu {{ item.chiTietSanPham?.mauSac || 'N/A' }} - Size {{ item.chiTietSanPham?.kichCo || 'N/A' }}<br>
                   x{{ item.soLuong }}
@@ -96,7 +96,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="item in selectedOrder.chiTietList" :key="item.maCtDonHang">
-                    <td>{{ item.chiTietSanPham?.sanPham?.tenSanPham || 'Sản phẩm' }}</td>
+                    <td>{{ item.sanPham?.tenSanPham || 'Sản phẩm' }}</td>
                     <td>Màu {{ item.chiTietSanPham?.mauSac }} - Size {{ item.chiTietSanPham?.kichCo }}</td>
                     <td class="text-center">{{ item.soLuong }}</td>
                     <td class="text-end fw-bold text-primary">{{ formatPrice(item.soLuong * item.donGia) }}</td>
@@ -106,6 +106,14 @@
                   <tr>
                     <td colspan="3" class="text-end fw-bold">Phí ship:</td>
                     <td class="text-end text-muted">{{ formatPrice(selectedOrder.phiShip || 0) }}</td>
+                  </tr>
+                  <tr v-if="selectedOrder.khuyenMai">
+                    <td colspan="3" class="text-end fw-bold text-success">
+                      Khuyến mãi ({{ selectedOrder.khuyenMai.maCode }}):
+                    </td>
+                    <td class="text-end text-success fw-bold">
+                      -{{ formatPrice(selectedOrder.chiTietList.reduce((sum, item) => sum + (item.soLuong * item.donGia), 0) + (selectedOrder.phiShip || 0) - selectedOrder.tongTien) }}
+                    </td>
                   </tr>
                   <tr>
                     <td colspan="3" class="text-end fw-bold fs-5">Tổng cộng:</td>
@@ -186,7 +194,7 @@ const cancelOrder = async (id) => {
   if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) return
   
   try {
-    await axios.put(`${API_URL}/api/don-hang/${id}/trang-thai?trangThai=DaHuy`)
+    await axios.put(`${API_URL}/api/don-hang/${id}/trang-thai?trangThai=Đã hủy`)
     alert('Hủy đơn hàng thành công!')
     await fetchOrders()
   } catch (error) {

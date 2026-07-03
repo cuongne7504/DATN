@@ -38,9 +38,24 @@
               <i class="bi bi-cart-check me-2"></i> Đơn hàng
             </router-link>
           </li>
+          <li class="nav-item mb-2" v-if="user?.maQuyen === 1 || user?.maQuyen === 2">
+            <router-link class="nav-link text-white sidebar-link" active-class="active bg-white text-black fw-bold" to="/admin/inventory">
+              <i class="bi bi-box-seam-fill me-2"></i> Kho hàng
+            </router-link>
+          </li>
           <li class="nav-item mb-2" v-if="user?.maQuyen === 1">
             <router-link class="nav-link text-white sidebar-link" active-class="active bg-white text-black fw-bold" to="/admin/vouchers">
               <i class="bi bi-ticket-perforated me-2"></i> Khuyến mãi
+            </router-link>
+          </li>
+          <li class="nav-item mb-2" v-if="user?.maQuyen === 1">
+            <router-link class="nav-link text-white sidebar-link" active-class="active bg-white text-black fw-bold" to="/admin/employees">
+              <i class="bi bi-person-badge me-2"></i> Nhân viên
+            </router-link>
+          </li>
+          <li class="nav-item mb-2" v-if="user?.maQuyen === 1">
+            <router-link class="nav-link text-white sidebar-link" active-class="active bg-white text-black fw-bold" to="/admin/customers">
+              <i class="bi bi-people me-2"></i> Khách hàng
             </router-link>
           </li>
           <li class="nav-item mb-2 mt-4 pt-3 border-top border-secondary">
@@ -52,16 +67,16 @@
       </div>
       
       <div class="p-3 border-top border-secondary">
-        <div v-if="user" class="dropdown">
-          <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-            <div class="bg-white text-black rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold" style="width: 32px; height: 32px;">
+        <div v-if="user" class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center text-white text-decoration-none" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <div class="bg-white text-black rounded-circle d-flex align-items-center justify-content-center me-2 fw-bold flex-shrink-0" style="width: 32px; height: 32px;">
               {{ user.hoTen ? user.hoTen.charAt(0).toUpperCase() : 'A' }}
             </div>
-            <strong>{{ user.hoTen || user.email }}</strong>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-            <li><a class="dropdown-item text-danger fw-bold" href="#" @click="logout">Đăng xuất</a></li>
-          </ul>
+            <strong class="text-truncate">{{ user.hoTen || user.email }}</strong>
+          </div>
+          <button class="btn btn-sm btn-outline-danger flex-shrink-0 ms-2" @click="logout" title="Đăng xuất">
+            <i class="bi bi-box-arrow-right"></i> Thoát
+          </button>
         </div>
       </div>
     </div>

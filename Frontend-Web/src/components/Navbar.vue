@@ -1,8 +1,8 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
     <div class="container">
-      <router-link class="navbar-brand fw-bold fs-4 text-uppercase" to="/">
-        <i class="bi bi-fire text-warning"></i> SportPro
+      <router-link class="navbar-brand fw-bold fs-4 text-uppercase d-flex align-items-center" to="/">
+        <img src="/logo.png" alt="SportPro" style="height: 32px; width: 32px; object-fit: contain; margin-right: 8px;"> SportPro
       </router-link>
       
       <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

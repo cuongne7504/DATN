@@ -28,6 +28,16 @@
               <li><router-link class="dropdown-item" to="/admin/variants">Quản lý Biến thể (Size/Màu)</router-link></li>
             </ul>
           </li>
+          <li class="nav-item dropdown" v-if="user?.maQuyen === 1">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Nhân sự</a>
+            <ul class="dropdown-menu">
+              <li><router-link class="dropdown-item" to="/admin/employees">Quản lý Nhân viên</router-link></li>
+              <li><router-link class="dropdown-item" to="/admin/customers">Quản lý Khách hàng</router-link></li>
+            </ul>
+          </li>
+          <li class="nav-item" v-if="user?.maQuyen === 1 || user?.maQuyen === 2">
+            <router-link class="nav-link" active-class="active fw-semibold" to="/admin/inventory">Kho hàng</router-link>
+          </li>
           <li class="nav-item">
             <router-link class="nav-link" active-class="active fw-semibold" to="/admin/orders">Đơn hàng</router-link>
           </li>

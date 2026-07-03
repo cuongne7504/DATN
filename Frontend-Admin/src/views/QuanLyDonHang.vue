@@ -101,7 +101,8 @@
               <tbody>
                 <tr v-for="item in selectedOrder.chiTietList" :key="item.maCtDonHang">
                   <td>
-                    Chi tiết SP ID: {{ item.maChiTietSp }}
+                    <div class="fw-bold">{{ item.sanPham?.tenSanPham || 'Sản phẩm ' + item.maChiTietSp }}</div>
+                    <div class="small text-muted">Màu: {{ item.chiTietSanPham?.mauSac }} - Size: {{ item.chiTietSanPham?.kichCo }}</div>
                   </td>
                   <td>{{ item.soLuong }}</td>
                   <td>{{ formatPrice(item.donGia) }}</td>

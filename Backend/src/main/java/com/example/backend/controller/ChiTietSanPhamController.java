@@ -23,6 +23,13 @@ public class ChiTietSanPhamController {
         return ApiResponse.ok("Lấy danh sách biến thể thành công", list);
     }
 
+    // Lấy danh sách tồn kho
+    @GetMapping("/ton-kho")
+    public ApiResponse<List<com.example.backend.dto.TonKhoResponse>> getTonKho() {
+        List<com.example.backend.dto.TonKhoResponse> list = chiTietSanPhamService.layDanhSachTonKho();
+        return ApiResponse.ok("Lấy danh sách tồn kho thành công", list);
+    }
+
     // Lấy 1 biến thể bằng ID
     @GetMapping("/{id}")
     public ApiResponse<ChiTietSanPham> getById(@PathVariable Integer id) {

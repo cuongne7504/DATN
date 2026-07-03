@@ -1,9 +1,9 @@
 <template>
   <div>
     <!-- Hero Banner -->
-    <div class="position-relative w-100" style="height: 60vh; min-height: 400px; overflow: hidden;">
-      <div class="w-100 h-100" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);"></div>
-      <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white" style="background: rgba(0,0,0,0.3);">
+    <div class="position-relative w-100">
+      <img src="/banner.png" alt="SportPro Banner" class="w-100" style="height: auto; display: block;">
+      <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white" style="background: rgba(0,0,0,0.4);">
         <h1 class="display-3 fw-bold text-uppercase tracking-wider mb-3">SportPro</h1>
         <p class="fs-4 mb-4">Nâng tầm phong cách, bứt phá giới hạn</p>
         <button class="btn btn-light btn-lg px-5 rounded-0 fw-bold text-uppercase" @click="scrollToProducts">Khám phá ngay</button>

@@ -51,14 +51,20 @@ INSERT INTO CHI_TIET_SAN_PHAM (ma_san_pham, mau_sac, kich_co, so_luong_ton) VALU
 ((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham = N'Giày chạy bộ Puma Ultraride'), N'Đen', '43', 10),
 ((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham = N'Mũ lưỡi trai Under Armour'), N'Xám', 'Freesize', 100);
 
+-- Thêm Nhân viên
+INSERT INTO NGUOI_DUNG (ho_ten, email, so_dien_thoai, dia_chi, mat_khau, ma_quyen, ngay_tao) VALUES 
+(N'Trần Nhân Viên 1', 'nhanvien1@sportpro.com', '0988888881', N'Hà Nội', '$2a$10$t/do9MfRTY4PtTpd/cP/5.R5b43jwfadEjvLpCn.7iWI4fgRceZgW', 2, GETDATE()),
+(N'Lê Nhân Viên 2', 'nhanvien2@sportpro.com', '0988888882', N'Hồ Chí Minh', '$2a$10$t/do9MfRTY4PtTpd/cP/5.R5b43jwfadEjvLpCn.7iWI4fgRceZgW', 2, GETDATE());
+
 -- Thêm Khách Hàng 
-INSERT INTO NGUOI_DUNG (ho_ten, email, so_dien_thoai, dia_chi, mat_khau, ma_quyen) VALUES 
-(N'Nguyễn Văn Khách', 'khachhang@sportpro.com', '0912345678', N'Hà Nội', '$2a$10$7/O8V3jF8y9P8J5/wQJ4e.8y4y2s8y4y2s8y4y2s8y4y2s8y4y2s8', 3);
+INSERT INTO NGUOI_DUNG (ho_ten, email, so_dien_thoai, dia_chi, mat_khau, ma_quyen, ngay_tao) VALUES 
+(N'Nguyễn Văn Khách', 'khachhang@sportpro.com', '0912345678', N'Hà Nội', '$2a$10$t/do9MfRTY4PtTpd/cP/5.R5b43jwfadEjvLpCn.7iWI4fgRceZgW', 3, GETDATE()),
+(N'Phạm Thị Khách Hàng 2', 'khachhang2@sportpro.com', '0912345679', N'Đà Nẵng', '$2a$10$t/do9MfRTY4PtTpd/cP/5.R5b43jwfadEjvLpCn.7iWI4fgRceZgW', 3, GETDATE());
 
 -- Thêm Đơn Hàng Mẫu 
-INSERT INTO DON_HANG (ma_nguoi_dung, trang_thai, tong_tien, dia_chi_giao, phuong_thuc_tt, ngay_dat) VALUES 
-((SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'khachhang@sportpro.com'), 3, 450000, N'Hà Nội', N'COD', DATEADD(day, -5, GETDATE())),
-((SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'khachhang@sportpro.com'), 3, 2000000, N'Hà Nội', N'VNPAY', DATEADD(day, -2, GETDATE()));
+INSERT INTO DON_HANG (ma_nguoi_dung, ma_nhan_vien, trang_thai, tong_tien, dia_chi_giao, phuong_thuc_tt, ngay_dat) VALUES 
+((SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'khachhang@sportpro.com'), (SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'nhanvien1@sportpro.com'), 3, 450000, N'Hà Nội', N'COD', DATEADD(day, -5, GETDATE())),
+((SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'khachhang@sportpro.com'), (SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'nhanvien2@sportpro.com'), 3, 2000000, N'Hà Nội', N'VNPAY', DATEADD(day, -2, GETDATE()));
 
 -- Thêm Chi Tiết Đơn Hàng
 INSERT INTO CHI_TIET_DON_HANG (ma_don_hang, ma_chi_tiet_sp, so_luong, don_gia) VALUES 
@@ -72,3 +78,12 @@ INSERT INTO CHI_TIET_DON_HANG (ma_don_hang, ma_chi_tiet_sp, so_luong, don_gia) V
   (SELECT TOP 1 ma_chi_tiet_sp FROM CHI_TIET_SAN_PHAM WHERE ma_san_pham = (SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham = N'Giày chạy bộ Puma Ultraride')), 
   1, 2000000
 );
+
+-- Fix loi font tieng Viet
+UPDATE SAN_PHAM SET ten_san_pham = N'Áo thể thao nam mùa hè' WHERE ma_san_pham = 1;
+UPDATE SAN_PHAM SET ten_san_pham = N'Giày chạy bộ Nike Air Zoom Pegasus 40' WHERE ma_san_pham = 2;
+UPDATE SAN_PHAM SET ten_san_pham = N'Áo đội tuyển Việt Nam sân nhà', mo_ta = N'Áo cổ vũ đội tuyển quốc gia.' WHERE ma_san_pham = 3;
+UPDATE SAN_PHAM SET ten_san_pham = N'Găng tay mới' WHERE ma_san_pham = 4;
+UPDATE CHI_TIET_SAN_PHAM SET mau_sac = N'Đỏ' WHERE ma_chi_tiet_sp IN (1, 2, 5);
+UPDATE CHI_TIET_SAN_PHAM SET mau_sac = N'Đen' WHERE ma_chi_tiet_sp = 3;
+UPDATE CHI_TIET_SAN_PHAM SET mau_sac = N'Trắng' WHERE ma_chi_tiet_sp IN (4, 6);

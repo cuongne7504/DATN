@@ -26,6 +26,16 @@ public class NguoiDungController {
         return ResponseEntity.ok(ApiResponse.ok(nguoiDungService.getAll()));
     }
 
+    @GetMapping("/khach-hang")
+    public ResponseEntity<ApiResponse<List<NguoiDungResponse>>> getCustomers() {
+        return ResponseEntity.ok(ApiResponse.ok(nguoiDungService.getByRole(3)));
+    }
+
+    @GetMapping("/nhan-vien")
+    public ResponseEntity<ApiResponse<List<NguoiDungResponse>>> getEmployees() {
+        return ResponseEntity.ok(ApiResponse.ok(nguoiDungService.getByRole(2)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<NguoiDungResponse>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.ok(nguoiDungService.getById(id)));
@@ -36,6 +46,13 @@ public class NguoiDungController {
         NguoiDungResponse created = nguoiDungService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("Đăng ký thành công", created));
+    }
+
+    @PostMapping("/tao-nhan-vien")
+    public ResponseEntity<ApiResponse<NguoiDungResponse>> taoNhanVien(@Valid @RequestBody RegisterRequest request) {
+        NguoiDungResponse created = nguoiDungService.createEmployee(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Tạo nhân viên thành công", created));
     }
 
     @PostMapping("/login")

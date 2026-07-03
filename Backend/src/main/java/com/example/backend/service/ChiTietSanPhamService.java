@@ -21,6 +21,10 @@ public class ChiTietSanPhamService {
         return chiTietSanPhamRepository.findByMaSanPham(maSanPham);
     }
 
+    public List<com.example.backend.dto.TonKhoResponse> layDanhSachTonKho() {
+        return chiTietSanPhamRepository.layDanhSachTonKho();
+    }
+
     public ChiTietSanPham getById(Integer id) {
         return chiTietSanPhamRepository.findById(id)
             .orElseThrow(() -> new com.example.backend.exception.ResourceNotFoundException("Không tìm thấy biến thể"));
@@ -33,9 +37,11 @@ public class ChiTietSanPhamService {
 
     // Thêm biến thể mới (Tự động sinh mã vạch)
     public ChiTietSanPham themMoi(ChiTietSanPham chiTiet) {
-        // Tự động cấp phát mã vạch SKU độc nhất cho biến thể này
-        String uniqueSku = skuGeneratorService.generateUniqueSku();
-        chiTiet.setMaVachSku(uniqueSku);
+        // Chỉ tự động cấp phát mã SKU nếu người dùng không tự nhập
+        if (chiTiet.getMaVachSku() == null || chiTiet.getMaVachSku().trim().isEmpty()) {
+            String uniqueSku = skuGeneratorService.generateUniqueSku();
+            chiTiet.setMaVachSku(uniqueSku);
+        }
         
         return chiTietSanPhamRepository.save(chiTiet);
     }
@@ -49,7 +55,11 @@ public class ChiTietSanPhamService {
         existing.setKichCo(data.getKichCo());
         existing.setSoLuongTon(data.getSoLuongTon());
         existing.setGiaCongThem(data.getGiaCongThem());
-        // KHÔNG cho phép sửa mã vạch SKU vì mã vạch là cố định
+        
+        // Cập nhật mã SKU nếu người dùng thay đổi
+        if (data.getMaVachSku() != null && !data.getMaVachSku().trim().isEmpty()) {
+            existing.setMaVachSku(data.getMaVachSku());
+        }
         
         return chiTietSanPhamRepository.save(existing);
     }

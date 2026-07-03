@@ -30,6 +30,13 @@ public class NguoiDungService {
                 .collect(Collectors.toList());
     }
 
+    public List<NguoiDungResponse> getByRole(Integer maQuyen) {
+        return nguoiDungRepository.findByMaQuyen(maQuyen)
+                .stream()
+                .map(NguoiDungResponse::new)
+                .collect(Collectors.toList());
+    }
+
     public NguoiDungResponse getById(Integer id) {
         NguoiDung nguoiDung = nguoiDungRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có mã: " + id));
@@ -45,6 +52,25 @@ public class NguoiDungService {
 
         NguoiDung nguoiDung = new NguoiDung();
         nguoiDung.setMaQuyen(3); // Mặc định là Khách hàng
+        nguoiDung.setHoTen(request.getHoTen());
+        nguoiDung.setEmail(request.getEmail());
+        nguoiDung.setMatKhau(passwordEncoder.encode(request.getMatKhau()));
+        nguoiDung.setSoDienThoai(request.getSoDienThoai());
+        nguoiDung.setDiaChi(request.getDiaChi());
+        nguoiDung.setNgayTao(LocalDateTime.now());
+
+        return new NguoiDungResponse(nguoiDungRepository.save(nguoiDung));
+    }
+
+    @Transactional
+    public NguoiDungResponse createEmployee(RegisterRequest request) {
+        // Kiểm tra email đã tồn tại chưa
+        if (nguoiDungRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new BadRequestException("Email đã được sử dụng: " + request.getEmail());
+        }
+
+        NguoiDung nguoiDung = new NguoiDung();
+        nguoiDung.setMaQuyen(2); // Vai trò là Nhân viên
         nguoiDung.setHoTen(request.getHoTen());
         nguoiDung.setEmail(request.getEmail());
         nguoiDung.setMatKhau(passwordEncoder.encode(request.getMatKhau()));
