@@ -87,4 +87,21 @@ public class PaymentController {
             return "{\"RspCode\":\"99\",\"Message\":\"Fail\"}";
         }
     }
+
+    // 3. VNPay Return URL - redirect khách hàng về frontend sau thanh toán
+    @GetMapping("/vnpay-return")
+    public void vnpayReturn(@RequestParam Map<String, String> queryParams, 
+                            jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        String responseCode = queryParams.get("vnp_ResponseCode");
+        String frontendUrl = "http://localhost:5173/history";
+        
+        if ("00".equals(responseCode)) {
+            // Thanh toán thành công
+            System.out.println("VNPay thanh toán thành công, redirect về frontend...");
+            response.sendRedirect(frontendUrl + "?payment=success");
+        } else {
+            // Thanh toán thất bại
+            response.sendRedirect(frontendUrl + "?payment=failed");
+        }
+    }
 }
