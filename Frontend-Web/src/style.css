@@ -1,0 +1,71 @@
+:root {
+  /* Black & White Premium Theme */
+  --bs-primary: #000000;
+  --bs-primary-rgb: 0, 0, 0;
+  --bs-dark: #111111;
+  --bs-dark-rgb: 17, 17, 17;
+  --bs-secondary: #e9ecef;
+  --bs-secondary-rgb: 233, 236, 239;
+  --bs-light: #f8f9fa;
+  --bs-light-rgb: 248, 249, 250;
+  --bs-body-color: #222222;
+  --bs-link-color: #000000;
+  --bs-link-hover-color: #333333;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.02em;
+  background-color: #ffffff;
+}
+
+/* Override default bootstrap buttons */
+.btn-primary {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+  background-color: #333333 !important;
+  border-color: #333333 !important;
+}
+
+.btn-outline-primary {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-radius: 0;
+  text-transform: uppercase;
+}
+
+.btn-outline-primary:hover {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Cards and UI Elements */
+.card {
+  border-radius: 0 !important;
+  border: 1px solid #eeeeee !important;
+}
+
+.navbar {
+  background-color: #000000 !important;
+}
+
+.bg-primary {
+  background-color: #000000 !important;
+}
+
+.text-primary {
+  color: #000000 !important;
+}
+
+.badge.bg-primary {
+  background-color: #000000 !important;
+  border-radius: 0;
+}
