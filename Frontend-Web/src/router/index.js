@@ -20,14 +20,12 @@ const routes = [
   {
     path: '/cart',
     name: 'GioHang',
-    component: GioHang,
-    meta: { requiresAuth: true }
+    component: GioHang
   },
   {
     path: '/checkout',
     name: 'ThanhToan',
-    component: ThanhToan,
-    meta: { requiresAuth: true }
+    component: ThanhToan
   },
   {
     path: '/history',

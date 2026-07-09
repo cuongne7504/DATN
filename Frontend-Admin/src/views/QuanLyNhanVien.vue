@@ -16,6 +16,7 @@
               <tr>
                 <th>ID</th>
                 <th>Họ tên</th>
+                <th>Chức vụ</th>
                 <th>Email</th>
                 <th>Số điện thoại</th>
                 <th>Địa chỉ</th>
@@ -36,6 +37,11 @@
                 <td>#{{ e.maNguoiDung }}</td>
                 <td class="fw-semibold">
                   <i class="bi bi-person-badge text-primary me-2"></i>{{ e.hoTen }}
+                </td>
+                <td>
+                  <span class="badge" :class="e.maQuyen === 1 ? 'bg-danger' : 'bg-success'">
+                    {{ e.maQuyen === 1 ? 'Quản lý' : 'Nhân viên' }}
+                  </span>
                 </td>
                 <td>{{ e.email }}</td>
                 <td>{{ e.soDienThoai || 'Chưa cập nhật' }}</td>
@@ -76,6 +82,13 @@
               <div class="mb-3">
                 <label class="form-label">Email <span class="text-danger">*</span></label>
                 <input type="email" class="form-control" v-model="form.email" required :disabled="isEditing">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Chức vụ <span class="text-danger">*</span></label>
+                <select class="form-select" v-model="form.maQuyen" required>
+                  <option :value="1">Quản lý</option>
+                  <option :value="2">Nhân viên</option>
+                </select>
               </div>
               <div class="mb-3">
                 <label class="form-label">Mật khẩu <span v-if="!isEditing" class="text-danger">*</span><span v-else> (Bỏ trống nếu không đổi)</span></label>
@@ -153,7 +166,7 @@ import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import * as bootstrap from 'bootstrap'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const employees = ref([])
 const loading = ref(false)
 const saving = ref(false)
@@ -170,7 +183,8 @@ const form = ref({
   email: '',
   matKhau: '',
   soDienThoai: '',
-  diaChi: ''
+  diaChi: '',
+  maQuyen: 2
 })
 
 // Orders state
@@ -198,7 +212,7 @@ onMounted(() => {
 
 const openCreateModal = () => {
   isEditing.value = false
-  form.value = { maNguoiDung: null, hoTen: '', email: '', matKhau: '', soDienThoai: '', diaChi: '' }
+  form.value = { maNguoiDung: null, hoTen: '', email: '', matKhau: '', soDienThoai: '', diaChi: '', maQuyen: 2 }
   employeeModal.show()
 }
 
@@ -210,7 +224,8 @@ const editEmployee = (e) => {
     email: e.email,
     matKhau: '',
     soDienThoai: e.soDienThoai || '',
-    diaChi: e.diaChi || ''
+    diaChi: e.diaChi || '',
+    maQuyen: e.maQuyen || 2
   }
   employeeModal.show()
 }

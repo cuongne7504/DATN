@@ -3,6 +3,7 @@ package com.example.backend.service;
 import com.example.backend.dto.LoginRequest;
 import com.example.backend.dto.NguoiDungResponse;
 import com.example.backend.dto.RegisterRequest;
+import com.example.backend.dto.UpdateUserRequest;
 import com.example.backend.entity.NguoiDung;
 import com.example.backend.exception.BadRequestException;
 import com.example.backend.exception.ResourceNotFoundException;
@@ -33,6 +34,14 @@ public class NguoiDungService {
     public List<NguoiDungResponse> getByRole(Integer maQuyen) {
         return nguoiDungRepository.findByMaQuyen(maQuyen)
                 .stream()
+                .map(NguoiDungResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    public List<NguoiDungResponse> getStaffs() {
+        return nguoiDungRepository.findAll()
+                .stream()
+                .filter(u -> u.getMaQuyen() != null && (u.getMaQuyen() == 1 || u.getMaQuyen() == 2))
                 .map(NguoiDungResponse::new)
                 .collect(Collectors.toList());
     }
@@ -70,7 +79,7 @@ public class NguoiDungService {
         }
 
         NguoiDung nguoiDung = new NguoiDung();
-        nguoiDung.setMaQuyen(2); // Vai trò là Nhân viên
+        nguoiDung.setMaQuyen(request.getMaQuyen() != null ? request.getMaQuyen() : 2); // Vai trò là Quản lý hoặc Nhân viên
         nguoiDung.setHoTen(request.getHoTen());
         nguoiDung.setEmail(request.getEmail());
         nguoiDung.setMatKhau(passwordEncoder.encode(request.getMatKhau()));
@@ -93,7 +102,7 @@ public class NguoiDungService {
     }
 
     @Transactional
-    public NguoiDungResponse update(Integer id, RegisterRequest request) {
+    public NguoiDungResponse update(Integer id, UpdateUserRequest request) {
         NguoiDung nguoiDung = nguoiDungRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có mã: " + id));
 
@@ -111,6 +120,9 @@ public class NguoiDungService {
         }
         nguoiDung.setSoDienThoai(request.getSoDienThoai());
         nguoiDung.setDiaChi(request.getDiaChi());
+        if (request.getMaQuyen() != null) {
+            nguoiDung.setMaQuyen(request.getMaQuyen());
+        }
 
         return new NguoiDungResponse(nguoiDungRepository.save(nguoiDung));
     }

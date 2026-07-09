@@ -54,6 +54,25 @@
               </div>
             </div>
 
+            <!-- Thêm ô áp dụng mã giảm giá -->
+            <div class="row mb-4">
+              <div class="col-md-12">
+                <label class="form-label fw-semibold">Mã giảm giá (Voucher)</label>
+                <div class="input-group">
+                  <input type="text" v-model="voucherCodeInput" class="form-control" placeholder="Nhập mã voucher" :disabled="appliedVoucher">
+                  <button v-if="!appliedVoucher" @click="applyVoucher" class="btn btn-outline-primary" type="button" :disabled="applyingVoucher || posForm.items.length === 0">
+                    {{ applyingVoucher ? 'Đang check...' : 'Áp dụng' }}
+                  </button>
+                  <button v-else @click="removeVoucher" class="btn btn-outline-danger" type="button">
+                    Hủy áp dụng
+                  </button>
+                </div>
+                <div v-if="appliedVoucher" class="form-text text-success mt-1">
+                  <i class="bi bi-patch-check-fill"></i> Đã áp dụng mã <strong>{{ appliedVoucher.maCode }}</strong>: Giảm {{ appliedVoucher.phanTramGiam }}% tổng đơn.
+                </div>
+              </div>
+            </div>
+
             <div v-if="posForm.items.length === 0" class="text-center text-muted p-5 bg-light rounded border border-dashed">
               <i class="bi bi-cart-x" style="font-size: 2rem;"></i><br>
               Chưa có sản phẩm nào trong đơn
@@ -94,13 +113,22 @@
               </table>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-              <div>
-                <h4 class="fw-bold mb-0">Tổng: <span class="text-danger">{{ formatPrice(calculateTotal()) }}</span></h4>
+            <!-- Hiển thị tóm tắt chi phí thanh toán -->
+            <div class="border-top pt-3">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted fw-semibold">Tạm tính:</span>
+                <span class="fw-bold">{{ formatPrice(subTotal) }}</span>
               </div>
-              <button @click="createPosOrder" class="btn btn-success btn-lg px-5 fw-bold" :disabled="posForm.items.length === 0 || loading">
-                {{ loading ? 'Đang xử lý...' : 'THANH TOÁN' }}
-              </button>
+              <div v-if="appliedVoucher" class="d-flex justify-content-between mb-2 text-success">
+                <span class="fw-semibold">Khuyến mãi ({{ appliedVoucher.phanTramGiam }}%):</span>
+                <span class="fw-bold">- {{ formatPrice(discountAmount) }}</span>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <h4 class="fw-bold mb-0">Tổng cộng: <span class="text-danger">{{ formatPrice(finalTotal) }}</span></h4>
+                <button @click="createPosOrder" class="btn btn-success btn-lg px-5 fw-bold" :disabled="posForm.items.length === 0 || loading">
+                  {{ loading ? 'Đang xử lý...' : 'THANH TOÁN' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -110,10 +138,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import axios from 'axios'
-
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 
 const loading = ref(false)
 const barcodeInput = ref('')
@@ -135,8 +162,60 @@ const formatPrice = (price) => {
   return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
 }
 
-const calculateTotal = () => {
+// === CẤU HÌNH VOUCHER TRÊN POS ===
+const voucherCodeInput = ref('')
+const appliedVoucher = ref(null)
+const applyingVoucher = ref(false)
+
+const subTotal = computed(() => {
   return posForm.value.items.reduce((sum, item) => sum + (item.soLuong * item.donGia), 0)
+})
+
+const discountAmount = computed(() => {
+  if (!appliedVoucher.value) return 0
+  return (subTotal.value * appliedVoucher.value.phanTramGiam) / 100
+})
+
+const finalTotal = computed(() => {
+  return Math.max(0, subTotal.value - discountAmount.value)
+})
+
+const applyVoucher = async () => {
+  if (!voucherCodeInput.value.trim()) return
+  
+  applyingVoucher.value = true
+  try {
+    const res = await axios.get(`${API_URL}/api/khuyen-mai`)
+    const vouchers = res.data.data || res.data || []
+    
+    const voucher = vouchers.find(v => v.maCode.toUpperCase() === voucherCodeInput.value.trim().toUpperCase())
+    
+    if (voucher) {
+      if (new Date(voucher.ngayKetThuc) < new Date() || new Date(voucher.ngayBatDau) > new Date()) {
+        alert('Mã khuyến mãi đã hết hạn hoặc chưa có hiệu lực!')
+        return
+      }
+      if (voucher.soLuongDung != null && voucher.soLuongDung <= 0) {
+        alert('Mã khuyến mãi đã hết lượt sử dụng!')
+        return
+      }
+      appliedVoucher.value = voucher
+      alert(`Áp dụng mã giảm giá thành công! Giảm ${voucher.phanTramGiam}%`)
+    } else {
+      alert('Mã khuyến mãi không tồn tại!')
+      appliedVoucher.value = null
+    }
+  } catch (error) {
+    console.error('Lỗi check voucher', error)
+    alert('Lỗi kiểm tra mã khuyến mãi')
+  } finally {
+    applyingVoucher.value = false
+  }
+}
+
+const removeVoucher = () => {
+  appliedVoucher.value = null
+  voucherCodeInput.value = ''
 }
 
 const scanBarcode = async () => {
@@ -258,6 +337,7 @@ const createPosOrder = async () => {
       loaiDonHang: 'TaiQuay',
       phuongThucThanhToan: 'TienMat',
       trangThai: 'HoanThanh', // Đơn POS thì hoàn thành luôn
+      maKhuyenMai: appliedVoucher.value ? appliedVoucher.value.maKhuyenMai : null, // Gửi mã giảm giá lên backend
       items: posForm.value.items.map(item => ({
         maChiTietSp: item.maChiTietSp,
         soLuong: item.soLuong,
@@ -276,6 +356,9 @@ const createPosOrder = async () => {
       soDienThoai: '',
       items: []
     }
+    // Reset voucher
+    appliedVoucher.value = null
+    voucherCodeInput.value = ''
   } catch (error) {
     console.error('Lỗi khi thanh toán:', error)
     alert('Lỗi: ' + (error.response?.data?.message || error.message))

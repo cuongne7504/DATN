@@ -4,6 +4,7 @@ import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.LoginRequest;
 import com.example.backend.dto.NguoiDungResponse;
 import com.example.backend.dto.RegisterRequest;
+import com.example.backend.dto.UpdateUserRequest;
 import com.example.backend.service.NguoiDungService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class NguoiDungController {
 
     @GetMapping("/nhan-vien")
     public ResponseEntity<ApiResponse<List<NguoiDungResponse>>> getEmployees() {
-        return ResponseEntity.ok(ApiResponse.ok(nguoiDungService.getByRole(2)));
+        return ResponseEntity.ok(ApiResponse.ok(nguoiDungService.getStaffs()));
     }
 
     @GetMapping("/{id}")
@@ -64,7 +65,7 @@ public class NguoiDungController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<NguoiDungResponse>> update(
             @PathVariable Integer id,
-            @Valid @RequestBody RegisterRequest request) {
+            @Valid @RequestBody UpdateUserRequest request) {
         NguoiDungResponse updated = nguoiDungService.update(id, request);
         return ResponseEntity.ok(ApiResponse.ok("Cập nhật người dùng thành công", updated));
     }

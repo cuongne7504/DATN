@@ -21,6 +21,8 @@ public class TaoDonHangPosRequest {
     @NotNull(message = "Danh sách sản phẩm không được để trống")
     private List<DonHangItemRequest> items;
 
+    private Integer maKhuyenMai;
+
     @Data
     public static class DonHangItemRequest {
         @NotNull(message = "Mã biến thể sản phẩm không được để trống")

@@ -27,6 +27,11 @@
               <label class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
               <input type="tel" v-model="form.soDienThoai" class="form-control" required placeholder="Nhập số điện thoại">
             </div>
+
+            <div class="mb-3" v-if="!user">
+              <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+              <input type="email" v-model="form.email" class="form-control" required placeholder="Nhập địa chỉ email để nhận thông báo">
+            </div>
             
             <div class="mb-3">
               <label class="form-label fw-semibold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
@@ -110,6 +115,28 @@
         </div>
       </div>
     </div>
+
+    <!-- OTP Modal -->
+    <div v-if="showOtpModal" class="otp-modal-overlay">
+      <div class="otp-modal">
+        <h4 class="fw-bold mb-3">Xác thực số điện thoại</h4>
+        <p class="text-muted mb-4">
+          Mã xác thực đã được gửi qua số điện thoại <br>
+          <strong class="text-primary fs-5">{{ form.soDienThoai }}</strong>
+        </p>
+        <div class="mb-4">
+          <input type="text" v-model="otpCode" class="form-control form-control-lg text-center fw-bold fs-4" placeholder="Nhập mã 6 số" maxlength="6" style="letter-spacing: 5px;">
+        </div>
+        <button @click="confirmOrder" class="btn btn-primary btn-lg w-100 fw-bold mb-3" :disabled="loadingSubmit || otpCode.length !== 6">
+          {{ loadingSubmit ? 'Đang xác thực...' : 'Xác nhận' }}
+        </button>
+        <button @click="showOtpModal = false" class="btn btn-outline-secondary w-100">Đổi số điện thoại khác</button>
+        <p class="text-muted mt-3 mb-0" style="font-size: 14px;">
+          Không nhận được mã? <span v-if="countdown > 0">{{ countdown }} giây</span>
+          <a href="#" v-else @click.prevent="requestOtp" class="text-decoration-none fw-bold">Gửi lại mã</a>
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -118,7 +145,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const router = useRouter()
 
 const cartItems = ref([])
@@ -133,6 +160,7 @@ const appliedVoucher = ref(null)
 const form = ref({
   tenNguoiNhan: '',
   soDienThoai: '',
+  email: '',
   diaChiGiaoHang: '',
   ghiChu: '',
   phuongThucThanhToan: 'TienMat'
@@ -167,17 +195,38 @@ const finalTotal = computed(() => {
 
 const fetchCartAndUser = async () => {
   const userData = localStorage.getItem('user')
-  if (!userData) {
-    router.push('/login')
-    return
+  
+  if (userData) {
+    user.value = JSON.parse(userData)
+    form.value.tenNguoiNhan = user.value.hoTen || ''
+    form.value.soDienThoai = user.value.soDienThoai || ''
+    form.value.email = user.value.email || ''
+    form.value.diaChiGiaoHang = user.value.diaChi || ''
   }
-  user.value = JSON.parse(userData)
-  form.value.tenNguoiNhan = user.value.hoTen || ''
-  form.value.soDienThoai = user.value.soDienThoai || ''
-  form.value.diaChiGiaoHang = user.value.diaChi || ''
 
   loading.value = true
   try {
+    if (!user.value) {
+      // Guest
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]')
+      if (guestCart.length === 0) {
+        router.push('/cart')
+        return
+      }
+      cartItems.value = guestCart.map((item, index) => ({
+        maCtGioHang: 'guest_' + index,
+        maChiTietSp: item.maChiTietSp,
+        soLuong: item.soLuong,
+        tenSanPham: item.sanPham.tenSanPham,
+        mauSac: item.chiTietSanPham.mauSac,
+        kichCo: item.chiTietSanPham.kichCo,
+        donGia: item.donGia,
+        chiTietSanPham: item.chiTietSanPham
+      }))
+      return
+    }
+
+    // Logged in user
     const res = await axios.get(`${API_URL}/api/gio-hang/cua-toi/${user.value.maNguoiDung}`)
     const items = res.data.data || res.data || []
 
@@ -198,7 +247,7 @@ const fetchCartAndUser = async () => {
           tenSanPham: sp.tenSanPham,
           mauSac: ct.mauSac,
           kichCo: ct.kichCo,
-          donGia: sp.giaKhuyenMai || sp.giaGoc || 0,
+          donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
           chiTietSanPham: { maChiTietSp, mauSac: ct.mauSac, kichCo: ct.kichCo, sanPham: sp }
         })
       } catch (e) {
@@ -223,8 +272,6 @@ const applyVoucher = async () => {
   
   applyingVoucher.value = true
   try {
-    // API Check KhuyenMai 
-    // Assuming backend endpoint exists or we fetch all and check
     const res = await axios.get(`${API_URL}/api/khuyen-mai`)
     const vouchers = res.data.data || res.data || []
     
@@ -257,58 +304,123 @@ const removeVoucher = () => {
 }
 
 const submitOrder = async () => {
-  if (!form.value.tenNguoiNhan || !form.value.soDienThoai || !form.value.diaChiGiaoHang) {
-    alert('Vui lòng nhập đầy đủ thông tin giao hàng (Tên, SĐT, Địa chỉ)!')
+  if (!form.value.tenNguoiNhan || !form.value.soDienThoai || !form.value.diaChiGiaoHang || (!user.value && !form.value.email)) {
+    alert('Vui lòng nhập đầy đủ thông tin giao hàng (Tên, SĐT, Email, Địa chỉ)!')
+    return
+  }
+  requestOtp()
+}
+
+const showOtpModal = ref(false)
+const otpCode = ref('')
+const countdown = ref(0)
+let timer = null
+
+const requestOtp = async () => {
+  loadingSubmit.value = true
+  try {
+    await axios.post(`${API_URL}/api/otp/send`, { soDienThoai: form.value.soDienThoai })
+    showOtpModal.value = true
+    otpCode.value = ''
+    startCountdown(60) // 60 giây
+  } catch (error) {
+    console.error('Lỗi yêu cầu OTP:', error)
+    alert('Lỗi: Không thể gửi mã OTP. Vui lòng kiểm tra lại số điện thoại.')
+  } finally {
+    loadingSubmit.value = false
+  }
+}
+
+const startCountdown = (seconds) => {
+  countdown.value = seconds
+  if (timer) clearInterval(timer)
+  timer = setInterval(() => {
+    countdown.value--
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+    }
+  }, 1000)
+}
+
+const confirmOrder = async () => {
+  if (!otpCode.value || otpCode.value.length !== 6) {
+    alert('Vui lòng nhập đủ 6 số mã OTP!')
     return
   }
 
   loadingSubmit.value = true
   try {
-    // Payload Order
-    const diaChiGop = `${form.value.tenNguoiNhan} - ${form.value.soDienThoai} - ${form.value.diaChiGiaoHang}` + (form.value.ghiChu ? ` (Ghi chú: ${form.value.ghiChu})` : '')
-    const payload = {
-      maNguoiDung: user.value.maNguoiDung,
-      maKhuyenMai: appliedVoucher.value ? appliedVoucher.value.maKhuyenMai : null,
-      diaChiGiao: diaChiGop,
-      phuongThucTt: form.value.phuongThucThanhToan,
-      phiShip: 0,
-      items: cartItems.value.map(item => {
-        return {
+    const diaChiGop = form.value.diaChiGiaoHang + (form.value.ghiChu ? ` (Ghi chú: ${form.value.ghiChu})` : '')
+    
+    let orderId = null;
+
+    if (!user.value) {
+      // Guest Checkout
+      const payload = {
+        hoTen: form.value.tenNguoiNhan,
+        soDienThoai: form.value.soDienThoai,
+        email: form.value.email,
+        diaChiGiao: diaChiGop,
+        phuongThucTt: form.value.phuongThucThanhToan,
+        phiShip: 0,
+        maKhuyenMai: appliedVoucher.value ? appliedVoucher.value.maKhuyenMai : null,
+        otpCode: otpCode.value,
+        items: cartItems.value.map(item => ({
           maChiTietSp: item.maChiTietSp,
           soLuong: item.soLuong,
           donGia: item.donGia || 0
-        }
-      })
-    }
+        }))
+      }
+      const orderRes = await axios.post(`${API_URL}/api/don-hang/guest`, payload)
+      const orderData = orderRes.data.data || orderRes.data
+      orderId = orderData.maDonHang
+      
+      // Xóa localStorage
+      localStorage.removeItem('guestCart')
+    } else {
+      // Normal Checkout
+      const payload = {
+        maNguoiDung: user.value.maNguoiDung,
+        maKhuyenMai: appliedVoucher.value ? appliedVoucher.value.maKhuyenMai : null,
+        diaChiGiao: `${form.value.tenNguoiNhan} - ${form.value.soDienThoai} - ${diaChiGop}`,
+        phuongThucTt: form.value.phuongThucThanhToan,
+        phiShip: 0,
+        otpCode: otpCode.value,
+        items: cartItems.value.map(item => ({
+          maChiTietSp: item.maChiTietSp,
+          soLuong: item.soLuong,
+          donGia: item.donGia || 0
+        }))
+      }
+      const orderRes = await axios.post(`${API_URL}/api/don-hang`, payload)
+      const orderData = orderRes.data.data || orderRes.data
+      orderId = orderData.maDonHang
 
-    const orderRes = await axios.post(`${API_URL}/api/don-hang`, payload)
-    const orderData = orderRes.data.data || orderRes.data
-    const orderId = orderData.maDonHang
-
-    // Clear cart since order is placed
-    for (let item of cartItems.value) {
-      await axios.delete(`${API_URL}/api/gio-hang/xoa/${item.maCtGioHang}`)
+      // Clear cart
+      for (let item of cartItems.value) {
+        await axios.delete(`${API_URL}/api/gio-hang/xoa/${item.maCtGioHang}`)
+      }
     }
 
     if (form.value.phuongThucThanhToan === 'VNPay') {
-      // VNPay Integration
       const vnpayRes = await axios.get(`${API_URL}/api/payment/create-url?order_id=${orderId}&amout_vnd=${finalTotal.value}`)
       const vnpayUrl = vnpayRes.data.data || vnpayRes.data
       if (typeof vnpayUrl === 'string' && vnpayUrl.includes('http')) {
         window.location.href = vnpayUrl
       } else {
         alert('Không thể kết nối VNPay. Vui lòng thanh toán khi nhận hàng.')
-        router.push('/history')
+        router.push(user.value ? '/history' : '/')
       }
     } else {
       alert('Đặt hàng thành công!')
-      router.push('/history')
+      router.push(user.value ? '/history' : '/')
     }
   } catch (error) {
     console.error('Lỗi đặt hàng:', error)
-    alert('Lỗi: ' + (error.response?.data?.message || 'Không thể tạo đơn hàng'))
+    alert('Lỗi: ' + (error.response?.data?.message || 'Không thể tạo đơn hàng hoặc sai OTP'))
   } finally {
     loadingSubmit.value = false
+    showOtpModal.value = false
   }
 }
 
@@ -316,3 +428,24 @@ onMounted(() => {
   fetchCartAndUser()
 })
 </script>
+
+<style scoped>
+.otp-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+.otp-modal {
+  background: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+</style>
