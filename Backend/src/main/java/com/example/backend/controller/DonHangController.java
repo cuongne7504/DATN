@@ -52,6 +52,20 @@ public class DonHangController {
         return ResponseEntity.ok(ApiResponse.ok("Cập nhật trạng thái đơn hàng thành công", updated));
     }
 
+    @PutMapping("/{id}/giao-hang")
+    public ResponseEntity<ApiResponse<DonHang>> giaoChoShipper(
+            @PathVariable Integer id,
+            @RequestBody com.example.backend.dto.GiaoHangRequest request) {
+        DonHang updated = donHangService.giaoChoShipper(id, request);
+        return ResponseEntity.ok(ApiResponse.ok("Giao hàng cho shipper thành công", updated));
+    }
+
+    @PutMapping("/{id}/gui-ghn")
+    public ResponseEntity<ApiResponse<DonHang>> guiDonSangGHN(@PathVariable Integer id) {
+        DonHang updated = donHangService.guiDonSangGHN(id);
+        return ResponseEntity.ok(ApiResponse.ok("Gửi đơn sang GHN thành công", updated));
+    }
+
     @PostMapping("/pos")
     public ResponseEntity<ApiResponse<DonHangDetailResponse>> createPosOrder(@Valid @RequestBody TaoDonHangPosRequest request) {
         DonHangDetailResponse created = donHangService.createPosOrder(request);

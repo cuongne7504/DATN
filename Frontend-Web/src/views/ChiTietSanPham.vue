@@ -165,6 +165,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import { getStoredUser } from '../utils/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -334,8 +335,9 @@ const toggleWishlist = async () => {
 }
 
 const addToCart = async () => {
-  if (!user.value) {
-    alert('Vui lòng đăng nhập để mua hàng!')
+  if (!user.value?.maNguoiDung) {
+    alert('Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!')
+    localStorage.removeItem('user')
     router.push('/login')
     return
   }
@@ -353,10 +355,8 @@ const addToCart = async () => {
   loadingCart.value = true
   try {
     const payload = {
-      maNguoiDung: user.value.maNguoiDung,
       maChiTietSp: selectedVariant.value.maChiTietSp,
-      soLuong: quantity.value,
-      donGia: currentPrice.value
+      soLuong: quantity.value
     }
 
     await axios.post(`${API_URL}/api/gio-hang/them/${user.value.maNguoiDung}`, payload)
@@ -399,10 +399,7 @@ const submitReview = async () => {
 }
 
 onMounted(() => {
-  const userData = localStorage.getItem('user')
-  if (userData) {
-    user.value = JSON.parse(userData)
-  }
+  user.value = getStoredUser()
   fetchProductData()
 })
 </script>

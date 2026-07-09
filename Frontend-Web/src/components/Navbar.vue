@@ -56,17 +56,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getStoredUser } from '../utils/auth'
 
 const router = useRouter()
 const user = ref(null)
 
 const checkUser = () => {
-  const userData = localStorage.getItem('user')
-  if (userData) {
-    user.value = JSON.parse(userData)
-  } else {
-    user.value = null
-  }
+  user.value = getStoredUser()
 }
 
 onMounted(() => {

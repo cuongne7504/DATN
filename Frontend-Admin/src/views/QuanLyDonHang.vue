@@ -52,7 +52,8 @@
                   <button @click="viewDetail(order)" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="modal" data-bs-target="#orderDetailModal">Chi tiết</button>
                   <button v-if="order.trangThai === 'Chờ xử lý'" @click="updateStatus(order.maDonHang, 'Đang xử lý')" class="btn btn-sm btn-success me-1">Xác nhận</button>
                   <button v-if="order.trangThai === 'Chờ xử lý'" @click="updateStatus(order.maDonHang, 'Đã hủy')" class="btn btn-sm btn-danger me-1">Hủy</button>
-                  <button v-if="order.trangThai === 'Đang xử lý'" @click="updateStatus(order.maDonHang, 'Đang giao hàng')" class="btn btn-sm btn-primary me-1">Giao hàng</button>
+                  <button v-if="order.trangThai === 'Đang xử lý'" @click="openShipperModal(order)" class="btn btn-sm btn-primary me-1" data-bs-toggle="modal" data-bs-target="#shipperModal">Giao cho Shipper</button>
+                  <button v-if="order.trangThai === 'Đang xử lý'" @click="sendToGHN(order.maDonHang)" class="btn btn-sm btn-warning me-1">Gửi GHN</button>
                   <button v-if="order.trangThai === 'Đang giao hàng'" @click="updateStatus(order.maDonHang, 'Đã giao hàng')" class="btn btn-sm btn-success">Hoàn thành</button>
                 </td>
               </tr>
@@ -85,6 +86,16 @@
                 <p class="mb-1"><strong>Phương thức:</strong> {{ selectedOrder.phuongThucTt }}</p>
                 <p class="mb-1"><strong>Trạng thái ĐH:</strong> <span class="badge bg-secondary">{{ selectedOrder.trangThai }}</span></p>
                 <p class="mb-1"><strong>Mã Khuyến Mãi:</strong> {{ selectedOrder.maKhuyenMai ? 'Có' : 'Không' }}</p>
+              </div>
+            </div>
+
+            <div class="row mb-4" v-if="selectedOrder.shipperName || selectedOrder.shippingCode">
+              <div class="col-12">
+                <h6 class="fw-bold border-bottom pb-2">Thông tin Shipper / Giao hàng</h6>
+                <p class="mb-1" v-if="selectedOrder.shippingCode"><strong>Mã vận đơn (GHN):</strong> <span class="badge bg-success">{{ selectedOrder.shippingCode }}</span></p>
+                <p class="mb-1" v-if="selectedOrder.shipperName"><strong>Tên shipper:</strong> {{ selectedOrder.shipperName }}</p>
+                <p class="mb-1" v-if="selectedOrder.shipperPhone"><strong>Số điện thoại:</strong> {{ selectedOrder.shipperPhone }}</p>
+                <p class="mb-1" v-if="selectedOrder.shippingNote"><strong>Ghi chú:</strong> {{ selectedOrder.shippingNote }}</p>
               </div>
             </div>
 
@@ -123,6 +134,38 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Giao hàng cho Shipper -->
+    <div class="modal fade" id="shipperModal" tabindex="-1" aria-labelledby="shipperModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="shipperModalLabel">Giao hàng cho Shipper - Đơn hàng #{{ shipperOrder?.maDonHang }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form @submit.prevent="submitShipper">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="shipperName" class="form-label">Tên shipper <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="shipperName" v-model="shipperForm.shipperName" required placeholder="Nhập tên shipper">
+              </div>
+              <div class="mb-3">
+                <label for="shipperPhone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="shipperPhone" v-model="shipperForm.shipperPhone" required placeholder="Nhập số điện thoại shipper">
+              </div>
+              <div class="mb-3">
+                <label for="shippingNote" class="form-label">Ghi chú</label>
+                <textarea class="form-control" id="shippingNote" v-model="shipperForm.shippingNote" rows="3" placeholder="Nhập ghi chú giao hàng (nếu có)"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" ref="closeShipperModalBtn">Đóng</button>
+              <button type="submit" class="btn btn-primary">Xác nhận</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -135,6 +178,51 @@ const orders = ref([])
 const loading = ref(false)
 const currentStatus = ref('TatCa')
 const selectedOrder = ref(null)
+
+const shipperOrder = ref(null)
+const shipperForm = ref({
+  shipperName: '',
+  shipperPhone: '',
+  shippingNote: ''
+})
+const closeShipperModalBtn = ref(null)
+
+const openShipperModal = (order) => {
+  shipperOrder.value = order
+  shipperForm.value = {
+    shipperName: '',
+    shipperPhone: '',
+    shippingNote: ''
+  }
+}
+
+const submitShipper = async () => {
+  if (!shipperOrder.value) return
+  try {
+    await axios.put(`${API_URL}/api/don-hang/${shipperOrder.value.maDonHang}/giao-hang`, shipperForm.value)
+    // Close the modal
+    if (closeShipperModalBtn.value) {
+      closeShipperModalBtn.value.click()
+    }
+    // Refresh orders list
+    await fetchOrders()
+  } catch (error) {
+    alert('Giao hàng cho shipper thất bại!')
+    console.error(error)
+  }
+}
+
+const sendToGHN = async (id) => {
+  if (!confirm('Bạn có muốn gửi thông tin đơn hàng này sang GHN để tạo vận đơn không?')) return
+  try {
+    const res = await axios.put(`${API_URL}/api/don-hang/${id}/gui-ghn`)
+    alert('Gửi đơn hàng sang GHN thành công! Mã vận đơn: ' + (res.data?.data?.shippingCode || ''))
+    await fetchOrders()
+  } catch (error) {
+    alert('Gửi đơn hàng sang GHN thất bại! ' + (error.response?.data?.message || ''))
+    console.error(error)
+  }
+}
 
 const statuses = [
   { label: 'Tất cả', value: 'TatCa' },

@@ -49,6 +49,18 @@ public class DonHang {
 
     @Column(name = "trang_thai")
     private String trangThai;
+
+    @Column(name = "shipper_name")
+    private String shipperName;
+
+    @Column(name = "shipper_phone")
+    private String shipperPhone;
+
+    @Column(name = "shipping_note")
+    private String shippingNote;
+
+    @Column(name = "shipping_code")
+    private String shippingCode;
 }
 
 
