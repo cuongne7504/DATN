@@ -1,5 +1,6 @@
 package com.example.backend.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -10,12 +11,17 @@ import java.util.List;
 
 @Getter
 @Setter
-public class TaoDonHangRequest {
+public class GuestCheckoutRequest {
 
-    @NotNull(message = "Mã người dùng không được để trống")
-    private Integer maNguoiDung;
+    @NotBlank(message = "Họ tên không được để trống")
+    private String hoTen;
 
-    private Integer maKhuyenMai;
+    @NotBlank(message = "Số điện thoại không được để trống")
+    private String soDienThoai;
+
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không hợp lệ")
+    private String email;
 
     @NotBlank(message = "Địa chỉ giao hàng không được để trống")
     private String diaChiGiao;
@@ -23,24 +29,13 @@ public class TaoDonHangRequest {
     @NotBlank(message = "Phương thức thanh toán không được để trống")
     private String phuongThucTt;
 
+    private Integer maKhuyenMai;
+
     private BigDecimal phiShip;
 
     @NotNull(message = "Danh sách sản phẩm không được để trống")
-    private List<DonHangItemRequest> items;
+    private List<TaoDonHangRequest.DonHangItemRequest> items;
 
     // Phục vụ tính năng OTP
     private String otpCode;
-
-    @Getter
-    @Setter
-    public static class DonHangItemRequest {
-        @NotNull
-        private Integer maChiTietSp;
-
-        @NotNull
-        private Integer soLuong;
-
-        @NotNull
-        private BigDecimal donGia;
-    }
 }

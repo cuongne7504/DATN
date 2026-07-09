@@ -130,7 +130,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const orders = ref([])
 const loading = ref(false)
 const currentStatus = ref('TatCa')

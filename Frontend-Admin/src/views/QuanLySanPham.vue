@@ -25,11 +25,11 @@
                 <h6 class="mb-3">{{ isEditingVariant ? 'Cập nhật Biến thể' : 'Thêm Biến thể mới' }}</h6>
                 <form @submit.prevent="saveVariant">
                   <div class="row">
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-2 mb-3">
                       <label class="form-label">Mã SKU</label>
-                      <input type="text" v-model="variantForm.maVachSku" class="form-control" placeholder="VD: SP01-DO-XL">
+                      <input type="text" v-model="variantForm.maVachSku" class="form-control" placeholder="Tự sinh">
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-2 mb-3">
                       <label class="form-label">Màu sắc <span class="text-danger">*</span></label>
                       <input type="text" v-model="variantForm.mauSac" class="form-control" required placeholder="VD: Đỏ">
                     </div>
@@ -40,6 +40,10 @@
                     <div class="col-md-2 mb-3">
                       <label class="form-label">Tồn kho <span class="text-danger">*</span></label>
                       <input type="number" v-model="variantForm.soLuongTon" class="form-control" min="0" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                      <label class="form-label">Giá cộng thêm</label>
+                      <input type="number" v-model="variantForm.giaCongThem" class="form-control" min="0">
                     </div>
                     <div class="col-md-2 mb-3 d-flex align-items-end">
                       <button type="submit" class="btn btn-primary w-100" :disabled="loadingVariant">
@@ -63,6 +67,7 @@
                     <th>Màu sắc</th>
                     <th>Kích cỡ</th>
                     <th>Tồn kho</th>
+                    <th>Giá (+)</th>
                     <th>Thao tác</th>
                   </tr>
                 </thead>
@@ -76,13 +81,14 @@
                         {{ variant.soLuongTon > 0 ? variant.soLuongTon : 'Hết hàng' }}
                       </span>
                     </td>
+                    <td class="text-danger fw-semibold">+{{ formatPrice(variant.giaCongThem || 0) }}</td>
                     <td>
                       <button @click="editVariant(variant)" class="btn btn-sm btn-outline-primary me-2">Sửa</button>
                       <button @click="deleteVariant(variant.maChiTietSp)" class="btn btn-sm btn-outline-danger">Xóa</button>
                     </td>
                   </tr>
                   <tr v-if="productVariants.length === 0">
-                    <td colspan="5" class="text-center text-muted py-3">Sản phẩm này chưa có biến thể nào</td>
+                    <td colspan="6" class="text-center text-muted py-3">Sản phẩm này chưa có biến thể nào</td>
                   </tr>
                 </tbody>
               </table>
@@ -206,7 +212,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 
 const products = ref([])
 const categories = ref([])
@@ -421,7 +427,8 @@ const variantForm = ref({
   maVachSku: '',
   mauSac: '',
   kichCo: '',
-  soLuongTon: 0
+  soLuongTon: 0,
+  giaCongThem: 0
 })
 
 const openVariantModal = async (product) => {
@@ -453,7 +460,8 @@ const saveVariant = async () => {
       maVachSku: variantForm.value.maVachSku,
       mauSac: variantForm.value.mauSac,
       kichCo: variantForm.value.kichCo,
-      soLuongTon: Number(variantForm.value.soLuongTon)
+      soLuongTon: Number(variantForm.value.soLuongTon),
+      giaCongThem: Number(variantForm.value.giaCongThem || 0)
     }
 
     if (isEditingVariant.value) {
@@ -464,6 +472,8 @@ const saveVariant = async () => {
     
     resetVariantForm()
     await fetchVariants()
+    // Cập nhật lại list biến thể ngoài màn hình chính
+    productSkuMap.value[selectedProduct.value.maSanPham] = [...productVariants.value]
   } catch (error) {
     alert('Lỗi: ' + (error.response?.data?.message || error.message))
   } finally {
@@ -478,7 +488,8 @@ const editVariant = (variant) => {
     maVachSku: variant.maVachSku || '',
     mauSac: variant.mauSac,
     kichCo: variant.kichCo,
-    soLuongTon: variant.soLuongTon
+    soLuongTon: variant.soLuongTon,
+    giaCongThem: variant.giaCongThem || 0
   }
 }
 
@@ -487,6 +498,8 @@ const deleteVariant = async (id) => {
   try {
     await axios.delete(`${API_URL}/api/chi-tiet-san-pham/${id}`)
     await fetchVariants()
+    // Cập nhật lại list biến thể ngoài màn hình chính
+    productSkuMap.value[selectedProduct.value.maSanPham] = [...productVariants.value]
   } catch (error) {
     alert('Không thể xóa biến thể này!')
   }
@@ -499,7 +512,8 @@ const resetVariantForm = () => {
     maVachSku: '',
     mauSac: '',
     kichCo: '',
-    soLuongTon: 0
+    soLuongTon: 0,
+    giaCongThem: 0
   }
 }
 

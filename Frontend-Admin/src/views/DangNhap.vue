@@ -43,7 +43,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const router = useRouter()
 
 const form = ref({

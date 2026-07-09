@@ -98,7 +98,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const router = useRouter()
 
 const cartItems = ref([])
@@ -116,14 +116,35 @@ const totalAmount = computed(() => {
 
 const fetchCart = async () => {
   const user = JSON.parse(localStorage.getItem('user'))
-  if (!user) {
-    router.push('/login')
-    return
-  }
-
   loading.value = true
   try {
-    // Lấy danh sách chi tiết giỏ hàng (chỉ có maCtGioHang, maGioHang, maChiTietSp, soLuong)
+    if (!user) {
+      // Load từ localStorage
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]')
+      const enriched = guestCart.map((item, index) => {
+        let hinhAnh = null
+        if (item.sanPham.hinhAnh && item.sanPham.hinhAnh.length > 0) {
+           const path = item.sanPham.hinhAnh.find(i => i.laAnhChinh)?.duongDanAnh || item.sanPham.hinhAnh[0].duongDanAnh
+           hinhAnh = path.startsWith('http') ? path : `${API_URL}/api/hinh-anh/uploads/${path}`
+        }
+        return {
+          maCtGioHang: 'guest_' + index,
+          maChiTietSp: item.maChiTietSp,
+          maSanPham: item.sanPham.maSanPham,
+          soLuong: item.soLuong,
+          tenSanPham: item.sanPham.tenSanPham,
+          mauSac: item.chiTietSanPham.mauSac,
+          kichCo: item.chiTietSanPham.kichCo,
+          soLuongTon: item.chiTietSanPham.soLuongTon,
+          donGia: item.donGia,
+          hinhAnh: hinhAnh
+        }
+      })
+      cartItems.value = enriched
+      return
+    }
+
+    // Lấy danh sách chi tiết giỏ hàng
     const res = await axios.get(`${API_URL}/api/gio-hang/cua-toi/${user.maNguoiDung}`)
     const items = res.data.data || res.data || []
 
@@ -136,16 +157,13 @@ const fetchCart = async () => {
         continue
       }
       try {
-        // Fetch chi tiết biến thể
         const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${maChiTietSp}`)
         const ct = ctRes.data.data || ctRes.data
         const maSanPham = ct.maSanPham
 
-        // Fetch sản phẩm
         const spRes = await axios.get(`${API_URL}/api/san-pham/${maSanPham}`)
         const sp = spRes.data.data || spRes.data
 
-        // Fetch ảnh
         let hinhAnh = null
         try {
           const imgRes = await axios.get(`${API_URL}/api/hinh-anh/san-pham/${maSanPham}`)
@@ -165,7 +183,7 @@ const fetchCart = async () => {
           mauSac: ct.mauSac,
           kichCo: ct.kichCo,
           soLuongTon: ct.soLuongTon,
-          donGia: sp.giaKhuyenMai || sp.giaGoc || 0,
+          donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
           hinhAnh: hinhAnh
         })
       } catch (e) {
@@ -191,6 +209,20 @@ const updateQuantity = async (item, newQuantity) => {
     item.soLuong = item.soLuongTon
     return
   }
+  
+  const user = JSON.parse(localStorage.getItem('user'))
+  if (!user) {
+    // Update local storage
+    const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]')
+    const idx = parseInt(item.maCtGioHang.split('_')[1])
+    if (guestCart[idx]) {
+      guestCart[idx].soLuong = newQuantity
+      localStorage.setItem('guestCart', JSON.stringify(guestCart))
+      item.soLuong = newQuantity
+    }
+    return
+  }
+  
   try {
     item.soLuong = newQuantity
     await axios.put(`${API_URL}/api/gio-hang/cap-nhat/${item.maCtGioHang}`, { soLuong: newQuantity })
@@ -202,6 +234,17 @@ const updateQuantity = async (item, newQuantity) => {
 
 const removeItem = async (id) => {
   if (!confirm('Bạn muốn bỏ sản phẩm này khỏi giỏ hàng?')) return
+  
+  const user = JSON.parse(localStorage.getItem('user'))
+  if (!user) {
+    let guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]')
+    const idx = parseInt(id.toString().split('_')[1])
+    guestCart.splice(idx, 1)
+    localStorage.setItem('guestCart', JSON.stringify(guestCart))
+    await fetchCart()
+    return
+  }
+
   try {
     await axios.delete(`${API_URL}/api/gio-hang/xoa/${id}`)
     await fetchCart()

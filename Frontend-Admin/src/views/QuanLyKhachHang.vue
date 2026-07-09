@@ -2,6 +2,9 @@
   <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="fw-bold mb-0">Quản lý Khách hàng</h2>
+      <div class="w-25">
+        <input type="text" class="form-control" placeholder="Tìm kiếm theo tên, email, sđt..." v-model="searchQuery">
+      </div>
     </div>
 
     <!-- Bảng danh sách Khách hàng -->
@@ -29,7 +32,7 @@
               <tr v-else-if="customers.length === 0">
                 <td colspan="7" class="text-center py-4 text-muted">Không có dữ liệu khách hàng</td>
               </tr>
-              <tr v-for="c in customers" :key="c.maNguoiDung">
+              <tr v-for="c in filteredCustomers" :key="c.maNguoiDung">
                 <td>#{{ c.maNguoiDung }}</td>
                 <td class="fw-semibold">{{ c.hoTen }}</td>
                 <td>{{ c.email }}</td>
@@ -120,6 +123,7 @@
                     <th>Ngày đặt</th>
                     <th>Tổng tiền</th>
                     <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -132,6 +136,9 @@
                         {{ getStatusText(order.trangThai) }}
                       </span>
                     </td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-info" @click="viewOrderDetail(order)">Chi tiết</button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -140,15 +147,73 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Chi Tiết Đơn Hàng con -->
+    <div class="modal fade" id="customerOrderDetailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Chi tiết đơn hàng #{{ selectedOrder?.maDonHang }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" v-if="selectedOrder">
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <h6 class="fw-bold border-bottom pb-2">Thông tin giao hàng</h6>
+                <p class="mb-1"><strong>Ngày đặt:</strong> {{ formatDate(selectedOrder.ngayDat) }}</p>
+                <p class="mb-1"><strong>Địa chỉ:</strong> {{ selectedOrder.diaChiGiao || 'Bán tại quầy' }}</p>
+              </div>
+              <div class="col-md-6">
+                <h6 class="fw-bold border-bottom pb-2">Thông tin thanh toán</h6>
+                <p class="mb-1"><strong>Phương thức:</strong> {{ selectedOrder.phuongThucTt }}</p>
+                <p class="mb-1"><strong>Trạng thái ĐH:</strong> <span class="badge bg-secondary">{{ selectedOrder.trangThai }}</span></p>
+                <p class="mb-1"><strong>Mã Khuyến Mãi:</strong> {{ selectedOrder.maKhuyenMai ? 'Có' : 'Không' }}</p>
+              </div>
+            </div>
+            <h6 class="fw-bold border-bottom pb-2">Sản phẩm</h6>
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Sản phẩm</th>
+                  <th>Số lượng</th>
+                  <th>Đơn giá</th>
+                  <th>Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in selectedOrder.chiTietList" :key="item.maCtDonHang">
+                  <td>
+                    <div class="fw-bold">{{ item.sanPham?.tenSanPham || 'Sản phẩm ' + item.maChiTietSp }}</div>
+                    <div class="small text-muted">Màu: {{ item.chiTietSanPham?.mauSac }} - Size: {{ item.chiTietSanPham?.kichCo }}</div>
+                  </td>
+                  <td>{{ item.soLuong }}</td>
+                  <td>{{ formatPrice(item.donGia) }}</td>
+                  <td class="fw-bold">{{ formatPrice(item.soLuong * item.donGia) }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-end fw-bold">Tổng tiền hàng:</td>
+                  <td class="fw-bold text-danger">{{ formatPrice(selectedOrder.tongTien) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="backToOrders">Quay lại</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import * as bootstrap from 'bootstrap'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const customers = ref([])
 const loading = ref(false)
 const saving = ref(false)
@@ -156,6 +221,19 @@ const saving = ref(false)
 // Modals
 let customerModal = null
 let ordersModal = null
+let orderDetailModal = null
+
+const searchQuery = ref('')
+
+const filteredCustomers = computed(() => {
+  if (!searchQuery.value) return customers.value
+  const q = searchQuery.value.toLowerCase()
+  return customers.value.filter(c => 
+    (c.hoTen && c.hoTen.toLowerCase().includes(q)) ||
+    (c.email && c.email.toLowerCase().includes(q)) ||
+    (c.soDienThoai && c.soDienThoai.toLowerCase().includes(q))
+  )
+})
 
 // Form edit
 const form = ref({
@@ -171,6 +249,7 @@ const form = ref({
 const currentCustomer = ref(null)
 const customerOrders = ref([])
 const loadingOrders = ref(false)
+const selectedOrder = ref(null)
 
 const fetchCustomers = async () => {
   loading.value = true
@@ -188,6 +267,7 @@ onMounted(() => {
   fetchCustomers()
   customerModal = new bootstrap.Modal(document.getElementById('customerModal'))
   ordersModal = new bootstrap.Modal(document.getElementById('ordersModal'))
+  orderDetailModal = new bootstrap.Modal(document.getElementById('customerOrderDetailModal'))
 })
 
 const editCustomer = (c) => {
@@ -251,6 +331,17 @@ const viewOrders = async (c) => {
   } finally {
     loadingOrders.value = false
   }
+}
+
+const viewOrderDetail = (order) => {
+  selectedOrder.value = order
+  ordersModal.hide()
+  orderDetailModal.show()
+}
+
+const backToOrders = () => {
+  orderDetailModal.hide()
+  ordersModal.show()
 }
 
 // Helpers
