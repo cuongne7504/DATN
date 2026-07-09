@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.ApiResponse;
 import com.example.backend.dto.DonHangDetailResponse;
+import com.example.backend.dto.GuestCheckoutRequest;
 import com.example.backend.dto.TaoDonHangPosRequest;
 import com.example.backend.dto.TaoDonHangRequest;
 import com.example.backend.entity.DonHang;
@@ -42,6 +43,13 @@ public class DonHangController {
         DonHangDetailResponse created = donHangService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("Tạo đơn hàng thành công", created));
+    }
+
+    @PostMapping("/guest")
+    public ResponseEntity<ApiResponse<DonHangDetailResponse>> createGuestOrder(@Valid @RequestBody GuestCheckoutRequest request) {
+        DonHangDetailResponse created = donHangService.createGuestOrder(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok("Tạo đơn hàng khách vãng lai thành công", created));
     }
 
     @PutMapping("/{id}/trang-thai")

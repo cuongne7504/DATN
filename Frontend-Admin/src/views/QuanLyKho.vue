@@ -76,7 +76,7 @@
                 <td colspan="6" class="text-center py-4 text-muted">Không tìm thấy dữ liệu tồn kho</td>
               </tr>
               <tr v-for="item in filteredInventory" :key="item.maChiTietSp">
-                <td><span class="badge bg-secondary">{{ item.maVachSku }}</span></td>
+                <td><span class="badge bg-secondary">{{ item.maVachSku || 'SKU-' + item.maChiTietSp }}</span></td>
                 <td class="fw-semibold">{{ item.tenSanPham }}</td>
                 <td>{{ item.mauSac }} - {{ item.kichCo }}</td>
                 <td>
@@ -140,7 +140,7 @@ import axios from 'axios'
 // Sử dụng Bootstrap Javascript bundle cho modal
 import * as bootstrap from 'bootstrap'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const inventory = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
@@ -180,8 +180,8 @@ const filteredInventory = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(i => 
-      i.tenSanPham.toLowerCase().includes(query) || 
-      i.maVachSku.toLowerCase().includes(query)
+      (i.tenSanPham && i.tenSanPham.toLowerCase().includes(query)) || 
+      (i.maVachSku && i.maVachSku.toLowerCase().includes(query))
     )
   }
 
