@@ -2,13 +2,12 @@ package com.example.backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class RegisterRequest {
+public class UpdateUserRequest {
 
     @NotBlank(message = "Họ tên không được để trống")
     private String hoTen;
@@ -17,8 +16,7 @@ public class RegisterRequest {
     @Email(message = "Email không hợp lệ")
     private String email;
 
-    @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
+    // Không bắt buộc phải nhập mật khẩu khi cập nhật
     private String matKhau;
 
     private String soDienThoai;

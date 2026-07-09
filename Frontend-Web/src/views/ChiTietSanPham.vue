@@ -169,7 +169,7 @@ import { getStoredUser } from '../utils/auth'
 
 const route = useRoute()
 const router = useRouter()
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 
 const product = ref(null)
 const variants = ref([])
@@ -256,11 +256,7 @@ const currentPrice = computed(() => {
 
 const currentOriginalPrice = computed(() => {
   if (!product.value) return 0;
-  let basePrice = product.value.giaGoc || product.value.GiGoc || 0;
-  if (selectedVariant.value && selectedVariant.value.giaCongThem) {
-    basePrice += selectedVariant.value.giaCongThem;
-  }
-  return basePrice;
+  return product.value.giaGoc || product.value.GiGoc || 0;
 })
 
 const fetchProductData = async () => {
@@ -335,7 +331,7 @@ const toggleWishlist = async () => {
 }
 
 const addToCart = async () => {
-  if (!user.value?.maNguoiDung) {
+  if (user.value && !user.value.maNguoiDung) {
     alert('Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại!')
     localStorage.removeItem('user')
     router.push('/login')
@@ -349,6 +345,34 @@ const addToCart = async () => {
 
   if (quantity.value > selectedVariant.value.soLuongTon) {
     alert('Số lượng yêu cầu vượt quá tồn kho hiện tại!')
+    return
+  }
+
+  if (!user.value) {
+    // KHACH VANG LAI (Guest) -> Luu vao localStorage
+    const cart = JSON.parse(localStorage.getItem('guestCart') || '[]')
+    const existingItem = cart.find(item => item.maChiTietSp === selectedVariant.value.maChiTietSp)
+    
+    if (existingItem) {
+      if (existingItem.soLuong + quantity.value > selectedVariant.value.soLuongTon) {
+        alert('Số lượng vượt quá tồn kho!')
+        return
+      }
+      existingItem.soLuong += quantity.value
+    } else {
+      cart.push({
+        maChiTietSp: selectedVariant.value.maChiTietSp,
+        soLuong: quantity.value,
+        donGia: currentPrice.value,
+        // Save some display info for the cart page so we don't have to fetch everything
+        sanPham: product.value,
+        chiTietSanPham: selectedVariant.value
+      })
+    }
+    
+    localStorage.setItem('guestCart', JSON.stringify(cart))
+    alert('Thêm vào giỏ hàng thành công!')
+    router.push('/cart')
     return
   }
 

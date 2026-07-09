@@ -70,7 +70,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { getStoredUser, saveUser } from '../utils/auth'
 
-const API_URL = 'http://localhost:8080'
+import { API_URL } from '@/config.js'
 const router = useRouter()
 const user = ref(null)
 
