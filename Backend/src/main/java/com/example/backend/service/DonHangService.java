@@ -293,7 +293,6 @@ public class DonHangService {
     }
 
     @Transactional
-    @Transactional
     public DonHang giaoChoShipper(Integer id, com.example.backend.dto.GiaoHangRequest request) {
         DonHang donHang = donHangRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng có mã: " + id));
