@@ -312,6 +312,27 @@ public class DonHangService {
 
         // 1. Phân tích địa chỉ giao hàng
         String diaChi = donHang.getDiaChiGiao() != null ? donHang.getDiaChiGiao() : "Khách hàng - 0900000000 - Hà Nội";
+        
+        String toWardCode = "20308"; // Mặc định Phường 14, Quận 10
+        int toDistrictId = 1442;
+        if (diaChi.contains("| [GHN:")) {
+            int startIndex = diaChi.indexOf("| [GHN:") + 7;
+            int endIndex = diaChi.indexOf("]", startIndex);
+            if (endIndex > startIndex) {
+                String ghnInfo = diaChi.substring(startIndex, endIndex);
+                String[] ghnParts = ghnInfo.split(":");
+                if (ghnParts.length >= 2) {
+                    toWardCode = ghnParts[0].trim();
+                    try {
+                        toDistrictId = Integer.parseInt(ghnParts[1].trim());
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
+            }
+            diaChi = diaChi.substring(0, diaChi.indexOf("| [GHN:")).trim();
+        }
+
         String[] parts = diaChi.split(" - ");
         String toName = "Khách hàng";
         String toPhone = "0900000000";
@@ -340,9 +361,8 @@ public class DonHangService {
         body.put("to_phone", toPhone);
         body.put("to_address", toAddress);
         
-        // GHN bắt buộc có to_ward_code và to_district_id. Đây là thông tin mẫu thử nghiệm của GHN (Phường 14, Quận 10, TP.HCM)
-        body.put("to_ward_code", "20308");
-        body.put("to_district_id", 1442);
+        body.put("to_ward_code", toWardCode);
+        body.put("to_district_id", toDistrictId);
         
         // Khối lượng/Kích thước mặc định
         body.put("cod_amount", donHang.getTongTien() != null ? donHang.getTongTien().intValue() : 0);

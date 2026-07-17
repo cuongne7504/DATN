@@ -33,9 +33,41 @@
               <input type="email" v-model="form.email" class="form-control" required placeholder="Nhập địa chỉ email để nhận thông báo">
             </div>
             
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                <select class="form-select" v-model="selectedProvince" @change="onProvinceChange" required>
+                  <option value="">Chọn Tỉnh/Thành phố</option>
+                  <option v-for="prov in provinces" :key="prov.ProvinceID" :value="prov.ProvinceID">
+                    {{ prov.ProvinceName }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Quận/Huyện <span class="text-danger">*</span></label>
+                <select class="form-select" v-model="selectedDistrict" @change="onDistrictChange" :disabled="!selectedProvince" required>
+                  <option value="">Chọn Quận/Huyện</option>
+                  <option v-for="dist in districts" :key="dist.DistrictID" :value="dist.DistrictID">
+                    {{ dist.DistrictName }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Phường/Xã <span class="text-danger">*</span></label>
+                <select class="form-select" v-model="selectedWard" @change="onWardChange" :disabled="!selectedDistrict" required>
+                  <option value="">Chọn Phường/Xã</option>
+                  <option v-for="w in wards" :key="w.WardCode" :value="w.WardCode">
+                    {{ w.WardName }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
             <div class="mb-3">
-              <label class="form-label fw-semibold">Địa chỉ giao hàng <span class="text-danger">*</span></label>
-              <textarea v-model="form.diaChiGiaoHang" class="form-control" rows="2" required placeholder="Nhập địa chỉ chi tiết"></textarea>
+              <label class="form-label fw-semibold">Địa chỉ chi tiết (Số nhà, tên đường...) <span class="text-danger">*</span></label>
+              <input type="text" v-model="form.diaChiChiTiet" class="form-control" required placeholder="Ví dụ: 123 Đường Lê Lợi">
             </div>
             
             <div class="mb-3">
@@ -99,7 +131,11 @@
             
             <div class="d-flex justify-content-between mb-2">
               <span class="text-muted">Phí giao hàng:</span>
-              <span class="fw-bold">Miễn phí</span>
+              <span class="fw-bold text-primary">
+                <span v-if="calculatingFee" class="spinner-border spinner-border-sm" role="status"></span>
+                <span v-else-if="phiShip > 0">{{ formatPrice(phiShip) }}</span>
+                <span v-else class="text-muted">Chưa tính (chọn địa chỉ)</span>
+              </span>
             </div>
             
             <hr>
@@ -157,11 +193,21 @@ const user = ref(null)
 const voucherCodeInput = ref('')
 const appliedVoucher = ref(null)
 
+const provinces = ref([])
+const districts = ref([])
+const wards = ref([])
+
+const selectedProvince = ref('')
+const selectedDistrict = ref('')
+const selectedWard = ref('')
+const phiShip = ref(0)
+const calculatingFee = ref(false)
+
 const form = ref({
   tenNguoiNhan: '',
   soDienThoai: '',
   email: '',
-  diaChiGiaoHang: '',
+  diaChiChiTiet: '',
   ghiChu: '',
   phuongThucThanhToan: 'TienMat'
 })
@@ -190,7 +236,7 @@ const discountAmount = computed(() => {
 })
 
 const finalTotal = computed(() => {
-  return Math.max(0, subTotal.value - discountAmount.value)
+  return Math.max(0, subTotal.value - discountAmount.value + (phiShip.value || 0))
 })
 
 const fetchCartAndUser = async () => {
@@ -201,7 +247,7 @@ const fetchCartAndUser = async () => {
     form.value.tenNguoiNhan = user.value.hoTen || ''
     form.value.soDienThoai = user.value.soDienThoai || ''
     form.value.email = user.value.email || ''
-    form.value.diaChiGiaoHang = user.value.diaChi || ''
+    form.value.diaChiChiTiet = user.value.diaChi || ''
   }
 
   loading.value = true
@@ -303,9 +349,87 @@ const removeVoucher = () => {
   voucherCodeInput.value = ''
 }
 
+const fetchProvinces = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/api/ghn/provinces`)
+    const data = res.data.data || res.data
+    provinces.value = data.data || []
+  } catch (e) {
+    console.error('Lỗi fetch provinces', e)
+  }
+}
+
+const onProvinceChange = async () => {
+  districts.value = []
+  wards.value = []
+  selectedDistrict.value = ''
+  selectedWard.value = ''
+  phiShip.value = 0
+  if (!selectedProvince.value) return
+  try {
+    const res = await axios.get(`${API_URL}/api/ghn/districts?provinceId=${selectedProvince.value}`)
+    const data = res.data.data || res.data
+    districts.value = data.data || []
+  } catch (e) {
+    console.error('Lỗi fetch districts', e)
+  }
+}
+
+const onDistrictChange = async () => {
+  wards.value = []
+  selectedWard.value = ''
+  phiShip.value = 0
+  if (!selectedDistrict.value) return
+  try {
+    const res = await axios.get(`${API_URL}/api/ghn/wards?districtId=${selectedDistrict.value}`)
+    const data = res.data.data || res.data
+    wards.value = data.data || []
+  } catch (e) {
+    console.error('Lỗi fetch wards', e)
+  }
+}
+
+const onWardChange = async () => {
+  if (!selectedDistrict.value || !selectedWard.value) {
+    phiShip.value = 0
+    return
+  }
+  calculatingFee.value = true
+  try {
+    const res = await axios.post(`${API_URL}/api/ghn/fee`, {
+      to_district_id: Number(selectedDistrict.value),
+      to_ward_code: selectedWard.value
+    })
+    const data = res.data.data || res.data
+    if (data.code === 200 || data.data) {
+      const feeData = data.data || {}
+      phiShip.value = feeData.total || feeData.service_fee || 0
+    } else {
+      phiShip.value = 0
+    }
+  } catch (e) {
+    console.error('Lỗi tính phí ship', e)
+    phiShip.value = 0
+  } finally {
+    calculatingFee.value = false
+  }
+}
+
+const getAddressText = () => {
+  const p = provinces.value.find(x => x.ProvinceID === selectedProvince.value)
+  const d = districts.value.find(x => x.DistrictID === selectedDistrict.value)
+  const w = wards.value.find(x => x.WardCode === selectedWard.value)
+  
+  const provinceName = p ? p.ProvinceName : ''
+  const districtName = d ? d.DistrictName : ''
+  const wardName = w ? w.WardName : ''
+  
+  return `${form.value.diaChiChiTiet}, ${wardName}, ${districtName}, ${provinceName}`
+}
+
 const submitOrder = async () => {
-  if (!form.value.tenNguoiNhan || !form.value.soDienThoai || !form.value.diaChiGiaoHang || (!user.value && !form.value.email)) {
-    alert('Vui lòng nhập đầy đủ thông tin giao hàng (Tên, SĐT, Email, Địa chỉ)!')
+  if (!form.value.tenNguoiNhan || !form.value.soDienThoai || !selectedProvince.value || !selectedDistrict.value || !selectedWard.value || !form.value.diaChiChiTiet || (!user.value && !form.value.email)) {
+    alert('Vui lòng nhập đầy đủ thông tin giao hàng và chọn địa chỉ (Tỉnh, Quận, Phường)!')
     return
   }
   requestOtp()
@@ -350,7 +474,8 @@ const confirmOrder = async () => {
 
   loadingSubmit.value = true
   try {
-    const diaChiGop = form.value.diaChiGiaoHang + (form.value.ghiChu ? ` (Ghi chú: ${form.value.ghiChu})` : '')
+    const fullAddress = getAddressText()
+    const diaChiGop = `${fullAddress} | [GHN:${selectedWard.value}:${selectedDistrict.value}]` + (form.value.ghiChu ? ` (Ghi chú: ${form.value.ghiChu})` : '')
     
     let orderId = null;
 
@@ -362,7 +487,7 @@ const confirmOrder = async () => {
         email: form.value.email,
         diaChiGiao: diaChiGop,
         phuongThucTt: form.value.phuongThucThanhToan,
-        phiShip: 0,
+        phiShip: phiShip.value,
         maKhuyenMai: appliedVoucher.value ? appliedVoucher.value.maKhuyenMai : null,
         otpCode: otpCode.value,
         items: cartItems.value.map(item => ({
@@ -384,7 +509,7 @@ const confirmOrder = async () => {
         maKhuyenMai: appliedVoucher.value ? appliedVoucher.value.maKhuyenMai : null,
         diaChiGiao: `${form.value.tenNguoiNhan} - ${form.value.soDienThoai} - ${diaChiGop}`,
         phuongThucTt: form.value.phuongThucThanhToan,
-        phiShip: 0,
+        phiShip: phiShip.value,
         otpCode: otpCode.value,
         items: cartItems.value.map(item => ({
           maChiTietSp: item.maChiTietSp,
@@ -426,6 +551,7 @@ const confirmOrder = async () => {
 
 onMounted(() => {
   fetchCartAndUser()
+  fetchProvinces()
 })
 </script>
 
