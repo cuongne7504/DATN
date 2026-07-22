@@ -42,6 +42,9 @@
             <router-link class="nav-link" active-class="active fw-semibold" to="/admin/orders">Đơn hàng</router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link" active-class="active fw-semibold" to="/admin/returns">Hoàn hàng</router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link text-warning fw-bold" active-class="active" to="/admin/pos">Bán tại quầy</router-link>
           </li>
         </ul>

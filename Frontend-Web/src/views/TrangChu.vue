@@ -269,9 +269,7 @@ onMounted(() => {
 }
 .sportpro-banner {
   /* Đường dẫn tới file ảnh của bạn */
-  background-image: url('/banner.png'); 
-
-  
+  background-image: url('/banner.png');
   /* Căn giữa ảnh và tự động co giãn ôm khít khung mà không bị méo */
   background-position: center;
   background-size: cover;

@@ -38,6 +38,11 @@
               <i class="bi bi-cart-check me-2"></i> Đơn hàng
             </router-link>
           </li>
+          <li class="nav-item mb-2">
+            <router-link class="nav-link text-white sidebar-link" active-class="active bg-white text-black fw-bold" to="/admin/returns">
+              <i class="bi bi-arrow-return-left me-2"></i> Hoàn hàng
+            </router-link>
+          </li>
           <li class="nav-item mb-2" v-if="user?.maQuyen === 1 || user?.maQuyen === 2">
             <router-link class="nav-link text-white sidebar-link" active-class="active bg-white text-black fw-bold" to="/admin/inventory">
               <i class="bi bi-box-seam-fill me-2"></i> Kho hàng

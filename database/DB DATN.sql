@@ -155,6 +155,18 @@ CREATE TABLE DANH_GIA (
   FOREIGN KEY (ma_nguoi_dung) REFERENCES NGUOI_DUNG(ma_nguoi_dung),
   FOREIGN KEY (ma_san_pham) REFERENCES SAN_PHAM(ma_san_pham)
 );
+
+CREATE TABLE YEU_CAU_HOAN_HANG (
+  ma_yeu_cau INT IDENTITY(1,1) PRIMARY KEY,
+  ma_don_hang INT,
+  ly_do NVARCHAR(MAX),
+  hinh_anh_minh_hoa VARCHAR(255),
+  so_tien_hoan DECIMAL(10,2),
+  trang_thai NVARCHAR(50),
+  ngay_tao DATETIME,
+  ngay_cap_nhat DATETIME,
+  FOREIGN KEY (ma_don_hang) REFERENCES DON_HANG(ma_don_hang)
+);
 GO
 
 
@@ -256,4 +268,8 @@ INSERT INTO LICH_SU_THANH_TOAN (ma_don_hang, ma_giao_dich, so_tien, trang_thai, 
 -- 14. Thêm Đánh Giá
 INSERT INTO DANH_GIA (ma_nguoi_dung, ma_san_pham, so_sao, noi_dung, ngay_tao) VALUES
 ((SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'khachhang@sportpro.com'), (SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham = N'Áo chạy bộ Nike Dri-FIT'), 5, N'Áo đẹp, vải xịn mặc mát lắm shop ơi. Sẽ ủng hộ thêm!', GETDATE());
+
+-- 15. Thêm Yêu Cầu Hoàn Hàng
+INSERT INTO YEU_CAU_HOAN_HANG (ma_don_hang, ly_do, hinh_anh_minh_hoa, so_tien_hoan, trang_thai, ngay_tao, ngay_cap_nhat) VALUES
+((SELECT TOP 1 ma_don_hang FROM DON_HANG WHERE tong_tien = 450000), N'Sản phẩm bị lỗi chỉ', 'https://via.placeholder.com/150?text=Loi+Chi', 450000, N'Chờ duyệt', GETDATE(), GETDATE());
 GO
