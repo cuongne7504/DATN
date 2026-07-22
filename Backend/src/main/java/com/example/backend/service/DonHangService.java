@@ -144,6 +144,7 @@ public class DonHangService {
 
         // Tạo đơn hàng
         DonHang donHang = new DonHang();
+        donHang.setMaDonHang(generateNextDonHangId());
         donHang.setMaNguoiDung(request.getMaNguoiDung());
         donHang.setMaKhuyenMai(request.getMaKhuyenMai());
         donHang.setNgayDat(LocalDateTime.now());
@@ -159,6 +160,7 @@ public class DonHangService {
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
+            ctdh.setMaCtDonHang(generateNextChiTietId());
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());
@@ -257,6 +259,7 @@ public class DonHangService {
 
         // Tạo đơn hàng POS
         DonHang donHang = new DonHang();
+        donHang.setMaDonHang(generateNextDonHangId());
         donHang.setMaNguoiDung(null); // POS order không có khách hàng
         donHang.setMaNhanVien(request.getMaNhanVien());
         donHang.setMaKhuyenMai(request.getMaKhuyenMai());
@@ -282,6 +285,7 @@ public class DonHangService {
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
+            ctdh.setMaCtDonHang(generateNextChiTietId());
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());
@@ -292,7 +296,6 @@ public class DonHangService {
         return new DonHangDetailResponse(donHang, mapChiTietList(chiTietList), null);
     }
 
-    @Transactional
     @Transactional
     public DonHang giaoChoShipper(Integer id, com.example.backend.dto.GiaoHangRequest request) {
         DonHang donHang = donHangRepository.findById(id)
@@ -476,6 +479,7 @@ public class DonHangService {
 
         // Tạo đơn hàng
         DonHang donHang = new DonHang();
+        donHang.setMaDonHang(generateNextDonHangId());
         donHang.setMaNguoiDung(guestUser.getMaNguoiDung());
         donHang.setMaKhuyenMai(request.getMaKhuyenMai());
         donHang.setNgayDat(LocalDateTime.now());
@@ -491,6 +495,7 @@ public class DonHangService {
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
+            ctdh.setMaCtDonHang(generateNextChiTietId());
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());

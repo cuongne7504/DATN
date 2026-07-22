@@ -1,17 +1,18 @@
 <template>
-  <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold mb-0">Quản lý Nhân viên</h2>
-      <button class="btn btn-primary" @click="openCreateModal">
-        <i class="bi bi-plus-lg"></i> Thêm Nhân viên
-      </button>
-    </div>
+  <div class="container-fluid">
+    <PageHeader title="Quản lý Nhân viên" subtitle="Thêm và phân quyền nhân viên bán hàng">
+      <template #actions>
+        <button class="btn btn-primary" @click="openCreateModal">
+          <i class="bi bi-plus-lg me-1"></i> Thêm Nhân viên
+        </button>
+      </template>
+    </PageHeader>
 
     <!-- Bảng danh sách Nhân viên -->
     <div class="card shadow-sm">
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-hover table-striped mb-0 align-middle">
+          <table class="table table-hover mb-0 align-middle">
             <thead class="table-light">
               <tr>
                 <th>ID</th>
@@ -26,12 +27,18 @@
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="7" class="text-center py-4">
-                  <div class="spinner-border text-primary" role="status"></div>
+                <td colspan="8" class="p-3">
+                  <SkeletonLoader variant="table" :rows="5" />
                 </td>
               </tr>
               <tr v-else-if="employees.length === 0">
-                <td colspan="7" class="text-center py-4 text-muted">Không có dữ liệu nhân viên</td>
+                <td colspan="8" class="p-0">
+                  <EmptyState
+                    icon="bi bi-person-badge"
+                    title="Chưa có nhân viên"
+                    description="Nhấn nút Thêm Nhân viên để tạo tài khoản mới"
+                  />
+                </td>
               </tr>
               <tr v-for="e in employees" :key="e.maNguoiDung">
                 <td>#{{ e.maNguoiDung }}</td>
@@ -165,6 +172,9 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import * as bootstrap from 'bootstrap'
+import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import SkeletonLoader from '@/components/SkeletonLoader.vue'
 
 import { API_URL } from '@/config.js'
 const employees = ref([])
