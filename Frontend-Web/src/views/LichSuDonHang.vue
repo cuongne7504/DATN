@@ -57,6 +57,7 @@
             <div class="mt-3 text-end">
               <button @click="showDetails(orderInfo)" class="btn btn-outline-info btn-sm px-4 fw-bold me-2" data-bs-toggle="modal" data-bs-target="#orderDetailModal">Chi tiết</button>
               <button v-if="orderInfo.trangThai === 'Chờ xử lý'" @click="cancelOrder(orderInfo.maDonHang)" class="btn btn-outline-danger btn-sm px-4 fw-bold">Hủy đơn hàng</button>
+              <button v-if="orderInfo.trangThai === 'Đã giao hàng'" @click="openReturnModal(orderInfo)" class="btn btn-outline-warning btn-sm px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#returnOrderModal">Yêu cầu hoàn hàng</button>
             </div>
           </div>
         </div>
@@ -130,6 +131,35 @@
       </div>
     </div>
 
+    <!-- Modal Yêu Cầu Hoàn Hàng -->
+    <div class="modal fade" id="returnOrderModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning">
+            <h5 class="modal-title fw-bold text-dark">Yêu cầu hoàn hàng (Đơn #{{ orderToReturn?.maDonHang }})</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeReturnModal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">Lý do hoàn hàng:</label>
+              <textarea v-model="returnForm.lyDo" class="form-control" rows="3" placeholder="Nhập lý do chi tiết..." required></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Link hình ảnh minh họa (tuỳ chọn):</label>
+              <input type="text" v-model="returnForm.hinhAnhMinhHoa" class="form-control" placeholder="URL hình ảnh sản phẩm lỗi">
+            </div>
+            <div class="alert alert-info small mt-2">
+              <strong>Lưu ý:</strong> Chúng tôi sẽ kiểm tra và xét duyệt yêu cầu của bạn. Sau khi duyệt, bạn cần gửi hàng về cho shop để hoàn tất quá trình hoàn tiền.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button type="button" class="btn btn-warning fw-bold text-dark" @click="submitReturnRequest">Gửi yêu cầu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -143,6 +173,9 @@ const router = useRouter()
 const orders = ref([])
 const loading = ref(false)
 const selectedOrder = ref(null)
+
+const orderToReturn = ref(null)
+const returnForm = ref({ lyDo: '', hinhAnhMinhHoa: '' })
 
 const showDetails = (order) => {
   selectedOrder.value = order
@@ -164,6 +197,10 @@ const getStatusBadgeClass = (status) => {
     case 'Đang giao hàng': return 'bg-primary'
     case 'Đã giao hàng': return 'bg-success'
     case 'Đã hủy': return 'bg-danger'
+    case 'Yêu cầu hoàn hàng': return 'bg-warning text-dark'
+    case 'Đang xử lý hoàn hàng': return 'bg-info text-dark'
+    case 'Đã hoàn hàng': return 'bg-secondary'
+    case 'Đã hoàn tiền': return 'bg-success'
     default: return 'bg-secondary'
   }
 }
@@ -200,6 +237,33 @@ const cancelOrder = async (id) => {
   } catch (error) {
     console.error('Lỗi hủy đơn:', error)
     alert('Không thể hủy đơn hàng này!')
+  }
+}
+
+const openReturnModal = (order) => {
+  orderToReturn.value = order
+  returnForm.value = { lyDo: '', hinhAnhMinhHoa: '' }
+}
+
+const submitReturnRequest = async () => {
+  if (!returnForm.value.lyDo) {
+    alert('Vui lòng nhập lý do hoàn hàng.')
+    return
+  }
+  try {
+    const payload = {
+      maDonHang: orderToReturn.value.maDonHang,
+      lyDo: returnForm.value.lyDo,
+      hinhAnhMinhHoa: returnForm.value.hinhAnhMinhHoa,
+      soTienHoan: orderToReturn.value.tongTien
+    }
+    await axios.post(`${API_URL}/api/hoan-hang`, payload)
+    alert('Đã gửi yêu cầu hoàn hàng thành công! Vui lòng chờ nhân viên xét duyệt.')
+    document.getElementById('closeReturnModal').click()
+    await fetchOrders()
+  } catch (error) {
+    console.error('Lỗi gửi yêu cầu hoàn hàng:', error)
+    alert(error.response?.data?.message || 'Có lỗi xảy ra, không thể gửi yêu cầu.')
   }
 }
 

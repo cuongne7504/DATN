@@ -40,6 +40,10 @@
           <i class="bi bi-receipt-cutoff"></i>
           <span>Hóa đơn</span>
         </router-link>
+        <router-link class="sidebar-link" active-class="active" to="/admin/returns" @click="closeSidebar">
+          <i class="bi bi-arrow-return-left"></i>
+          <span>Hoàn hàng</span>
+        </router-link>
         <router-link
           v-if="user?.maQuyen === 1 || user?.maQuyen === 2"
           class="sidebar-link"
@@ -147,6 +151,7 @@ const titleMap = {
   '/admin/variants': 'Biến thể sản phẩm',
   '/admin/orders': 'Đơn hàng',
   '/admin/invoices': 'Hóa đơn',
+  '/admin/returns': 'Hoàn hàng',
   '/admin/inventory': 'Kho hàng',
   '/admin/vouchers': 'Khuyến mãi',
   '/admin/employees': 'Nhân viên',

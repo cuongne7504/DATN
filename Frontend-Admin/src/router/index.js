@@ -12,6 +12,7 @@ import QuanLyKhachHang from '../views/QuanLyKhachHang.vue'
 import QuanLyNhanVien from '../views/QuanLyNhanVien.vue'
 import QuanLyKho from '../views/QuanLyKho.vue'
 import QuanLyHoaDon from '../views/QuanLyHoaDon.vue'
+import QuanLyHoanHang from '../views/QuanLyHoanHang.vue'
 
 const routes = [
   {
@@ -87,6 +88,12 @@ const routes = [
     path: '/admin/invoices',
     name: 'QuanLyHoaDon',
     component: QuanLyHoaDon,
+    meta: { requiresAuth: true, requiresAdmin: true, roles: [1, 2] }
+  },
+  {
+    path: '/admin/returns',
+    name: 'QuanLyHoanHang',
+    component: QuanLyHoanHang,
     meta: { requiresAuth: true, requiresAdmin: true, roles: [1, 2] }
   },
   {

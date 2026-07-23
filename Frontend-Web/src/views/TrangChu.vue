@@ -1,14 +1,22 @@
 <template>
   <div>
     <!-- Hero Banner -->
-    <div class="position-relative w-100">
+    <!-- <div class="position-relative w-100">
       <img src="/banner.png" alt="SportPro Banner" class="w-100" style="height: auto; display: block;">
       <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white" style="background: rgba(0,0,0,0.4);">
         <h1 class="display-3 fw-bold text-uppercase tracking-wider mb-3">SportPro</h1>
         <p class="fs-4 mb-4">Nâng tầm phong cách, bứt phá giới hạn</p>
         <button class="btn btn-light btn-lg px-5 rounded-0 fw-bold text-uppercase" @click="scrollToProducts">Khám phá ngay</button>
       </div>
-    </div>
+    </div> -->
+    <div class="position-relative w-100 sportpro-banner">
+  <!-- Nội dung text và nút bấm đè lên ảnh -->
+  <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white" style="background: rgba(0,0,0,0.4);">
+    <h1 class="display-3 fw-bold text-uppercase tracking-wider mb-3">SportPro</h1>
+    <p class="fs-4 mb-4">Nâng tầm phong cách, bứt phá giới hạn</p>
+    <button class="btn btn-light btn-lg px-5 rounded-0 fw-bold text-uppercase" @click="scrollToProducts">Khám phá ngay</button>
+  </div>
+</div>
 
     <div class="container mt-5" id="products-section">
       <!-- Bộ lọc -->
@@ -204,6 +212,46 @@ onMounted(() => {
 .tracking-wider {
   letter-spacing: 0.15em;
 }
+.position-relative > img[alt="SportPro Banner"] {
+  height: 50vh !important;
+  max-height: 450px !important;
+  object-fit: cover !important;
+  object-position: center 30% !important;
+}
+
+/* Tùy chỉnh chữ trên Banner */
+.position-absolute.top-0 h1 {
+  background: linear-gradient(135deg, #ffffff, #bae6fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  font-weight: 900 !important;
+}
+
+.position-absolute.top-0 p {
+  color: #f1f5f9 !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* Bo tròn nút 'Khám phá ngay' và thêm màu đẹp */
+.position-absolute.top-0 button {
+  border-radius: 9999px !important; /* Bo tròn hoàn toàn */
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8) !important; /* Gradient xanh dương nhạt cho hợp navbar */
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4) !important;
+  padding: 0.75rem 2.5rem !important;
+  transition: all 0.3s ease !important;
+}
+
+.position-absolute.top-0 button:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.6) !important;
+  background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+}
+
 .product-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -218,5 +266,25 @@ onMounted(() => {
 .wishlist-btn:hover {
   background-color: #f8f9fa;
   transform: scale(1.1);
+}
+.sportpro-banner {
+  /* Đường dẫn tới file ảnh của bạn */
+  background-image: url('/banner.png');
+  /* Căn giữa ảnh và tự động co giãn ôm khít khung mà không bị méo */
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  /* Thiết lập chiều cao cho banner */
+  /* height: 100vh; Chiếm toàn bộ chiều cao màn hình (Tùy chọn) */
+  /* Hoặc bạn có thể dùng chiều cao cố định như bên dưới: */
+  height: 600px; 
+}
+
+/* Responsive: Tự động giảm chiều cao banner trên thiết bị di động */
+@media (max-width: 768px) {
+  .sportpro-banner {
+    height: 60vh; /* Hoặc 350px */
+  }
 }
 </style>
