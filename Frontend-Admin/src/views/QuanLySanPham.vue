@@ -257,10 +257,11 @@ const form = ref({
   giaKhuyenMai: '',
   hinhAnh: ''
 })
-
 const imageUrl = (path) => {
   if (!path) return ''
   if (String(path).startsWith('http')) return path
+  if (String(path).startsWith('/uploads/')) return `${API_URL}${path}`
+  if (String(path).startsWith('uploads/')) return `${API_URL}/${path}`
   return `${API_URL}/uploads/${path}`
 }
 
@@ -271,7 +272,7 @@ const uploadImage = async (event) => {
   const formData = new FormData()
   formData.append('file', file)
   try {
-    const res = await axios.post(`${API_URL}/api/hinh-anh/upload`, formData, {
+    const res = await axios.post(`${API_URL}/api/upload`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     form.value.hinhAnh = res.data.data
@@ -282,7 +283,6 @@ const uploadImage = async (event) => {
     uploadingImg.value = false
   }
 }
-
 const formatPrice = (price) =>
   price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
 
