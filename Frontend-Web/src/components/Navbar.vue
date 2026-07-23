@@ -15,6 +15,9 @@
             <router-link class="nav-link fw-semibold px-3" active-class="active" to="/">Trang chủ</router-link>
           </li>
           <li class="nav-item">
+            <router-link class="nav-link fw-semibold px-3" active-class="active" to="/lookup">Tra cứu đơn hàng</router-link>
+          </li>
+          <li class="nav-item">
             <router-link class="nav-link fw-semibold px-3" active-class="active" to="/history">Lịch sử Đơn hàng</router-link>
           </li>
         </ul>

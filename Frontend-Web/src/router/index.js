@@ -33,6 +33,11 @@ const routes = [
     component: LichSuDonHang,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/lookup',
+    name: 'TraCuuDonHang',
+    component: () => import('../views/TraCuuDonHang.vue')
+  },
 
   {
     path: '/account',
