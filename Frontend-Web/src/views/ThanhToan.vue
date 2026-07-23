@@ -25,12 +25,36 @@
             
             <div class="mb-3">
               <label class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
-              <input type="tel" v-model="form.soDienThoai" class="form-control" required placeholder="Nhập số điện thoại">
+              <input 
+                type="tel" 
+                v-model="form.soDienThoai" 
+                @blur="validatePhone" 
+                @input="validatePhone"
+                class="form-control" 
+                :class="{'is-invalid': errors.soDienThoai}"
+                required 
+                placeholder="Nhập số điện thoại"
+              >
+              <div class="invalid-feedback" v-if="errors.soDienThoai">
+                {{ errors.soDienThoai }}
+              </div>
             </div>
 
             <div class="mb-3" v-if="!user">
               <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-              <input type="email" v-model="form.email" class="form-control" required placeholder="Nhập địa chỉ email để nhận thông báo">
+              <input 
+                type="email" 
+                v-model="form.email" 
+                @blur="validateEmail" 
+                @input="validateEmail"
+                class="form-control" 
+                :class="{'is-invalid': errors.email}"
+                required 
+                placeholder="Nhập địa chỉ email để nhận thông báo"
+              >
+              <div class="invalid-feedback" v-if="errors.email">
+                {{ errors.email }}
+              </div>
             </div>
             
             <div class="row">
@@ -203,6 +227,42 @@ const selectedWard = ref('')
 const phiShip = ref(0)
 const calculatingFee = ref(false)
 
+const errors = ref({
+  soDienThoai: '',
+  email: ''
+})
+
+const validatePhone = () => {
+  const val = form.value.soDienThoai ? form.value.soDienThoai.trim() : ''
+  if (!val) {
+    errors.value.soDienThoai = 'Số điện thoại không được để trống'
+    return false
+  }
+  const phoneRegex = /^(0[35789])[0-9]{8}$/
+  if (!phoneRegex.test(val)) {
+    errors.value.soDienThoai = 'Số điện thoại Việt Nam không hợp lệ! (Ví dụ: 0982337504)'
+    return false
+  }
+  errors.value.soDienThoai = ''
+  return true
+}
+
+const validateEmail = () => {
+  const val = form.value.email ? form.value.email.trim() : ''
+  if (!user.value && !val) {
+    errors.value.email = 'Email không được để trống'
+    return false
+  }
+  if (val) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(val)) {
+      errors.value.email = 'Email không đúng định dạng! (Ví dụ: example@domain.com)'
+      return false
+    }
+  }
+  errors.value.email = ''
+  return true
+}
 const form = ref({
   tenNguoiNhan: '',
   soDienThoai: '',
@@ -211,7 +271,6 @@ const form = ref({
   ghiChu: '',
   phuongThucThanhToan: 'TienMat'
 })
-
 const formatPrice = (price) => {
   return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
 }
@@ -434,21 +493,13 @@ const submitOrder = async () => {
     return
   }
 
-  // 2. Validate số điện thoại (đúng định dạng di động Việt Nam: 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09)
-  const phoneRegex = /^(0[35789])[0-9]{8}$/
-  if (!phoneRegex.test(form.value.soDienThoai.trim())) {
-    alert('Số điện thoại không hợp lệ! Vui lòng nhập số điện thoại Việt Nam gồm 10 chữ số (Ví dụ: 0982337504).')
+  // 2. Kiểm tra tính hợp lệ của SĐT và Email
+  const isPhoneValid = validatePhone()
+  const isEmailValid = validateEmail()
+  
+  if (!isPhoneValid || !isEmailValid) {
+    alert('Vui lòng nhập thông tin liên hệ hợp lệ trước khi đặt hàng!')
     return
-  }
-
-  // 3. Validate email
-  const emailToValidate = form.value.email ? form.value.email.trim() : ''
-  if (!user.value || emailToValidate) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(emailToValidate)) {
-      alert('Địa chỉ email không hợp lệ! Vui lòng nhập đúng định dạng email (Ví dụ: example@domain.com).')
-      return
-    }
   }
 
   requestOtp()
