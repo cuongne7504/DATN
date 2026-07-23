@@ -428,10 +428,29 @@ const getAddressText = () => {
 }
 
 const submitOrder = async () => {
+  // 1. Kiểm tra các trường bắt buộc không được để trống
   if (!form.value.tenNguoiNhan || !form.value.soDienThoai || !selectedProvince.value || !selectedDistrict.value || !selectedWard.value || !form.value.diaChiChiTiet || (!user.value && !form.value.email)) {
     alert('Vui lòng nhập đầy đủ thông tin giao hàng và chọn địa chỉ (Tỉnh, Quận, Phường)!')
     return
   }
+
+  // 2. Validate số điện thoại (đúng định dạng di động Việt Nam: 10 chữ số, bắt đầu bằng 03, 05, 07, 08, 09)
+  const phoneRegex = /^(0[35789])[0-9]{8}$/
+  if (!phoneRegex.test(form.value.soDienThoai.trim())) {
+    alert('Số điện thoại không hợp lệ! Vui lòng nhập số điện thoại Việt Nam gồm 10 chữ số (Ví dụ: 0982337504).')
+    return
+  }
+
+  // 3. Validate email
+  const emailToValidate = form.value.email ? form.value.email.trim() : ''
+  if (!user.value || emailToValidate) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(emailToValidate)) {
+      alert('Địa chỉ email không hợp lệ! Vui lòng nhập đúng định dạng email (Ví dụ: example@domain.com).')
+      return
+    }
+  }
+
   requestOtp()
 }
 
