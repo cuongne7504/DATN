@@ -1,17 +1,19 @@
 <template>
-  <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold mb-0">Quản lý Khách hàng</h2>
-      <div class="w-25">
-        <input type="text" class="form-control" placeholder="Tìm kiếm theo tên, email, sđt..." v-model="searchQuery">
-      </div>
-    </div>
+  <div class="container-fluid">
+    <PageHeader title="Quản lý Khách hàng" subtitle="Xem và cập nhật thông tin khách hàng">
+      <template #actions>
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" class="form-control" placeholder="Tìm tên, email, SĐT..." v-model="searchQuery" />
+        </div>
+      </template>
+    </PageHeader>
 
     <!-- Bảng danh sách Khách hàng -->
     <div class="card shadow-sm">
       <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-hover table-striped mb-0 align-middle">
+          <table class="table table-hover mb-0 align-middle">
             <thead class="table-light">
               <tr>
                 <th>ID</th>
@@ -25,12 +27,18 @@
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="7" class="text-center py-4">
-                  <div class="spinner-border text-primary" role="status"></div>
+                <td colspan="7" class="p-3">
+                  <SkeletonLoader variant="table" :rows="5" />
                 </td>
               </tr>
               <tr v-else-if="customers.length === 0">
-                <td colspan="7" class="text-center py-4 text-muted">Không có dữ liệu khách hàng</td>
+                <td colspan="7" class="p-0">
+                  <EmptyState
+                    icon="bi bi-people"
+                    title="Chưa có khách hàng"
+                    description="Dữ liệu khách hàng sẽ hiển thị tại đây"
+                  />
+                </td>
               </tr>
               <tr v-for="c in filteredCustomers" :key="c.maNguoiDung">
                 <td>#{{ c.maNguoiDung }}</td>
@@ -224,6 +232,9 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import * as bootstrap from 'bootstrap'
+import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import SkeletonLoader from '@/components/SkeletonLoader.vue'
 
 import { API_URL } from '@/config.js'
 const customers = ref([])

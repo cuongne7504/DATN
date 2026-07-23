@@ -1,33 +1,25 @@
 <template>
-  <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold mb-0">Quản lý Kho (Tồn kho)</h2>
-    </div>
+  <div class="container-fluid">
+    <PageHeader title="Quản lý Kho" subtitle="Theo dõi tồn kho và cảnh báo hết hàng" />
 
-    <!-- Cảnh báo & Thống kê -->
-    <div class="row mb-4">
+    <SkeletonLoader v-if="loading" variant="kpi" :rows="3" class="mb-4" />
+    <div v-else class="row mb-4 g-3">
       <div class="col-md-4">
-        <div class="card bg-danger text-white">
-          <div class="card-body">
-            <h5 class="card-title">Hết hàng</h5>
-            <h3 class="mb-0">{{ outOfStockCount }} <small class="fs-6">Sản phẩm</small></h3>
-          </div>
+        <div class="sp-kpi-card sp-kpi-orange">
+          <div class="kpi-label"><i class="bi bi-exclamation-octagon me-1"></i>Hết hàng</div>
+          <p class="kpi-value">{{ outOfStockCount }}</p>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="card bg-warning text-dark">
-          <div class="card-body">
-            <h5 class="card-title">Sắp hết hàng (≤ 5)</h5>
-            <h3 class="mb-0">{{ lowStockCount }} <small class="fs-6">Sản phẩm</small></h3>
-          </div>
+        <div class="sp-kpi-card sp-kpi-cyan">
+          <div class="kpi-label"><i class="bi bi-exclamation-triangle me-1"></i>Sắp hết (≤ 5)</div>
+          <p class="kpi-value">{{ lowStockCount }}</p>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="card bg-success text-white">
-          <div class="card-body">
-            <h5 class="card-title">Còn hàng</h5>
-            <h3 class="mb-0">{{ inStockCount }} <small class="fs-6">Sản phẩm</small></h3>
-          </div>
+        <div class="sp-kpi-card sp-kpi-green">
+          <div class="kpi-label"><i class="bi bi-check2-circle me-1"></i>Còn hàng</div>
+          <p class="kpi-value">{{ inStockCount }}</p>
         </div>
       </div>
     </div>
@@ -139,6 +131,8 @@ import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 // Sử dụng Bootstrap Javascript bundle cho modal
 import * as bootstrap from 'bootstrap'
+import PageHeader from '@/components/PageHeader.vue'
+import SkeletonLoader from '@/components/SkeletonLoader.vue'
 
 import { API_URL } from '@/config.js'
 const inventory = ref([])

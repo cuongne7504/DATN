@@ -1,10 +1,10 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">Quản lý Danh mục</h2>
+    <PageHeader title="Quản lý Danh mục" subtitle="Thêm, sửa và phân loại nhóm sản phẩm" />
 
     <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="mb-3">{{ isEditing ? 'Cập nhật Danh mục' : 'Thêm Danh mục mới' }}</h5>
+      <div class="card-body p-4">
+        <h5 class="mb-3 fw-semibold">{{ isEditing ? 'Cập nhật Danh mục' : 'Thêm Danh mục mới' }}</h5>
         <form @submit.prevent="saveCategory">
           <div class="row">
             <div class="col-md-8 mb-3">
@@ -22,8 +22,8 @@
       </div>
     </div>
 
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
+    <div v-if="loading">
+      <SkeletonLoader variant="table" :rows="5" />
     </div>
 
     <div v-else class="table-responsive bg-white rounded shadow-sm p-3">
@@ -45,7 +45,13 @@
             </td>
           </tr>
           <tr v-if="categories.length === 0">
-            <td colspan="3" class="text-center text-muted py-3">Chưa có danh mục nào</td>
+            <td colspan="3" class="p-0">
+              <EmptyState
+                icon="bi bi-tags"
+                title="Chưa có danh mục"
+                description="Thêm danh mục đầu tiên để bắt đầu phân loại sản phẩm"
+              />
+            </td>
           </tr>
         </tbody>
       </table>
@@ -56,8 +62,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-
 import { API_URL } from '@/config.js'
+import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import SkeletonLoader from '@/components/SkeletonLoader.vue'
 const categories = ref([])
 const loading = ref(false)
 const isEditing = ref(false)

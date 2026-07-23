@@ -1,10 +1,10 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">Quản lý Thương hiệu</h2>
+    <PageHeader title="Quản lý Thương hiệu" subtitle="Quản lý thương hiệu sản phẩm thể thao" />
 
     <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="mb-3">{{ isEditing ? 'Cập nhật Thương hiệu' : 'Thêm Thương hiệu mới' }}</h5>
+      <div class="card-body p-4">
+        <h5 class="mb-3 fw-semibold">{{ isEditing ? 'Cập nhật Thương hiệu' : 'Thêm Thương hiệu mới' }}</h5>
         <form @submit.prevent="saveBrand">
           <div class="row">
             <div class="col-md-8 mb-3">
@@ -56,6 +56,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import PageHeader from '@/components/PageHeader.vue'
 
 import { API_URL } from '@/config.js'
 const brands = ref([])

@@ -3,11 +3,13 @@ package com.example.backend.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,12 +18,30 @@ import java.time.LocalDateTime;
 @Table(name = "DON_HANG")
 @Getter
 @Setter
-public class DonHang {
+public class DonHang implements Persistable<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ma_don_hang")
     private Integer maDonHang;
+
+    @Transient
+    private boolean newEntity = true;
+
+    @Override
+    public Integer getId() {
+        return maDonHang;
+    }
+
+    @Override
+    public boolean isNew() {
+        return newEntity;
+    }
+
+    @PostPersist
+    @PostLoad
+    void markNotNew() {
+        this.newEntity = false;
+    }
 
     @Column(name = "ma_nguoi_dung")
     private Integer maNguoiDung;

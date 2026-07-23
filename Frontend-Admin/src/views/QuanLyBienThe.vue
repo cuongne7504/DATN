@@ -1,10 +1,10 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">Quản lý Biến thể (Màu sắc & Kích cỡ)</h2>
+    <PageHeader title="Quản lý Biến thể" subtitle="Quản lý màu sắc, kích cỡ và tồn kho theo SKU" />
 
     <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="mb-3">{{ isEditing ? 'Cập nhật Biến thể' : 'Thêm Biến thể mới' }}</h5>
+      <div class="card-body p-4">
+        <h5 class="mb-3 fw-semibold">{{ isEditing ? 'Cập nhật Biến thể' : 'Thêm Biến thể mới' }}</h5>
         <form @submit.prevent="saveVariant">
           <div class="row">
             <div class="col-md-4 mb-3">
@@ -81,6 +81,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import PageHeader from '@/components/PageHeader.vue'
 
 import { API_URL } from '@/config.js'
 const variants = ref([])

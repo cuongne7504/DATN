@@ -1,22 +1,144 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">Quản lý Sản phẩm</h2>
+    <PageHeader title="Quản lý Sản phẩm" subtitle="Quản lý danh mục sản phẩm, giá và hình ảnh" />
 
-    <!-- Form thêm/sửa sản phẩm -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="mb-3">{{ isEditing ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới' }}</h5>
+      <div class="card-body p-4">
+        <h5 class="mb-3 fw-semibold">{{ isEditing ? 'Cập nhật Sản phẩm' : 'Thêm Sản phẩm mới' }}</h5>
         <form @submit.prevent="saveProduct">
           <div class="row">
             <div class="col-md-6 mb-3">
               <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
-              <input type="text" v-model="form.tenSanPham" class="form-control" required>
-            <!-- Modal Biến Thể -->
+              <input type="text" v-model="form.tenSanPham" class="form-control" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Mô tả</label>
+              <textarea v-model="form.moTa" class="form-control" rows="1"></textarea>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Danh mục <span class="text-danger">*</span></label>
+              <select v-model="form.maDanhMuc" class="form-select" required>
+                <option value="">Chọn danh mục</option>
+                <option v-for="c in categories" :key="c.maDanhMuc" :value="c.maDanhMuc">{{ c.tenDanhMuc }}</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Thương hiệu <span class="text-danger">*</span></label>
+              <select v-model="form.maThuongHieu" class="form-select" required>
+                <option value="">Chọn thương hiệu</option>
+                <option v-for="b in brands" :key="b.maThuongHieu" :value="b.maThuongHieu">{{ b.tenThuongHieu }}</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Giá gốc <span class="text-danger">*</span></label>
+              <input type="number" v-model="form.giaGoc" class="form-control" min="0" required />
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Giá khuyến mãi</label>
+              <input type="number" v-model="form.giaKhuyenMai" class="form-control" min="0" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Hình ảnh sản phẩm</label>
+              <input type="file" class="form-control" accept="image/*" @change="uploadImage" />
+              <div class="form-text text-muted">
+                <i class="bi bi-info-circle me-1"></i>Chỉ chấp nhận file ảnh (PNG, JPG, JPEG).
+              </div>
+              <div v-if="uploadingImg" class="small text-primary mt-1">Đang tải ảnh...</div>
+            </div>
+            <div class="col-md-6 mb-3 d-flex align-items-center">
+              <div v-if="form.hinhAnh" class="preview-box">
+                <img :src="imageUrl(form.hinhAnh)" alt="preview" />
+              </div>
+              <div v-else class="preview-empty">
+                <i class="bi bi-image"></i>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary" :disabled="loading">
+              {{ loading ? 'Đang lưu...' : (isEditing ? 'Cập nhật' : 'Thêm mới') }}
+            </button>
+            <button type="button" v-if="isEditing" @click="resetForm" class="btn btn-secondary">Hủy</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <div v-else class="table-responsive bg-white rounded shadow-sm">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Tên sản phẩm</th>
+            <th>Danh mục</th>
+            <th>Thương hiệu</th>
+            <th>Giá</th>
+            <th>SKU / Biến thể</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in products" :key="p.maSanPham">
+            <td>#{{ p.maSanPham }}</td>
+            <td class="fw-bold">{{ p.tenSanPham }}</td>
+            <td>{{ getCategoryName(p.maDanhMuc) }}</td>
+            <td>{{ getBrandName(p.maThuongHieu) }}</td>
+            <td>
+              <div class="fw-semibold text-danger">{{ formatPrice(p.giaKhuyenMai || p.giaGoc) }}</div>
+              <small v-if="p.giaKhuyenMai" class="text-muted text-decoration-line-through">{{ formatPrice(p.giaGoc) }}</small>
+            </td>
+            <td>
+              <div class="d-flex flex-wrap gap-1">
+                <button
+                  v-for="v in (productSkuMap[p.maSanPham] || []).slice(0, 3)"
+                  :key="v.maChiTietSp"
+                  class="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  @click="copyText(v.maVachSku || v.maChiTietSp)"
+                  :title="'Copy ' + (v.maVachSku || v.maChiTietSp)"
+                >
+                  <i class="bi bi-clipboard me-1"></i>{{ v.maVachSku || v.maChiTietSp }}
+                </button>
+                <span v-if="(productSkuMap[p.maSanPham] || []).length > 3" class="badge bg-light text-dark border">
+                  +{{ (productSkuMap[p.maSanPham] || []).length - 3 }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="d-flex flex-wrap gap-1">
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#variantModal"
+                  @click="openVariantModal(p)"
+                >
+                  Biến thể
+                </button>
+                <button @click="editProduct(p)" class="btn btn-sm btn-outline-secondary">Sửa</button>
+                <button @click="deleteProduct(p.maSanPham)" class="btn btn-sm btn-outline-danger">Xóa</button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="products.length === 0">
+            <td colspan="7" class="text-center text-muted py-4">Chưa có dữ liệu sản phẩm</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="modal fade" id="variantModal" tabindex="-1">
-      <div class="modal-dialog modal-xl">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Biến thể - {{ selectedProduct?.tenSanPham }}</h5>
+            <h5 class="modal-title">Biến thể · {{ selectedProduct?.tenSanPham }}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
@@ -27,23 +149,23 @@
                   <div class="row">
                     <div class="col-md-2 mb-3">
                       <label class="form-label">Mã SKU</label>
-                      <input type="text" v-model="variantForm.maVachSku" class="form-control" placeholder="Tự sinh">
+                      <input type="text" v-model="variantForm.maVachSku" class="form-control" placeholder="Tự sinh" />
                     </div>
                     <div class="col-md-2 mb-3">
                       <label class="form-label">Màu sắc <span class="text-danger">*</span></label>
-                      <input type="text" v-model="variantForm.mauSac" class="form-control" required placeholder="VD: Đỏ">
+                      <input type="text" v-model="variantForm.mauSac" class="form-control" required placeholder="VD: Đỏ" />
                     </div>
                     <div class="col-md-2 mb-3">
                       <label class="form-label">Kích cỡ <span class="text-danger">*</span></label>
-                      <input type="text" v-model="variantForm.kichCo" class="form-control" required placeholder="VD: XL">
+                      <input type="text" v-model="variantForm.kichCo" class="form-control" required placeholder="VD: XL" />
                     </div>
                     <div class="col-md-2 mb-3">
                       <label class="form-label">Tồn kho <span class="text-danger">*</span></label>
-                      <input type="number" v-model="variantForm.soLuongTon" class="form-control" min="0" required>
+                      <input type="number" v-model="variantForm.soLuongTon" class="form-control" min="0" required />
                     </div>
                     <div class="col-md-2 mb-3">
                       <label class="form-label">Giá cộng thêm</label>
-                      <input type="number" v-model="variantForm.giaCongThem" class="form-control" min="0">
+                      <input type="number" v-model="variantForm.giaCongThem" class="form-control" min="0" />
                     </div>
                     <div class="col-md-2 mb-3 d-flex align-items-end">
                       <button type="submit" class="btn btn-primary w-100" :disabled="loadingVariant">
@@ -51,7 +173,9 @@
                       </button>
                     </div>
                   </div>
-                  <button type="button" v-if="isEditingVariant" @click="resetVariantForm" class="btn btn-secondary btn-sm">Hủy sửa</button>
+                  <button type="button" v-if="isEditingVariant" @click="resetVariantForm" class="btn btn-secondary btn-sm">
+                    Hủy sửa
+                  </button>
                 </form>
               </div>
             </div>
@@ -60,7 +184,7 @@
               <div class="spinner-border text-primary" role="status"></div>
             </div>
             <div v-else class="table-responsive">
-              <table class="table table-hover align-middle">
+              <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                   <tr>
                     <th>Mã vạch (SKU)</th>
@@ -73,7 +197,10 @@
                 </thead>
                 <tbody>
                   <tr v-for="variant in productVariants" :key="variant.maChiTietSp">
-                    <td class="fw-bold text-secondary">{{ variant.maChiTietSp }} <span v-if="variant.maVachSku">/ {{ variant.maVachSku }}</span></td>
+                    <td class="fw-bold text-secondary">
+                      {{ variant.maChiTietSp }}
+                      <span v-if="variant.maVachSku"> / {{ variant.maVachSku }}</span>
+                    </td>
                     <td>{{ variant.mauSac }}</td>
                     <td>{{ variant.kichCo }}</td>
                     <td>
@@ -97,123 +224,17 @@
         </div>
       </div>
     </div>
-
-  </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label">Mô tả</label>
-              <textarea v-model="form.moTa" class="form-control" rows="1"></textarea>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Danh mục <span class="text-danger">*</span></label>
-              <select v-model="form.maDanhMuc" class="form-select" required>
-                <option value="">Chọn danh mục</option>
-                <option v-for="c in categories" :key="c.maDanhMuc" :value="c.maDanhMuc">{{ c.tenDanhMuc }}</option>
-              </select>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Thương hiệu <span class="text-danger">*</span></label>
-              <select v-model="form.maThuongHieu" class="form-select" required>
-                <option value="">Chọn thương hiệu</option>
-                <option v-for="b in brands" :key="b.maThuongHieu" :value="b.maThuongHieu">{{ b.tenThuongHieu }}</option>
-              </select>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Giá gốc <span class="text-danger">*</span></label>
-              <input type="number" v-model="form.giaGoc" class="form-control" min="0" required>
-            </div>
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Giá khuyến mãi <span class="text-danger">*</span></label>
-              <input type="number" v-model="form.giaKhuyenMai" class="form-control" min="0" required>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-12 mb-3">
-              <label class="form-label fw-semibold">Ảnh sản phẩm</label>
-              <div class="d-flex align-items-center gap-3">
-                <div v-if="form.hinhAnh" class="position-relative border rounded" style="width: 120px; height: 120px; overflow: hidden;">
-                  <img :src="form.hinhAnh.startsWith('http') ? form.hinhAnh : `${API_URL}/api/hinh-anh/uploads/${form.hinhAnh}`" class="w-100 h-100" style="object-fit: cover;">
-                  <button @click="form.hinhAnh = ''" type="button" class="btn-close position-absolute top-0 end-0 bg-white m-1 p-2 shadow-sm rounded-circle" style="opacity: 0.9;" aria-label="Xóa"></button>
-                </div>
-                <div v-else class="bg-light border rounded d-flex align-items-center justify-content-center text-muted" style="width: 120px; height: 120px;">
-                  <i class="bi bi-image" style="font-size: 2.5rem;"></i>
-                </div>
-                <div class="flex-grow-1">
-                  <input type="file" @change="uploadImage" class="form-control form-control-lg" accept="image/*" :disabled="uploadingImg">
-                  <div class="form-text mt-2 text-muted"><i class="bi bi-info-circle me-1"></i>Chỉ chấp nhận file ảnh (PNG, JPG, JPEG).</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <button type="submit" class="btn btn-primary" :disabled="loading">
-            {{ loading ? 'Đang lưu...' : (isEditing ? 'Cập nhật' : 'Thêm mới') }}
-          </button>
-          <button type="button" v-if="isEditing" @click="resetForm" class="btn btn-secondary ms-2">Hủy</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Danh sách sản phẩm -->
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-    </div>
-
-    <div v-else class="table-responsive bg-white rounded shadow-sm p-3">
-      <table class="table table-hover align-middle">
-        <thead class="table-light">
-          <tr>
-            <th>ID</th>
-            <th>Tên sản phẩm</th>
-            <th>Danh mục</th>
-            <th>Thương hiệu</th>
-            <th>Giá gốc</th>
-            <th>Giá KM</th>
-            <th>Mã biến thể</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="product in products" :key="product.maSanPham">
-            <td>{{ product.maSanPham }}</td>
-            <td class="fw-bold">{{ product.tenSanPham }}</td>
-            <td>{{ getCategoryName(product.maDanhMuc) }}</td>
-            <td>{{ getBrandName(product.maThuongHieu) }}</td>
-            <td>{{ formatPrice(product.giaGoc) }}</td>
-            <td><span class="text-danger fw-bold">{{ formatPrice(product.giaKhuyenMai) }}</span></td>
-            <td>
-              <div v-if="productSkuMap[product.maSanPham] && productSkuMap[product.maSanPham].length > 0">
-                <div v-for="sku in productSkuMap[product.maSanPham]" :key="sku.maChiTietSp" class="d-flex align-items-center gap-1 mb-1">
-                  <code class="bg-light border rounded px-1 small">{{ sku.maChiTietSp }}{{ sku.maVachSku ? ' / ' + sku.maVachSku : '' }}</code>
-                  <button @click="copyText(sku.maChiTietSp)" class="btn btn-xs btn-outline-secondary py-0 px-1" style="font-size:11px;" title="Copy mã">
-                    <i class="bi bi-clipboard"></i>
-                  </button>
-                </div>
-              </div>
-              <span v-else class="text-muted small">Chưa có biến thể</span>
-            </td>
-            <td>
-              <button @click="openVariantModal(product)" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="modal" data-bs-target="#variantModal">Biến thể</button>
-              <button @click="editProduct(product)" class="btn btn-sm btn-outline-primary me-1">Sửa</button>
-              <button @click="deleteProduct(product.maSanPham)" class="btn btn-sm btn-outline-danger">Xóa</button>
-            </td>
-          </tr>
-          <tr v-if="products.length === 0">
-            <td colspan="7" class="text-center text-muted py-3">Chưa có dữ liệu sản phẩm</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-
+import PageHeader from '@/components/PageHeader.vue'
+import { useToast } from '@/composables/useToast.js'
 import { API_URL } from '@/config.js'
 
+const { success, error } = useToast()
 const products = ref([])
 const categories = ref([])
 const brands = ref([])
@@ -224,9 +245,7 @@ const uploadingImg = ref(false)
 const productSkuMap = ref({})
 
 const copyText = (text) => {
-  navigator.clipboard.writeText(text).then(() => {
-    // Optionally you can show a toast here, but simple alert is annoying. Let's just rely on the click.
-  })
+  navigator.clipboard.writeText(String(text)).then(() => success('Đã copy mã SKU'))
 }
 
 const form = ref({
@@ -239,41 +258,36 @@ const form = ref({
   hinhAnh: ''
 })
 
+const imageUrl = (path) => {
+  if (!path) return ''
+  if (String(path).startsWith('http')) return path
+  return `${API_URL}/uploads/${path}`
+}
+
 const uploadImage = async (event) => {
   const file = event.target.files[0]
   if (!file) return
-
   uploadingImg.value = true
   const formData = new FormData()
   formData.append('file', file)
-
   try {
     const res = await axios.post(`${API_URL}/api/hinh-anh/upload`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-    form.value.hinhAnh = res.data.data // filename returned from backend
-    alert('Tải ảnh lên thành công!')
-  } catch (error) {
-    console.error('Lỗi upload ảnh:', error)
-    alert('Không thể tải ảnh lên!')
+    form.value.hinhAnh = res.data.data
+    success('Tải ảnh lên thành công')
+  } catch (e) {
+    error('Không thể tải ảnh lên')
   } finally {
     uploadingImg.value = false
   }
 }
 
-const formatPrice = (price) => {
-  return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
-}
+const formatPrice = (price) =>
+  price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
 
-const getCategoryName = (id) => {
-  const cat = categories.value.find(c => c.maDanhMuc === id)
-  return cat ? cat.tenDanhMuc : id
-}
-
-const getBrandName = (id) => {
-  const brand = brands.value.find(b => b.maThuongHieu === id)
-  return brand ? brand.tenThuongHieu : id
-}
+const getCategoryName = (id) => categories.value.find((c) => c.maDanhMuc === id)?.tenDanhMuc || id
+const getBrandName = (id) => brands.value.find((b) => b.maThuongHieu === id)?.tenThuongHieu || id
 
 const fetchData = async () => {
   loading.value = true
@@ -283,25 +297,21 @@ const fetchData = async () => {
       axios.get(`${API_URL}/api/danh-muc`),
       axios.get(`${API_URL}/api/thuong-hieu`)
     ])
-    
-    // Spring Boot returns raw list or ApiResponse depending on how I merged it. 
-    // Handle both cases.
     products.value = prodRes.data.data || prodRes.data || []
     categories.value = catRes.data.data || catRes.data || []
     brands.value = brandRes.data.data || brandRes.data || []
-    // Fetch SKUs for each product
     const skuMap = {}
-    for (let p of products.value) {
+    for (const p of products.value) {
       try {
         const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/san-pham/${p.maSanPham}`)
         skuMap[p.maSanPham] = ctRes.data.data || ctRes.data || []
-      } catch (e) {
+      } catch {
         skuMap[p.maSanPham] = []
       }
     }
     productSkuMap.value = skuMap
-  } catch (error) {
-    console.error('Lỗi khi tải dữ liệu:', error)
+  } catch (e) {
+    error('Không tải được dữ liệu sản phẩm')
   } finally {
     loading.value = false
   }
@@ -321,7 +331,6 @@ const saveProduct = async () => {
 
     if (isEditing.value) {
       await axios.put(`${API_URL}/api/san-pham/${editingId.value}`, payload)
-      // Save or update image
       if (form.value.hinhAnh) {
         try {
           const imgRes = await axios.get(`${API_URL}/api/hinh-anh/san-pham/${editingId.value}`)
@@ -339,9 +348,9 @@ const saveProduct = async () => {
               laAnhChinh: true
             })
           }
-        } catch(e) {}
+        } catch {}
       }
-      alert('Cập nhật sản phẩm thành công!')
+      success('Cập nhật sản phẩm thành công')
     } else {
       const res = await axios.post(`${API_URL}/api/san-pham`, payload)
       const newProduct = res.data.data
@@ -352,16 +361,15 @@ const saveProduct = async () => {
             duongDanAnh: form.value.hinhAnh,
             laAnhChinh: true
           })
-        } catch(e) {}
+        } catch {}
       }
-      alert('Thêm sản phẩm thành công!')
+      success('Thêm sản phẩm thành công')
     }
-    
+
     resetForm()
     await fetchData()
-  } catch (error) {
-    console.error('Lỗi khi lưu sản phẩm:', error)
-    alert('Lỗi: ' + (error.response?.data?.message || error.message))
+  } catch (e) {
+    error(e.response?.data?.message || e.message)
   } finally {
     loading.value = false
   }
@@ -370,23 +378,19 @@ const saveProduct = async () => {
 const editProduct = async (product) => {
   isEditing.value = true
   editingId.value = product.maSanPham
-  
   let hinhAnh = ''
   try {
     const res = await axios.get(`${API_URL}/api/hinh-anh/san-pham/${product.maSanPham}`)
-    if (res.data.data && res.data.data.length > 0) {
-      hinhAnh = res.data.data[0].duongDanAnh
-    }
-  } catch(e) {}
-
+    if (res.data.data?.length > 0) hinhAnh = res.data.data[0].duongDanAnh
+  } catch {}
   form.value = {
     maDanhMuc: product.maDanhMuc,
     maThuongHieu: product.maThuongHieu,
     tenSanPham: product.tenSanPham,
     moTa: product.moTa || '',
-    giaGoc: product.giaGoc || product.GiGoc || 0, // Fallback if backend casing is weird
+    giaGoc: product.giaGoc || product.GiGoc || 0,
     giaKhuyenMai: product.giaKhuyenMai || product.GiKhuyenMai || 0,
-    hinhAnh: hinhAnh
+    hinhAnh
   }
 }
 
@@ -394,10 +398,10 @@ const deleteProduct = async (id) => {
   if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) return
   try {
     await axios.delete(`${API_URL}/api/san-pham/${id}`)
+    success('Đã xóa sản phẩm')
     await fetchData()
-  } catch (error) {
-    console.error('Lỗi khi xóa:', error)
-    alert('Không thể xóa sản phẩm này!')
+  } catch {
+    error('Không thể xóa sản phẩm này')
   }
 }
 
@@ -409,20 +413,17 @@ const resetForm = () => {
     maThuongHieu: '',
     tenSanPham: '',
     moTa: '',
-    giaNhap: '',
     giaGoc: '',
     giaKhuyenMai: '',
     hinhAnh: ''
   }
 }
 
-// --- VARIANT MANAGEMENT LOGIC ---
 const selectedProduct = ref(null)
 const productVariants = ref([])
 const loadingVariant = ref(false)
 const isEditingVariant = ref(false)
 const editingVariantId = ref(null)
-
 const variantForm = ref({
   maVachSku: '',
   mauSac: '',
@@ -443,8 +444,7 @@ const fetchVariants = async () => {
   try {
     const res = await axios.get(`${API_URL}/api/chi-tiet-san-pham/san-pham/${selectedProduct.value.maSanPham}`)
     productVariants.value = res.data.data || res.data || []
-  } catch (error) {
-    console.error('Lỗi khi tải biến thể:', error)
+  } catch {
     productVariants.value = []
   } finally {
     loadingVariant.value = false
@@ -463,19 +463,17 @@ const saveVariant = async () => {
       soLuongTon: Number(variantForm.value.soLuongTon),
       giaCongThem: Number(variantForm.value.giaCongThem || 0)
     }
-
     if (isEditingVariant.value) {
       await axios.put(`${API_URL}/api/chi-tiet-san-pham/${editingVariantId.value}`, payload)
     } else {
       await axios.post(`${API_URL}/api/chi-tiet-san-pham`, payload)
     }
-    
     resetVariantForm()
     await fetchVariants()
-    // Cập nhật lại list biến thể ngoài màn hình chính
     productSkuMap.value[selectedProduct.value.maSanPham] = [...productVariants.value]
-  } catch (error) {
-    alert('Lỗi: ' + (error.response?.data?.message || error.message))
+    success('Lưu biến thể thành công')
+  } catch (e) {
+    error(e.response?.data?.message || e.message)
   } finally {
     loadingVariant.value = false
   }
@@ -498,10 +496,10 @@ const deleteVariant = async (id) => {
   try {
     await axios.delete(`${API_URL}/api/chi-tiet-san-pham/${id}`)
     await fetchVariants()
-    // Cập nhật lại list biến thể ngoài màn hình chính
     productSkuMap.value[selectedProduct.value.maSanPham] = [...productVariants.value]
-  } catch (error) {
-    alert('Không thể xóa biến thể này!')
+    success('Đã xóa biến thể')
+  } catch {
+    error('Không thể xóa biến thể này')
   }
 }
 
@@ -517,8 +515,30 @@ const resetVariantForm = () => {
   }
 }
 
-
-onMounted(() => {
-  fetchData()
-})
+onMounted(fetchData)
 </script>
+
+<style scoped>
+.preview-box,
+.preview-empty {
+  width: 88px;
+  height: 88px;
+  border-radius: 14px;
+  border: 1px solid var(--sp-border);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #f8fafc;
+}
+
+.preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-empty {
+  color: #94a3b8;
+  font-size: 1.8rem;
+}
+</style>

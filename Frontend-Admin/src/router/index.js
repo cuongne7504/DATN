@@ -11,6 +11,7 @@ import DangNhap from '../views/DangNhap.vue'
 import QuanLyKhachHang from '../views/QuanLyKhachHang.vue'
 import QuanLyNhanVien from '../views/QuanLyNhanVien.vue'
 import QuanLyKho from '../views/QuanLyKho.vue'
+import QuanLyHoaDon from '../views/QuanLyHoaDon.vue'
 
 const routes = [
   {
@@ -80,6 +81,12 @@ const routes = [
     path: '/admin/orders',
     name: 'QuanLyDonHang',
     component: QuanLyDonHang,
+    meta: { requiresAuth: true, requiresAdmin: true, roles: [1, 2] }
+  },
+  {
+    path: '/admin/invoices',
+    name: 'QuanLyHoaDon',
+    component: QuanLyHoaDon,
     meta: { requiresAuth: true, requiresAdmin: true, roles: [1, 2] }
   },
   {

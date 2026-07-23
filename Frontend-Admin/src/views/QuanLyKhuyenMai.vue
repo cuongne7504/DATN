@@ -1,10 +1,10 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">Quản lý Khuyến Mãi (Voucher)</h2>
+    <PageHeader title="Quản lý Khuyến mãi" subtitle="Tạo và quản lý mã giảm giá / voucher" />
 
     <div class="card mb-4 shadow-sm">
-      <div class="card-body">
-        <h5 class="mb-3">{{ isEditing ? 'Cập nhật Khuyến mãi' : 'Thêm Khuyến mãi mới' }}</h5>
+      <div class="card-body p-4">
+        <h5 class="mb-3 fw-semibold">{{ isEditing ? 'Cập nhật Khuyến mãi' : 'Thêm Khuyến mãi mới' }}</h5>
         <form @submit.prevent="saveVoucher">
           <div class="row">
             <div class="col-md-3 mb-3">
@@ -93,6 +93,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import PageHeader from '@/components/PageHeader.vue'
 
 import { API_URL } from '@/config.js'
 const vouchers = ref([])

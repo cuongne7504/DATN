@@ -103,6 +103,10 @@ CREATE TABLE DON_HANG (
   phi_ship DECIMAL(10,2),
   dia_chi_giao NVARCHAR(MAX),
   phuong_thuc_tt NVARCHAR(50),
+  shipper_name NVARCHAR(255),
+  shipper_phone VARCHAR(20),
+  shipping_note NVARCHAR(MAX),
+  shipping_code VARCHAR(100),
   trang_thai NVARCHAR(50),
   shipper_name NVARCHAR(255),
   shipper_phone VARCHAR(20),
@@ -260,4 +264,25 @@ INSERT INTO LICH_SU_THANH_TOAN (ma_don_hang, ma_giao_dich, so_tien, trang_thai, 
 -- 14. Thêm Đánh Giá
 INSERT INTO DANH_GIA (ma_nguoi_dung, ma_san_pham, so_sao, noi_dung, ngay_tao) VALUES
 ((SELECT TOP 1 ma_nguoi_dung FROM NGUOI_DUNG WHERE email = 'khachhang@sportpro.com'), (SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham = N'Áo chạy bộ Nike Dri-FIT'), 5, N'Áo đẹp, vải xịn mặc mát lắm shop ơi. Sẽ ủng hộ thêm!', GETDATE());
+GO
+
+-- ==========================================
+-- CẬP NHẬT DB ĐÃ TẠO TRƯỚC ĐÓ (chạy 1 lần)
+-- Nếu DB SportPro đã tồn tại từ bản script cũ, copy đoạn dưới chạy trong SSMS.
+-- Chỉ sửa file .sql KHÔNG tự cập nhật database đang chạy trên máy bạn.
+-- ==========================================
+USE SportPro;
+GO
+
+IF COL_LENGTH('DON_HANG', 'shipper_name') IS NULL
+    ALTER TABLE DON_HANG ADD shipper_name NVARCHAR(255) NULL;
+
+IF COL_LENGTH('DON_HANG', 'shipper_phone') IS NULL
+    ALTER TABLE DON_HANG ADD shipper_phone VARCHAR(20) NULL;
+
+IF COL_LENGTH('DON_HANG', 'shipping_note') IS NULL
+    ALTER TABLE DON_HANG ADD shipping_note NVARCHAR(MAX) NULL;
+
+IF COL_LENGTH('DON_HANG', 'shipping_code') IS NULL
+    ALTER TABLE DON_HANG ADD shipping_code VARCHAR(100) NULL;
 GO
