@@ -84,6 +84,69 @@
                 <strong>Địa chỉ giao:</strong> {{ selectedOrder.diaChiGiao }}
               </div>
             </div>
+
+            <!-- Hành trình đơn hàng -->
+            <div class="order-timeline my-4">
+              <h6 class="fw-bold mb-3 border-bottom pb-2"><i class="bi bi-geo-fill text-primary"></i> Hành trình đơn hàng</h6>
+              
+              <div class="d-flex justify-content-between align-items-center position-relative mb-4 timeline-steps">
+                <div class="timeline-line"></div>
+                
+                <!-- Bước 1: Đặt hàng -->
+                <div class="text-center timeline-step" :class="{ active: isStepActive(1) }">
+                  <div class="step-icon"><i class="bi bi-file-earmark-check"></i></div>
+                  <div class="step-text mt-2 small fw-semibold">Đặt hàng</div>
+                </div>
+                
+                <!-- Bước 2: Xử lý -->
+                <div class="text-center timeline-step" :class="{ active: isStepActive(2) }">
+                  <div class="step-icon"><i class="bi bi-gear-fill"></i></div>
+                  <div class="step-text mt-2 small fw-semibold">Xử lý</div>
+                </div>
+                
+                <!-- Bước 3: Đang giao -->
+                <div class="text-center timeline-step" :class="{ active: isStepActive(3) }">
+                  <div class="step-icon"><i class="bi bi-truck"></i></div>
+                  <div class="step-text mt-2 small fw-semibold">Đang giao</div>
+                </div>
+                
+                <!-- Bước 4: Kết quả -->
+                <div class="text-center timeline-step" :class="{ active: isStepActive(4), 'step-danger': selectedOrder.trangThai === 'Đã hủy', 'step-warning': isReturnStatus }">
+                  <div class="step-icon">
+                    <i v-if="selectedOrder.trangThai === 'Đã hủy'" class="bi bi-x-circle-fill"></i>
+                    <i v-else-if="isReturnStatus" class="bi bi-arrow-counterclockwise"></i>
+                    <i v-else class="bi bi-check-circle-fill"></i>
+                  </div>
+                  <div class="step-text mt-2 small fw-semibold">
+                    {{ selectedOrder.trangThai === 'Đã hủy' ? 'Đã hủy' : (isReturnStatus ? 'Hoàn hàng' : 'Hoàn thành') }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thông tin giao vận -->
+            <div v-if="selectedOrder.shippingCode || selectedOrder.shipperName" class="alert alert-light border mt-3 mb-4 p-3 shadow-sm rounded">
+              <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-truck text-primary"></i> Thông tin giao vận</h6>
+              <div class="row g-2">
+                <div class="col-md-6" v-if="selectedOrder.shipperName">
+                  <span class="text-muted d-block small">Người giao hàng</span>
+                  <strong>{{ selectedOrder.shipperName }}</strong>
+                  <span v-if="selectedOrder.shipperPhone" class="ms-1 text-primary">({{ selectedOrder.shipperPhone }})</span>
+                </div>
+                <div class="col-md-6" v-if="selectedOrder.shippingCode">
+                  <span class="text-muted d-block small">Mã vận đơn (GHN)</span>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <span class="badge bg-secondary px-2 py-1.5 fs-7">{{ selectedOrder.shippingCode }}</span>
+                    <a :href="'https://donhang.ghn.vn/?order_code=' + selectedOrder.shippingCode" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2 fw-bold text-xs" style="font-size: 0.75rem;">Theo dõi đơn hàng 🌐</a>
+                  </div>
+                </div>
+                <div class="col-12 border-top pt-2 mt-2" v-if="selectedOrder.shippingNote">
+                  <span class="text-muted d-block small">Ghi chú vận chuyển</span>
+                  <span class="text-dark small">{{ selectedOrder.shippingNote }}</span>
+                </div>
+              </div>
+            </div>
+
             <h6 class="fw-bold mt-4 border-bottom pb-2">Danh sách sản phẩm</h6>
             <div class="table-responsive">
               <table class="table align-middle">
@@ -164,7 +227,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -176,6 +239,33 @@ const selectedOrder = ref(null)
 
 const orderToReturn = ref(null)
 const returnForm = ref({ lyDo: '', hinhAnhMinhHoa: '' })
+
+const isReturnStatus = computed(() => {
+  if (!selectedOrder.value) return false
+  const status = selectedOrder.value.trangThai
+  return ['Yêu cầu hoàn hàng', 'Đang xử lý hoàn hàng', 'Đã hoàn hàng', 'Đã hoàn tiền'].includes(status)
+})
+
+const isStepActive = (step) => {
+  if (!selectedOrder.value) return false
+  const status = selectedOrder.value.trangThai
+  
+  if (step === 1) return true // Đặt hàng luôn active
+  
+  if (step === 2) {
+    return !['Chờ xử lý', 'Đã hủy'].includes(status)
+  }
+  
+  if (step === 3) {
+    return ['Đang giao hàng', 'Đã giao hàng', 'Yêu cầu hoàn hàng', 'Đang xử lý hoàn hàng', 'Đã hoàn hàng', 'Đã hoàn tiền'].includes(status)
+  }
+  
+  if (step === 4) {
+    return ['Đã giao hàng', 'Đã hủy', 'Yêu cầu hoàn hàng', 'Đang xử lý hoàn hàng', 'Đã hoàn hàng', 'Đã hoàn tiền'].includes(status)
+  }
+  
+  return false
+}
 
 const showDetails = (order) => {
   selectedOrder.value = order
@@ -271,3 +361,69 @@ onMounted(() => {
   fetchOrders()
 })
 </script>
+
+<style scoped>
+.timeline-steps {
+  padding: 0 30px;
+}
+.timeline-line {
+  position: absolute;
+  top: 22px;
+  left: 30px;
+  right: 30px;
+  height: 4px;
+  background-color: #e9ecef;
+  z-index: 1;
+}
+.timeline-step {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+}
+.step-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 4px solid #e9ecef;
+  color: #6c757d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+.timeline-step.active .step-icon {
+  border-color: #0d6efd;
+  background-color: #0d6efd;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.2);
+}
+.timeline-step.step-danger.active .step-icon {
+  border-color: #dc3545;
+  background-color: #dc3545;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.2);
+}
+.timeline-step.step-warning.active .step-icon {
+  border-color: #ffc107;
+  background-color: #ffc107;
+  color: #212529;
+  box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.2);
+}
+.step-text {
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+.timeline-step.active .step-text {
+  color: #212529;
+  font-weight: 700;
+}
+.btn-xs {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  border-radius: 0.2rem;
+}
+</style>
