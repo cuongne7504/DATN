@@ -121,9 +121,9 @@ public class KhuyenMaiService {
                 "thongBao", "Áp mã thành công! Giảm " + soTienGiam + " đ"
         );
     }
-
     private void mapRequestToEntity(KhuyenMaiRequest request, KhuyenMai km) {
         km.setMaCode(request.getMaCode());
+        km.setMoTa(request.getMoTa());
         km.setPhanTramGiam(request.getPhanTramGiam());
         km.setSoTienGiam(request.getSoTienGiam());
         km.setDonToiThieu(request.getDonToiThieu());
@@ -131,7 +131,6 @@ public class KhuyenMaiService {
         km.setNgayKetThuc(request.getNgayKetThuc());
         km.setSoLuongDung(request.getSoLuongDung());
     }
-
     private Integer generateNextId() {
         return khuyenMaiRepository.findAll().stream()
                 .mapToInt(KhuyenMai::getMaKhuyenMai).max().orElse(0) + 1;

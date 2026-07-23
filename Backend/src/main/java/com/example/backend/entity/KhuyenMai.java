@@ -26,6 +26,9 @@ public class KhuyenMai {
     @Column(name = "ma_code")
     private String maCode;
 
+    @Column(name = "mo_ta")
+    private String moTa;
+
     @Column(name = "phan_tram_giam")
     private Integer phanTramGiam;
 
@@ -44,5 +47,3 @@ public class KhuyenMai {
     @Column(name = "so_luong_dung")
     private Integer soLuongDung;
 }
-
-

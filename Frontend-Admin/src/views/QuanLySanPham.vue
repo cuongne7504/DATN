@@ -71,26 +71,53 @@
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status"></div>
     </div>
+    <div v-else>
+      <!-- Tìm kiếm và bộ lọc -->
+      <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body p-3 bg-light rounded-3">
+          <div class="row align-items-center g-2">
+            <div class="col-md-6">
+              <div class="input-group">
+                <span class="input-group-text bg-white border-2 border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" v-model="searchQuery" class="form-control border-2 border-start-0" placeholder="Tìm sản phẩm theo tên..." />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select v-model="filterCategory" class="form-select border-2">
+                <option value="">Tất cả danh mục</option>
+                <option v-for="c in categories" :key="c.maDanhMuc" :value="c.maDanhMuc">{{ c.tenDanhMuc }}</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <select v-model="filterBrand" class="form-select border-2">
+                <option value="">Tất cả thương hiệu</option>
+                <option v-for="b in brands" :key="b.maThuongHieu" :value="b.maThuongHieu">{{ b.tenThuongHieu }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div v-else class="table-responsive bg-white rounded shadow-sm">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>ID</th>
-            <th>Tên sản phẩm</th>
-            <th>Danh mục</th>
-            <th>Thương hiệu</th>
-            <th>Giá</th>
-            <th>SKU / Biến thể</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in products" :key="p.maSanPham">
-            <td>#{{ p.maSanPham }}</td>
-            <td class="fw-bold">{{ p.tenSanPham }}</td>
-            <td>{{ getCategoryName(p.maDanhMuc) }}</td>
-            <td>{{ getBrandName(p.maThuongHieu) }}</td>
+      <!-- Bảng sản phẩm -->
+      <div class="table-responsive bg-white rounded shadow-sm">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Tên sản phẩm</th>
+              <th>Danh mục</th>
+              <th>Thương hiệu</th>
+              <th>Giá</th>
+              <th>SKU / Biến thể</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="p in filteredProducts" :key="p.maSanPham">
+              <td>#{{ p.maSanPham }}</td>
+              <td class="fw-bold">{{ p.tenSanPham }}</td>
+              <td>{{ getCategoryName(p.maDanhMuc) }}</td>
+              <td>{{ getBrandName(p.maThuongHieu) }}</td>
             <td>
               <div class="fw-semibold text-danger">{{ formatPrice(p.giaKhuyenMai || p.giaGoc) }}</div>
               <small v-if="p.giaKhuyenMai" class="text-muted text-decoration-line-through">{{ formatPrice(p.giaGoc) }}</small>
@@ -127,14 +154,15 @@
               </div>
             </td>
           </tr>
-          <tr v-if="products.length === 0">
+          <tr v-if="filteredProducts.length === 0">
             <td colspan="7" class="text-center text-muted py-4">Chưa có dữ liệu sản phẩm</td>
           </tr>
         </tbody>
       </table>
     </div>
+  </div>
 
-    <div class="modal fade" id="variantModal" tabindex="-1">
+  <div class="modal fade" id="variantModal" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -226,9 +254,8 @@
     </div>
   </div>
 </template>
-
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import PageHeader from '@/components/PageHeader.vue'
 import { useToast } from '@/composables/useToast.js'
@@ -244,6 +271,19 @@ const editingId = ref(null)
 const uploadingImg = ref(false)
 const productSkuMap = ref({})
 
+// Bộ lọc tìm kiếm
+const searchQuery = ref('')
+const filterCategory = ref('')
+const filterBrand = ref('')
+
+const filteredProducts = computed(() => {
+  return products.value.filter(p => {
+    const matchesSearch = p.tenSanPham.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesCategory = filterCategory.value === '' || p.maDanhMuc === Number(filterCategory.value)
+    const matchesBrand = filterBrand.value === '' || p.maThuongHieu === Number(filterBrand.value)
+    return matchesSearch && matchesCategory && matchesBrand
+  })
+})
 const copyText = (text) => {
   navigator.clipboard.writeText(String(text)).then(() => success('Đã copy mã SKU'))
 }

@@ -42,7 +42,6 @@ public class ChiTietSanPhamService {
         return chiTietSanPhamRepository.findByMaVachSku(sku)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy biến thể với SKU: " + sku));
     }
-
     @Transactional
     public ChiTietSanPham create(ChiTietSanPhamRequest request) {
         if (!sanPhamRepository.existsById(request.getMaSanPham())) {
@@ -55,7 +54,6 @@ public class ChiTietSanPhamService {
         }
 
         ChiTietSanPham chiTiet = new ChiTietSanPham();
-        chiTiet.setMaChiTietSp(generateNextId());
         mapRequestToEntity(request, chiTiet);
         return chiTietSanPhamRepository.save(chiTiet);
     }
@@ -87,9 +85,6 @@ public class ChiTietSanPhamService {
     public ChiTietSanPham themMoi(ChiTietSanPham chiTiet) {
         if (chiTiet.getMaVachSku() == null || chiTiet.getMaVachSku().trim().isEmpty()) {
             chiTiet.setMaVachSku(skuGeneratorService.generateUniqueSku());
-        }
-        if (chiTiet.getMaChiTietSp() == null) {
-            chiTiet.setMaChiTietSp(generateNextId());
         }
         return chiTietSanPhamRepository.save(chiTiet);
     }
@@ -126,12 +121,5 @@ public class ChiTietSanPhamService {
         chiTiet.setKichCo(request.getKichCo());
         chiTiet.setSoLuongTon(request.getSoLuongTon());
         chiTiet.setGiaCongThem(request.getGiaCongThem());
-    }
-
-    private Integer generateNextId() {
-        return chiTietSanPhamRepository.findAll().stream()
-                .mapToInt(ChiTietSanPham::getMaChiTietSp)
-                .max()
-                .orElse(0) + 1;
     }
 }

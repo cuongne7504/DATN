@@ -16,6 +16,8 @@ public class KhuyenMaiRequest {
     @NotBlank(message = "Mã code không được để trống")
     private String maCode;
 
+    private String moTa;
+
     @Min(value = 0, message = "Phần trăm giảm phải >= 0")
     private Integer phanTramGiam;
 
