@@ -68,6 +68,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { getStoredUser, saveUser } from '../utils/auth'
 
 import { API_URL } from '@/config.js'
 const router = useRouter()
@@ -86,12 +87,12 @@ const successMsg = ref('')
 const errorMsg = ref('')
 
 onMounted(() => {
-  const userData = localStorage.getItem('user')
-  if (!userData) {
+  const storedUser = getStoredUser()
+  if (!storedUser) {
     router.push('/login')
     return
   }
-  user.value = JSON.parse(userData)
+  user.value = storedUser
   if (!user.value) {
     router.push('/login')
     return
@@ -112,10 +113,7 @@ const updateProfile = async () => {
     if (!payload.matKhau) delete payload.matKhau // Don't send empty password
     
     const res = await axios.put(`${API_URL}/api/nguoi-dung/${user.value.maNguoiDung}`, payload)
-    const updatedUser = res.data.data || res.data
-    
-    localStorage.setItem('user', JSON.stringify(updatedUser))
-    user.value = updatedUser
+    user.value = saveUser(res.data)
     successMsg.value = 'Cập nhật hồ sơ thành công!'
     window.dispatchEvent(new Event('storage'))
   } catch (err) {

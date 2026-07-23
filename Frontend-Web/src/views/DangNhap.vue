@@ -48,6 +48,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { saveUser } from '../utils/auth'
 
 import { API_URL } from '@/config.js'
 const router = useRouter()
@@ -66,10 +67,7 @@ const login = async () => {
   
   try {
     const res = await axios.post(`${API_URL}/api/nguoi-dung/login`, form.value)
-    const user = res.data.data || res.data
-    
-    localStorage.setItem('user', JSON.stringify(user))
-    window.dispatchEvent(new Event('storage')) // Trigger update Navbar
+    saveUser(res.data)
     router.push('/')
     
   } catch (err) {

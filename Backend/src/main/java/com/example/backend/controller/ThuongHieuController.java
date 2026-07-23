@@ -1,54 +1,54 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.ApiResponse;
 import com.example.backend.entity.ThuongHieu;
 import com.example.backend.service.ThuongHieuService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/thuong-hieu")
+@RequestMapping({"/api/thuong-hieu", "/api/thuonghieu"})
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ThuongHieuController {
 
-    @Autowired
-    private ThuongHieuService thuongHieuService;
+    private final ThuongHieuService thuongHieuService;
 
     @GetMapping
-    public ResponseEntity<List<ThuongHieu>> getAll() {
-        return ResponseEntity.ok(thuongHieuService.getAll());
+    public ResponseEntity<ApiResponse<List<ThuongHieu>>> getAll() {
+        return ResponseEntity.ok(ApiResponse.ok("Lấy thương hiệu thành công", thuongHieuService.getAll()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ThuongHieu> getById(@PathVariable Integer id) {
-        Optional<ThuongHieu> thuongHieu = thuongHieuService.getById(id);
-        return thuongHieu.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<ThuongHieu>> getById(@PathVariable Integer id) {
+        return thuongHieuService.getById(id)
+                .map(t -> ResponseEntity.ok(ApiResponse.ok("Lấy thương hiệu thành công", t)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<ThuongHieu> create(@RequestBody ThuongHieu thuongHieu) {
-        return ResponseEntity.ok(thuongHieuService.save(thuongHieu));
+    public ResponseEntity<ApiResponse<ThuongHieu>> create(@RequestBody ThuongHieu thuongHieu) {
+        return ResponseEntity.ok(ApiResponse.ok("Tạo thương hiệu thành công", thuongHieuService.save(thuongHieu)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ThuongHieu> update(@PathVariable Integer id, @RequestBody ThuongHieu thuongHieu) {
+    public ResponseEntity<ApiResponse<ThuongHieu>> update(@PathVariable Integer id, @RequestBody ThuongHieu thuongHieu) {
         if (!thuongHieuService.getById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         thuongHieu.setMaThuongHieu(id);
-        return ResponseEntity.ok(thuongHieuService.save(thuongHieu));
+        return ResponseEntity.ok(ApiResponse.ok("Cập nhật thương hiệu thành công", thuongHieuService.save(thuongHieu)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         if (!thuongHieuService.getById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         thuongHieuService.delete(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.ok("Xóa thương hiệu thành công", null));
     }
 }
-

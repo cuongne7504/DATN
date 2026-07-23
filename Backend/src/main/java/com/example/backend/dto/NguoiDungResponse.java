@@ -2,19 +2,23 @@ package com.example.backend.dto;
 
 import com.example.backend.entity.NguoiDung;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
+@NoArgsConstructor
 public class NguoiDungResponse {
 
-    private final Integer maNguoiDung;
-    private final Integer maQuyen;
-    private final String hoTen;
-    private final String email;
-    private final String soDienThoai;
-    private final String diaChi;
-    private final LocalDateTime ngayTao;
+    private Integer maNguoiDung;
+    private Integer maQuyen;
+    private String hoTen;
+    private String email;
+    private String soDienThoai;
+    private String diaChi;
+    private LocalDateTime ngayTao;
 
     public NguoiDungResponse(NguoiDung nguoiDung) {
         this.maNguoiDung = nguoiDung.getMaNguoiDung();

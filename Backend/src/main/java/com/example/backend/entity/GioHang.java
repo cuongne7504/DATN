@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 public class GioHang {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ma_gio_hang")
     private Integer maGioHang;
 

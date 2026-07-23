@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface ChiTietGioHangRepository extends JpaRepository<ChiTietGioHang, Integer> {
     List<ChiTietGioHang> findByMaGioHang(Integer maGioHang);
     Optional<ChiTietGioHang> findByMaGioHangAndMaChiTietSp(Integer maGioHang, Integer maChiTietSp);
+    void deleteByMaGioHang(Integer maGioHang);
 }

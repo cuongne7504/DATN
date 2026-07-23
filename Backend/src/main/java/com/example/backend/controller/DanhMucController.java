@@ -1,54 +1,54 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.ApiResponse;
 import com.example.backend.entity.DanhMuc;
 import com.example.backend.service.DanhMucService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/danh-muc")
+@RequestMapping({"/api/danh-muc", "/api/danhmuc"})
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DanhMucController {
 
-    @Autowired
-    private DanhMucService danhMucService;
+    private final DanhMucService danhMucService;
 
     @GetMapping
-    public ResponseEntity<List<DanhMuc>> getAll() {
-        return ResponseEntity.ok(danhMucService.getAll());
+    public ResponseEntity<ApiResponse<List<DanhMuc>>> getAll() {
+        return ResponseEntity.ok(ApiResponse.ok("Lấy danh mục thành công", danhMucService.getAll()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DanhMuc> getById(@PathVariable Integer id) {
-        Optional<DanhMuc> danhMuc = danhMucService.getById(id);
-        return danhMuc.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<DanhMuc>> getById(@PathVariable Integer id) {
+        return danhMucService.getById(id)
+                .map(d -> ResponseEntity.ok(ApiResponse.ok("Lấy danh mục thành công", d)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<DanhMuc> create(@RequestBody DanhMuc danhMuc) {
-        return ResponseEntity.ok(danhMucService.save(danhMuc));
+    public ResponseEntity<ApiResponse<DanhMuc>> create(@RequestBody DanhMuc danhMuc) {
+        return ResponseEntity.ok(ApiResponse.ok("Tạo danh mục thành công", danhMucService.save(danhMuc)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DanhMuc> update(@PathVariable Integer id, @RequestBody DanhMuc danhMuc) {
+    public ResponseEntity<ApiResponse<DanhMuc>> update(@PathVariable Integer id, @RequestBody DanhMuc danhMuc) {
         if (!danhMucService.getById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         danhMuc.setMaDanhMuc(id);
-        return ResponseEntity.ok(danhMucService.save(danhMuc));
+        return ResponseEntity.ok(ApiResponse.ok("Cập nhật danh mục thành công", danhMucService.save(danhMuc)));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         if (!danhMucService.getById(id).isPresent()) {
             return ResponseEntity.notFound().build();
         }
         danhMucService.delete(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.ok("Xóa danh mục thành công", null));
     }
 }
-

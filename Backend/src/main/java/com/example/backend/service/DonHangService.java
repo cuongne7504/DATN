@@ -31,6 +31,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DonHangService {
 
+    @org.springframework.beans.factory.annotation.Value("${ghn.api.url:https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/create}")
+    private String ghnApiUrl;
+
+    @org.springframework.beans.factory.annotation.Value("${ghn.api.token:d6a69466-23cf-11ee-b384-222a7f9d80d6}")
+    private String ghnApiToken;
+
+    @org.springframework.beans.factory.annotation.Value("${ghn.shop.id:1234567}")
+    private String ghnShopId;
+
     private final DonHangRepository donHangRepository;
     private final ChiTietDonHangRepository chiTietDonHangRepository;
     private final ChiTietSanPhamRepository chiTietSanPhamRepository;
@@ -281,6 +290,137 @@ public class DonHangService {
         }).collect(Collectors.toList());
 
         return new DonHangDetailResponse(donHang, mapChiTietList(chiTietList), null);
+    }
+
+    @Transactional
+    public DonHang giaoChoShipper(Integer id, com.example.backend.dto.GiaoHangRequest request) {
+        DonHang donHang = donHangRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng có mã: " + id));
+        
+        donHang.setShipperName(request.getShipperName());
+        donHang.setShipperPhone(request.getShipperPhone());
+        donHang.setShippingNote(request.getShippingNote());
+        donHang.setTrangThai("Đang giao hàng");
+        
+        return donHangRepository.save(donHang);
+    }
+
+    @Transactional
+    public DonHang guiDonSangGHN(Integer id) {
+        DonHang donHang = donHangRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng có mã: " + id));
+
+        // 1. Phân tích địa chỉ giao hàng
+        String diaChi = donHang.getDiaChiGiao() != null ? donHang.getDiaChiGiao() : "Khách hàng - 0900000000 - Hà Nội";
+        
+        String toWardCode = "20308"; // Mặc định Phường 14, Quận 10
+        int toDistrictId = 1442;
+        if (diaChi.contains("| [GHN:")) {
+            int startIndex = diaChi.indexOf("| [GHN:") + 7;
+            int endIndex = diaChi.indexOf("]", startIndex);
+            if (endIndex > startIndex) {
+                String ghnInfo = diaChi.substring(startIndex, endIndex);
+                String[] ghnParts = ghnInfo.split(":");
+                if (ghnParts.length >= 2) {
+                    toWardCode = ghnParts[0].trim();
+                    try {
+                        toDistrictId = Integer.parseInt(ghnParts[1].trim());
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
+            }
+            diaChi = diaChi.substring(0, diaChi.indexOf("| [GHN:")).trim();
+        }
+
+        String[] parts = diaChi.split(" - ");
+        String toName = "Khách hàng";
+        String toPhone = "0900000000";
+        String toAddress = diaChi;
+        
+        if (parts.length >= 3) {
+            toName = parts[0].trim();
+            toPhone = parts[1].trim();
+            StringBuilder addr = new StringBuilder();
+            for (int i = 2; i < parts.length; i++) {
+                if (i > 2) addr.append(" - ");
+                addr.append(parts[i].trim());
+            }
+            toAddress = addr.toString();
+        } else if (parts.length == 2) {
+            toName = parts[0].trim();
+            toPhone = parts[1].trim();
+        }
+
+        // 2. Tạo body gửi đi cho GHN API
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("payment_type_id", 2); // Người nhận trả phí ship
+        body.put("note", "Giao hàng từ cửa hàng");
+        body.put("required_note", "KHONGCHOXEMHANG");
+        body.put("to_name", toName);
+        body.put("to_phone", toPhone);
+        body.put("to_address", toAddress);
+        
+        body.put("to_ward_code", toWardCode);
+        body.put("to_district_id", toDistrictId);
+        
+        // Khối lượng/Kích thước mặc định
+        body.put("cod_amount", donHang.getTongTien() != null ? donHang.getTongTien().intValue() : 0);
+        body.put("weight", 500); // 500g
+        body.put("length", 20); // 20cm
+        body.put("width", 15);  // 15cm
+        body.put("height", 10); // 10cm
+        body.put("service_type_id", 2); // Dịch vụ chuẩn
+
+        // Lấy danh sách sản phẩm thực tế từ đơn hàng đưa vào body (GHN bắt buộc phải có thông tin items)
+        List<ChiTietDonHang> chiTietList = chiTietDonHangRepository.findByMaDonHang(id);
+        List<java.util.Map<String, Object>> ghnItems = new java.util.ArrayList<>();
+        for (ChiTietDonHang ct : chiTietList) {
+            ChiTietSanPham ctsp = chiTietSanPhamRepository.findById(ct.getMaChiTietSp()).orElse(null);
+            SanPham sp = null;
+            if (ctsp != null && ctsp.getMaSanPham() != null) {
+                sp = sanPhamRepository.findById(ctsp.getMaSanPham()).orElse(null);
+            }
+            String itemName = (sp != null) ? sp.getTenSanPham() : "Sản phẩm mã " + ct.getMaChiTietSp();
+            java.util.Map<String, Object> ghnItem = new java.util.HashMap<>();
+            ghnItem.put("name", itemName);
+            ghnItem.put("quantity", ct.getSoLuong());
+            ghnItem.put("price", ct.getDonGia() != null ? ct.getDonGia().intValue() : 0);
+            ghnItem.put("weight", 200); // mặc định mỗi sp nặng 200g
+            ghnItems.add(ghnItem);
+        }
+        body.put("items", ghnItems);
+
+        // 3. Gửi HTTP Request dùng RestTemplate
+        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        headers.set("Token", ghnApiToken);
+        headers.set("ShopId", ghnShopId);
+
+        org.springframework.http.HttpEntity<java.util.Map<String, Object>> entity = new org.springframework.http.HttpEntity<>(body, headers);
+
+        try {
+            org.springframework.http.ResponseEntity<java.util.Map> response = restTemplate.postForEntity(ghnApiUrl, entity, java.util.Map.class);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                java.util.Map<String, Object> resBody = response.getBody();
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) resBody.get("data");
+                if (data != null && data.containsKey("order_code")) {
+                    String orderCode = (String) data.get("order_code");
+                    
+                    // Cập nhật mã vận đơn và trạng thái
+                    donHang.setShippingCode(orderCode);
+                    donHang.setTrangThai("Đang giao hàng");
+                    return donHangRepository.save(donHang);
+                } else {
+                    throw new BadRequestException("Không lấy được mã vận đơn từ kết quả trả về của GHN.");
+                }
+            } else {
+                throw new BadRequestException("Kết nối tới API GHN thất bại: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            throw new BadRequestException("Lỗi trong quá trình tích hợp GHN: " + e.getMessage());
+        }
     }
 
     @Transactional

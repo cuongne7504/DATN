@@ -22,6 +22,10 @@ public class DonHangDetailResponse {
     private final String diaChiGiao;
     private final String phuongThucTt;
     private final String trangThai;
+    private final String shipperName;
+    private final String shipperPhone;
+    private final String shippingNote;
+    private final String shippingCode;
     private final KhuyenMai khuyenMai;
     private final List<ChiTietDonHangDto> chiTietList;
 
@@ -36,6 +40,10 @@ public class DonHangDetailResponse {
         this.diaChiGiao = donHang.getDiaChiGiao();
         this.phuongThucTt = donHang.getPhuongThucTt();
         this.trangThai = donHang.getTrangThai();
+        this.shipperName = donHang.getShipperName();
+        this.shipperPhone = donHang.getShipperPhone();
+        this.shippingNote = donHang.getShippingNote();
+        this.shippingCode = donHang.getShippingCode();
         this.khuyenMai = khuyenMai;
         this.chiTietList = chiTietList;
     }

@@ -77,7 +77,7 @@ CREATE TABLE CHI_TIET_SAN_PHAM (
 CREATE TABLE HINH_ANH_SP (
   ma_hinh_anh INT IDENTITY(1,1) PRIMARY KEY,
   ma_san_pham INT,
-  duong_dan_anh VARCHAR(255),
+  duong_dan_anh NVARCHAR(MAX),  -- Hỗ trợ lưu URL dài hoặc chuỗi base64
   la_anh_chinh BIT,
   FOREIGN KEY (ma_san_pham) REFERENCES SAN_PHAM(ma_san_pham)
 );
@@ -104,6 +104,10 @@ CREATE TABLE DON_HANG (
   dia_chi_giao NVARCHAR(MAX),
   phuong_thuc_tt NVARCHAR(50),
   trang_thai NVARCHAR(50),
+  shipper_name NVARCHAR(255),
+  shipper_phone VARCHAR(20),
+  shipping_note NVARCHAR(MAX),
+  shipping_code VARCHAR(100),
   FOREIGN KEY (ma_nguoi_dung) REFERENCES NGUOI_DUNG(ma_nguoi_dung),
   FOREIGN KEY (ma_nhan_vien) REFERENCES NGUOI_DUNG(ma_nguoi_dung),
   FOREIGN KEY (ma_khuyen_mai) REFERENCES KHUYEN_MAI(ma_khuyen_mai)
