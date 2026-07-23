@@ -77,11 +77,16 @@
         </div>
 
         <!-- Trạng thái kho -->
-        <div class="alert bg-light border-0 py-2 mb-4" v-if="selectedVariant">
-          Còn <strong>{{ selectedVariant.soLuongTon }}</strong> sản phẩm trong kho
+        <div v-if="selectedVariant">
+          <div class="alert alert-success bg-success-subtle text-success border-0 py-2 mb-4" v-if="selectedVariant.soLuongTon > 0">
+            Còn <strong>{{ selectedVariant.soLuongTon }}</strong> sản phẩm trong kho
+          </div>
+          <div class="alert alert-danger bg-danger-subtle text-danger border-0 py-2 mb-4 fw-bold" v-else>
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> Sản phẩm tạm thời hết hàng
+          </div>
         </div>
-        <div class="alert bg-light border-0 text-danger py-2 mb-4" v-else-if="selectedColor && selectedSize">
-          Hết hàng
+        <div class="alert alert-danger bg-danger-subtle text-danger border-0 py-2 mb-4 fw-bold" v-else-if="selectedColor && selectedSize">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i> Sản phẩm tạm thời hết hàng
         </div>
 
         <!-- Chọn số lượng & Thêm giỏ hàng -->
@@ -96,7 +101,8 @@
             :disabled="!selectedVariant || selectedVariant.soLuongTon < 1 || loadingCart"
             @click="addToCart"
           >
-            <i class="bi bi-cart-plus me-2"></i> {{ loadingCart ? 'ĐANG THÊM...' : 'THÊM VÀO GIỎ' }}
+            <i class="bi bi-cart-plus me-2" v-if="selectedVariant && selectedVariant.soLuongTon > 0"></i>
+            {{ loadingCart ? 'ĐANG THÊM...' : (selectedVariant && selectedVariant.soLuongTon > 0 ? 'THÊM VÀO GIỎ' : 'TẠM HẾT HÀNG') }}
           </button>
         </div>
       </div>

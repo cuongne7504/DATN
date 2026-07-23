@@ -135,9 +135,10 @@
                 <thead class="table-light">
                   <tr>
                     <th>Mã đơn</th>
-                    <th>Ngày xử lý</th>
+                    <th>Ngày đặt</th>
                     <th>Tổng tiền</th>
                     <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -150,10 +151,71 @@
                         {{ getStatusText(order.trangThai) }}
                       </span>
                     </td>
+                    <td class="text-end">
+                      <button class="btn btn-sm btn-outline-info" @click="viewOrderDetail(order)">Chi tiết</button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Chi Tiết Đơn Hàng con -->
+    <div class="modal fade" id="employeeOrderDetailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Chi tiết đơn hàng #{{ selectedOrder?.maDonHang }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" v-if="selectedOrder">
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <h6 class="fw-bold border-bottom pb-2">Thông tin giao hàng</h6>
+                <p class="mb-1"><strong>Ngày đặt:</strong> {{ formatDate(selectedOrder.ngayDat) }}</p>
+                <p class="mb-1"><strong>Địa chỉ:</strong> {{ selectedOrder.diaChiGiao || 'Bán tại quầy' }}</p>
+              </div>
+              <div class="col-md-6">
+                <h6 class="fw-bold border-bottom pb-2">Thông tin thanh toán</h6>
+                <p class="mb-1"><strong>Phương thức:</strong> {{ selectedOrder.phuongThucTt }}</p>
+                <p class="mb-1"><strong>Trạng thái ĐH:</strong> <span class="badge bg-secondary">{{ selectedOrder.trangThai }}</span></p>
+                <p class="mb-1"><strong>Mã Khuyến Mãi:</strong> {{ selectedOrder.maKhuyenMai ? 'Có' : 'Không' }}</p>
+              </div>
+            </div>
+            <h6 class="fw-bold border-bottom pb-2">Sản phẩm</h6>
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Sản phẩm</th>
+                  <th>Số lượng</th>
+                  <th>Đơn giá</th>
+                  <th>Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in selectedOrder.chiTietList" :key="item.maCtDonHang">
+                  <td>
+                    <div class="fw-bold">{{ item.sanPham?.tenSanPham || 'Sản phẩm ' + item.maChiTietSp }}</div>
+                    <div class="small text-muted">Màu: {{ item.chiTietSanPham?.mauSac }} - Size: {{ item.chiTietSanPham?.kichCo }}</div>
+                  </td>
+                  <td>{{ item.soLuong }}</td>
+                  <td>{{ formatPrice(item.donGia) }}</td>
+                  <td class="fw-bold">{{ formatPrice(item.soLuong * item.donGia) }}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="text-end fw-bold">Tổng tiền hàng:</td>
+                  <td class="fw-bold text-danger">{{ formatPrice(selectedOrder.tongTien) }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="backToOrders">Quay lại</button>
           </div>
         </div>
       </div>
@@ -174,6 +236,7 @@ const saving = ref(false)
 // Modals
 let employeeModal = null
 let ordersModal = null
+let orderDetailModal = null
 
 // Form edit
 const isEditing = ref(false)
@@ -191,6 +254,7 @@ const form = ref({
 const currentEmployee = ref(null)
 const employeeOrders = ref([])
 const loadingOrders = ref(false)
+const selectedOrder = ref(null)
 
 const fetchEmployees = async () => {
   loading.value = true
@@ -208,6 +272,7 @@ onMounted(() => {
   fetchEmployees()
   employeeModal = new bootstrap.Modal(document.getElementById('employeeModal'))
   ordersModal = new bootstrap.Modal(document.getElementById('ordersModal'))
+  orderDetailModal = new bootstrap.Modal(document.getElementById('employeeOrderDetailModal'))
 })
 
 const openCreateModal = () => {
@@ -285,6 +350,24 @@ const viewOrders = async (e) => {
   } finally {
     loadingOrders.value = false
   }
+}
+
+const viewOrderDetail = async (order) => {
+  selectedOrder.value = null
+  ordersModal.hide()
+  orderDetailModal.show()
+  
+  try {
+    const res = await axios.get(`${API_URL}/api/don-hang/${order.maDonHang}`)
+    selectedOrder.value = res.data.data
+  } catch (error) {
+    console.error('Lỗi lấy chi tiết đơn:', error)
+  }
+}
+
+const backToOrders = () => {
+  orderDetailModal.hide()
+  ordersModal.show()
 }
 
 // Helpers

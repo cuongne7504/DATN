@@ -63,7 +63,7 @@
                 <th>Phân loại</th>
                 <th>Tồn kho</th>
                 <th>Trạng thái</th>
-                <th class="text-end">Thao tác</th>
+                <th class="text-end" v-if="user?.maQuyen === 1">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -87,7 +87,7 @@
                   <span v-else-if="item.soLuongTon <= 5" class="badge bg-warning text-dark">Sắp hết</span>
                   <span v-else class="badge bg-success">Còn hàng</span>
                 </td>
-                <td class="text-end">
+                <td class="text-end" v-if="user?.maQuyen === 1">
                   <button class="btn btn-sm btn-primary" @click="openUpdateModal(item)">
                     <i class="bi bi-pencil-square"></i> Sửa số lượng
                   </button>
@@ -145,11 +145,11 @@ const inventory = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
 const filterStatus = ref('all')
+const user = ref(null)
 
 const currentItem = ref(null)
 const newStock = ref(0)
 const saving = ref(false)
-let modalInstance = null
 
 const fetchInventory = async () => {
   loading.value = true
@@ -165,7 +165,10 @@ const fetchInventory = async () => {
 
 onMounted(() => {
   fetchInventory()
-  modalInstance = new bootstrap.Modal(document.getElementById('updateStockModal'))
+  const userData = localStorage.getItem('user')
+  if (userData) {
+    user.value = JSON.parse(userData)
+  }
 })
 
 // Tính toán thống kê
@@ -199,7 +202,16 @@ const filteredInventory = computed(() => {
 const openUpdateModal = (item) => {
   currentItem.value = item
   newStock.value = item.soLuongTon
-  modalInstance.show()
+  
+  const modalEl = document.getElementById('updateStockModal')
+  if (modalEl) {
+    // Khởi tạo hoặc lấy instance đã có để hiển thị
+    let modal = bootstrap.Modal.getInstance(modalEl)
+    if (!modal) {
+      modal = new bootstrap.Modal(modalEl)
+    }
+    modal.show()
+  }
 }
 
 const updateStock = async () => {
@@ -223,7 +235,14 @@ const updateStock = async () => {
     await axios.put(`${API_URL}/api/chi-tiet-san-pham/${currentItem.value.maChiTietSp}`, fullDetail)
     
     alert('Cập nhật số lượng thành công!')
-    modalInstance.hide()
+    
+    // Đóng modal an toàn
+    const modalEl = document.getElementById('updateStockModal')
+    if (modalEl) {
+      const modal = bootstrap.Modal.getInstance(modalEl)
+      if (modal) modal.hide()
+    }
+    
     fetchInventory() // Tải lại danh sách
   } catch (error) {
     console.error('Lỗi khi cập nhật:', error)

@@ -146,7 +146,14 @@ const saveVoucher = async () => {
   loading.value = true
   try {
     // Validate dates
-    if (new Date(form.value.ngayKetThuc) <= new Date(form.value.ngayBatDau)) {
+    const startDate = new Date(form.value.ngayBatDau)
+    const endDate = new Date(form.value.ngayKetThuc)
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      alert('Vui lòng nhập thời gian bắt đầu và kết thúc hợp lệ!')
+      loading.value = false
+      return
+    }
+    if (endDate <= startDate) {
       alert('Thời gian kết thúc phải sau thời gian bắt đầu!')
       loading.value = false
       return
