@@ -64,19 +64,19 @@
     </table>
 
     <div class="invoice-totals">
-      <div class="row">
+      <div class="totals-row">
         <span>Tạm tính</span>
         <strong>{{ formatPrice(subtotal) }}</strong>
       </div>
-      <div class="row" v-if="discount > 0">
+      <div class="totals-row" v-if="discount > 0">
         <span>Giảm giá</span>
         <strong class="text-success">- {{ formatPrice(discount) }}</strong>
       </div>
-      <div class="row" v-if="!pos && Number(order?.phiShip) > 0">
+      <div class="totals-row" v-if="!pos && Number(order?.phiShip) > 0">
         <span>Phí vận chuyển</span>
         <strong>{{ formatPrice(order.phiShip) }}</strong>
       </div>
-      <div class="row grand">
+      <div class="totals-row grand">
         <span>Tổng thanh toán</span>
         <strong>{{ formatPrice(order?.tongTien) }}</strong>
       </div>
@@ -245,7 +245,7 @@ th {
   margin-top: 0.75rem;
 }
 
-.invoice-totals .row {
+.invoice-totals .totals-row {
   display: flex;
   justify-content: space-between;
   padding: 0.3rem 0;
