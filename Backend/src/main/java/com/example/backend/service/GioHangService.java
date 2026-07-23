@@ -142,19 +142,28 @@ public class GioHangService {
         GioHang cart = getOrCreateCart(maNguoiDung);
         return chiTietGioHangRepository.findByMaGioHang(cart.getMaGioHang());
     }
-
     @Transactional
     public ChiTietGioHang themVaoGio(Integer maNguoiDung, Integer maChiTietSp, Integer soLuong) {
         GioHang cart = getOrCreateCart(maNguoiDung);
+
+        ChiTietSanPham ctSp = chiTietSanPhamRepository.findById(maChiTietSp)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy biến thể sản phẩm: " + maChiTietSp));
 
         Optional<ChiTietGioHang> existingItem = chiTietGioHangRepository
                 .findByMaGioHangAndMaChiTietSp(cart.getMaGioHang(), maChiTietSp);
         if (existingItem.isPresent()) {
             ChiTietGioHang item = existingItem.get();
-            item.setSoLuong(item.getSoLuong() + soLuong);
+            int newQty = item.getSoLuong() + soLuong;
+            if (ctSp.getSoLuongTon() < newQty) {
+                throw new BadRequestException("Số lượng trong giỏ hàng (" + newQty + ") vượt quá tồn kho hiện tại (" + ctSp.getSoLuongTon() + ")");
+            }
+            item.setSoLuong(newQty);
             return chiTietGioHangRepository.save(item);
         }
 
+        if (ctSp.getSoLuongTon() < soLuong) {
+            throw new BadRequestException("Số lượng yêu cầu (" + soLuong + ") vượt quá tồn kho hiện tại (" + ctSp.getSoLuongTon() + ")");
+        }
         ChiTietGioHang newItem = new ChiTietGioHang();
         newItem.setMaGioHang(cart.getMaGioHang());
         newItem.setMaChiTietSp(maChiTietSp);
@@ -166,6 +175,12 @@ public class GioHangService {
     public ChiTietGioHang capNhatSoLuong(Integer maCtGioHang, Integer soLuongMoi) {
         ChiTietGioHang item = chiTietGioHangRepository.findById(maCtGioHang)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm trong giỏ"));
+        ChiTietSanPham ctSp = chiTietSanPhamRepository.findById(item.getMaChiTietSp())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy biến thể sản phẩm"));
+        
+        if (ctSp.getSoLuongTon() < soLuongMoi) {
+            throw new BadRequestException("Số lượng yêu cầu (" + soLuongMoi + ") vượt quá tồn kho hiện tại (" + ctSp.getSoLuongTon() + ")");
+        }
         item.setSoLuong(soLuongMoi);
         return chiTietGioHangRepository.save(item);
     }

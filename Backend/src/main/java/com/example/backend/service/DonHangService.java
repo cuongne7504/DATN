@@ -106,9 +106,6 @@ public class DonHangService {
                 throw new BadRequestException("Sản phẩm SKU [" + ctSp.getMaVachSku() + "] không đủ tồn kho. Còn: " + ctSp.getSoLuongTon());
             }
 
-            // Trừ tồn kho
-            ctSp.setSoLuongTon(ctSp.getSoLuongTon() - item.getSoLuong());
-            chiTietSanPhamRepository.save(ctSp);
         }
 
         // Tính tổng tiền
@@ -171,9 +168,7 @@ public class DonHangService {
         emailService.sendOrderReceipt(donHang, user.getEmail());
 
         return new DonHangDetailResponse(donHang, mapChiTietList(chiTietList), km);
-    }
-
-    @Transactional
+    }    @Transactional
     public DonHang updateTrangThai(Integer id, String trangThai) {
         DonHang donHang = donHangRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng có mã: " + id));
@@ -183,8 +178,29 @@ public class DonHangService {
             throw new BadRequestException("Trạng thái không hợp lệ: " + trangThai);
         }
 
-        // Nếu chuyển sang Đã hủy và trạng thái cũ khác Đã hủy
-        if ("Đã hủy".equals(trangThai) && !"Đã hủy".equals(donHang.getTrangThai())) {
+        String oldStatus = donHang.getTrangThai();
+
+        // 1. Nếu đơn hàng trước đó ở trạng thái "Chờ xử lý" và chuyển sang các trạng thái đã xác nhận tiếp theo
+        if ("Chờ xử lý".equals(oldStatus) && ("Đang xử lý".equals(trangThai) || "Đang giao hàng".equals(trangThai) || "Đã giao hàng".equals(trangThai))) {
+            List<ChiTietDonHang> chiTietList = chiTietDonHangRepository.findByMaDonHang(id);
+            // Kiểm tra tồn kho trước
+            for (ChiTietDonHang ct : chiTietList) {
+                ChiTietSanPham ctSp = chiTietSanPhamRepository.findById(ct.getMaChiTietSp())
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy biến thể sản phẩm: " + ct.getMaChiTietSp()));
+                if (ctSp.getSoLuongTon() < ct.getSoLuong()) {
+                    throw new BadRequestException("Sản phẩm SKU [" + ctSp.getMaVachSku() + "] không đủ tồn kho. Còn: " + ctSp.getSoLuongTon());
+                }
+            }
+            // Trừ tồn kho khi xác nhận
+            for (ChiTietDonHang ct : chiTietList) {
+                ChiTietSanPham ctSp = chiTietSanPhamRepository.findById(ct.getMaChiTietSp()).get();
+                ctSp.setSoLuongTon(ctSp.getSoLuongTon() - ct.getSoLuong());
+                chiTietSanPhamRepository.save(ctSp);
+            }
+        }
+
+        // 2. Nếu chuyển sang Đã hủy và trạng thái cũ không phải "Chờ xử lý" và không phải "Đã hủy" (tức là đã trừ kho trước đó)
+        if ("Đã hủy".equals(trangThai) && !"Đã hủy".equals(oldStatus) && !"Chờ xử lý".equals(oldStatus)) {
             // Hoàn lại số lượng tồn kho
             List<ChiTietDonHang> chiTietList = chiTietDonHangRepository.findByMaDonHang(id);
             for (ChiTietDonHang ct : chiTietList) {
@@ -208,7 +224,6 @@ public class DonHangService {
         donHang.setTrangThai(trangThai);
         return donHangRepository.save(donHang);
     }
-
     @Transactional
     public DonHangDetailResponse createPosOrder(TaoDonHangPosRequest request) {
         // Kiểm tra tồn kho và trừ tồn kho cho từng sản phẩm
