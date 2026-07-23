@@ -108,10 +108,6 @@ CREATE TABLE DON_HANG (
   shipping_note NVARCHAR(MAX),
   shipping_code VARCHAR(100),
   trang_thai NVARCHAR(50),
-  shipper_name NVARCHAR(255),
-  shipper_phone VARCHAR(20),
-  shipping_note NVARCHAR(MAX),
-  shipping_code VARCHAR(100),
   FOREIGN KEY (ma_nguoi_dung) REFERENCES NGUOI_DUNG(ma_nguoi_dung),
   FOREIGN KEY (ma_nhan_vien) REFERENCES NGUOI_DUNG(ma_nguoi_dung),
   FOREIGN KEY (ma_khuyen_mai) REFERENCES KHUYEN_MAI(ma_khuyen_mai)
