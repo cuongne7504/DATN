@@ -11,6 +11,7 @@ import lombok.Setter;
 public class ChiTietGioHang {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ma_ct_gio_hang")
     private Integer maCtGioHang;
 

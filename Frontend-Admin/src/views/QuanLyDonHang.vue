@@ -122,8 +122,20 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="3" class="text-end fw-bold">Tổng tiền hàng:</td>
-                  <td class="fw-bold text-danger">{{ formatPrice(selectedOrder.tongTien) }}</td>
+                  <td colspan="3" class="text-end fw-semibold">Tổng tiền hàng:</td>
+                  <td class="fw-bold">{{ formatPrice(calculateSubTotal(selectedOrder)) }}</td>
+                </tr>
+                <tr v-if="selectedOrder.phiShip > 0">
+                  <td colspan="3" class="text-end fw-semibold text-primary">Phí giao hàng:</td>
+                  <td class="fw-bold text-primary">{{ formatPrice(selectedOrder.phiShip) }}</td>
+                </tr>
+                <tr v-if="calculateDiscount(selectedOrder) > 0">
+                  <td colspan="3" class="text-end fw-semibold text-success">Khuyến mãi:</td>
+                  <td class="fw-bold text-success">-{{ formatPrice(calculateDiscount(selectedOrder)) }}</td>
+                </tr>
+                <tr class="table-light border-top">
+                  <td colspan="3" class="text-end fw-bold fs-5">Tổng cộng:</td>
+                  <td class="fw-bold text-danger fs-5">{{ formatPrice(selectedOrder.tongTien) }}</td>
                 </tr>
               </tfoot>
             </table>
@@ -286,4 +298,16 @@ const viewDetail = async (order) => {
 onMounted(() => {
   fetchOrders()
 })
+
+const calculateSubTotal = (order) => {
+  if (!order || !order.chiTietList) return 0
+  return order.chiTietList.reduce((sum, item) => sum + (item.soLuong * (item.donGia || 0)), 0)
+}
+
+const calculateDiscount = (order) => {
+  if (!order) return 0
+  const subTotal = calculateSubTotal(order)
+  const ship = order.phiShip || 0
+  return Math.max(0, subTotal + ship - order.tongTien)
+}
 </script>

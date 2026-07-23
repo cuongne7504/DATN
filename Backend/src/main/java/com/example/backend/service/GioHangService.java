@@ -37,7 +37,6 @@ public class GioHangService {
         return gioHangRepository.findByMaNguoiDung(maNguoiDung)
                 .orElseGet(() -> {
                     GioHang gio = new GioHang();
-                    gio.setMaGioHang(generateNextGioHangId());
                     gio.setMaNguoiDung(maNguoiDung);
                     gio.setNgayTao(LocalDateTime.now());
                     return gioHangRepository.save(gio);
@@ -92,7 +91,6 @@ public class GioHangService {
             chiTietGioHangRepository.save(ctgh);
         } else {
             ChiTietGioHang ctgh = new ChiTietGioHang();
-            ctgh.setMaCtGioHang(generateNextCtGioHangId());
             ctgh.setMaGioHang(gioHang.getMaGioHang());
             ctgh.setMaChiTietSp(request.getMaChiTietSp());
             ctgh.setSoLuong(request.getSoLuong());
@@ -158,7 +156,6 @@ public class GioHangService {
         }
 
         ChiTietGioHang newItem = new ChiTietGioHang();
-        newItem.setMaCtGioHang(generateNextCtGioHangId());
         newItem.setMaGioHang(cart.getMaGioHang());
         newItem.setMaChiTietSp(maChiTietSp);
         newItem.setSoLuong(soLuong);
