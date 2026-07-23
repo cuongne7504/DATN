@@ -46,13 +46,15 @@
                         </div>
                       </div>
                     </td>
+
                     <td>
-                      <div class="input-group input-group-sm" style="width: 110px;">
+                      <div class="input-group input-group-sm quantity-input-group" style="width: 120px;">
                         <button class="btn btn-outline-secondary" @click="updateQuantity(item, item.soLuong - 1)">-</button>
-                        <input type="number" class="form-control text-center" v-model.number="item.soLuong" @change="updateQuantity(item, item.soLuong)" min="1">
+                        <input type="number" class="form-control text-center no-spinners" v-model.number="item.soLuong" @change="updateQuantity(item, item.soLuong)" min="1">
                         <button class="btn btn-outline-secondary" @click="updateQuantity(item, item.soLuong + 1)">+</button>
                       </div>
                     </td>
+
                     <td class="fw-bold text-primary">{{ formatPrice(item.soLuong * item.donGia) }}</td>
                     <td>
                       <button @click="removeItem(item.maCtGioHang)" class="btn btn-sm btn-outline-danger border-0">
@@ -258,3 +260,23 @@ onMounted(() => {
   fetchCart()
 })
 </script>
+
+<style scoped>
+/* Ẩn nút mũi tên tăng giảm mặc định của Chrome, Safari, Edge, Opera */
+.no-spinners::-webkit-outer-spin-button,
+.no-spinners::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Ẩn nút mũi tên tăng giảm mặc định của Firefox */
+.no-spinners {
+  -moz-appearance: textfield;
+}
+
+.quantity-input-group .form-control {
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
+  font-weight: bold;
+}
+</style>
