@@ -61,10 +61,6 @@
             <i class="bi bi-box-seam"></i>
             <span>Sản phẩm</span>
           </router-link>
-          <router-link class="sidebar-link" active-class="active" to="/admin/variants" @click="closeSidebar">
-            <i class="bi bi-grid-3x3-gap"></i>
-            <span>Biến thể</span>
-          </router-link>
           <router-link class="sidebar-link" active-class="active" to="/admin/categories" @click="closeSidebar">
             <i class="bi bi-tags"></i>
             <span>Danh mục</span>
@@ -148,7 +144,6 @@ const titleMap = {
   '/admin/categories': 'Danh mục',
   '/admin/brands': 'Thương hiệu',
   '/admin/products': 'Sản phẩm',
-  '/admin/variants': 'Biến thể sản phẩm',
   '/admin/orders': 'Đơn hàng',
   '/admin/invoices': 'Hóa đơn',
   '/admin/returns': 'Hoàn hàng',

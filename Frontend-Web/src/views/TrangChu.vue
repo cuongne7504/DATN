@@ -111,11 +111,11 @@ const getMainImage = (product) => {
   if (product.hinhAnh && product.hinhAnh.length > 0) {
     const mainImg = product.hinhAnh.find(img => img.laAnhChinh)
     let path = mainImg ? mainImg.duongDanAnh : product.hinhAnh[0].duongDanAnh;
-    if (path && path.startsWith('http')) {
-      return path;
-    }
-    // Ảnh lưu trên backend, cần thêm URL prefix
-    return `${API_URL}/api/hinh-anh/uploads/${path}`;
+    if (!path) return 'https://via.placeholder.com/300x200?text=No+Image'
+    if (path.startsWith('http')) return path
+    if (path.startsWith('/uploads/')) return `${API_URL}${path}`
+    if (path.startsWith('uploads/')) return `${API_URL}/${path}`
+    return `${API_URL}/uploads/${path}`
   }
   return 'https://via.placeholder.com/300x200?text=No+Image'
 }

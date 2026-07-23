@@ -127,7 +127,9 @@ const fetchCart = async () => {
         let hinhAnh = null
         if (item.sanPham.hinhAnh && item.sanPham.hinhAnh.length > 0) {
            const path = item.sanPham.hinhAnh.find(i => i.laAnhChinh)?.duongDanAnh || item.sanPham.hinhAnh[0].duongDanAnh
-           hinhAnh = path.startsWith('http') ? path : `${API_URL}/api/hinh-anh/uploads/${path}`
+           if (path) {
+             hinhAnh = path.startsWith('http') ? path : (path.startsWith('/') ? `${API_URL}${path}` : `${API_URL}/${path}`)
+           }
         }
         return {
           maCtGioHang: 'guest_' + index,
@@ -172,7 +174,9 @@ const fetchCart = async () => {
           const imgs = imgRes.data.data || imgRes.data || []
           if (imgs.length > 0) {
             const path = imgs[0].duongDanAnh
-            hinhAnh = path.startsWith('http') ? path : `${API_URL}/api/hinh-anh/uploads/${path}`
+            if (path) {
+              hinhAnh = path.startsWith('http') ? path : (path.startsWith('/') ? `${API_URL}${path}` : `${API_URL}/${path}`)
+            }
           }
         } catch (e) {}
 

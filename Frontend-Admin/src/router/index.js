@@ -3,7 +3,6 @@ import ThongKeDoanhThu from '../views/ThongKeDoanhThu.vue'
 import QuanLyDanhMuc from '../views/QuanLyDanhMuc.vue'
 import QuanLyThuongHieu from '../views/QuanLyThuongHieu.vue'
 import QuanLySanPham from '../views/QuanLySanPham.vue'
-import QuanLyBienThe from '../views/QuanLyBienThe.vue'
 import QuanLyKhuyenMai from '../views/QuanLyKhuyenMai.vue'
 import QuanLyDonHang from '../views/QuanLyDonHang.vue'
 import BanHangTaiQuay from '../views/BanHangTaiQuay.vue'
@@ -46,12 +45,6 @@ const routes = [
     path: '/admin/products',
     name: 'QuanLySanPham',
     component: QuanLySanPham,
-    meta: { requiresAuth: true, requiresAdmin: true, roles: [1] }
-  },
-  {
-    path: '/admin/variants',
-    name: 'QuanLyBienThe',
-    component: QuanLyBienThe,
     meta: { requiresAuth: true, requiresAdmin: true, roles: [1] }
   },
   {

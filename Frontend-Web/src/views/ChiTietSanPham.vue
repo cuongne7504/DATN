@@ -210,7 +210,10 @@ const getCategoryName = (id) => {
 
 const getImageUrl = (path) => {
   if (!path) return 'https://via.placeholder.com/600x600?text=No+Image';
-  if (path.startsWith('http') || path.startsWith('/')) return path;
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('/uploads/')) return `${API_URL}${path}`;
+  if (path.startsWith('uploads/')) return `${API_URL}/${path}`;
+  if (path.startsWith('/')) return path;
   return '/' + path;
 }
 
