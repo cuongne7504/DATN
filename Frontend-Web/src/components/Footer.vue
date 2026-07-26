@@ -72,9 +72,13 @@
 
 <style scoped>
 .custom-footer {
-  background-color: #0f172a; /* Slate 900 - Nền tối hiện đại và sang trọng hơn */
-  color: #e2e8f0; /* Slate 200 - Chữ xám sáng giúp đọc cực kỳ rõ */
-  border-top: 3px solid #3b82f6; /* Đường viền màu xanh thương hiệu trên đỉnh */
+  background:
+    radial-gradient(700px 280px at 0% 0%, rgba(29, 78, 216, 0.22), transparent 60%),
+    radial-gradient(600px 240px at 100% 100%, rgba(249, 115, 22, 0.14), transparent 55%),
+    #0b1220;
+  color: #e2e8f0;
+  border-top: 3px solid #1d4ed8;
+  margin-top: 3.5rem;
 }
 
 .footer-logo {
@@ -82,7 +86,7 @@
   letter-spacing: 1px;
 }
 .footer-logo span {
-  color: #3b82f6;
+  color: #f97316;
 }
 
 .footer-desc {
@@ -103,26 +107,27 @@
   bottom: 0;
   width: 40px;
   height: 2px;
-  background-color: #3b82f6; /* Vạch gạch chân nhỏ màu xanh */
+  background-color: #f97316;
 }
 
 /* Kiểu dáng liên kết & hiệu ứng hover mượt mà */
 .footer-links li {
   margin-bottom: 10px;
 }
+
 .footer-links a {
   color: #94a3b8;
   text-decoration: none;
   font-size: 0.95rem;
-  transition: all 0.3s ease;
+  transition: color 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   display: inline-block;
 }
+
 .footer-links a:hover {
-  color: #3b82f6; /* Đổi màu xanh khi di chuột */
-  transform: translateX(5px); /* Dịch nhẹ sang phải */
+  color: #60a5fa;
+  transform: translateX(6px);
 }
 
-/* Kiểu dáng liên hệ */
 .footer-contact li {
   display: flex;
   align-items: center;
@@ -137,11 +142,10 @@
 }
 
 .footer-copy {
-  color: #64748b; /* Slate 500 */
+  color: #64748b;
   font-size: 0.85rem;
 }
 
-/* Icon mạng xã hội */
 .social-icon {
   display: inline-flex;
   align-items: center;
@@ -152,12 +156,13 @@
   background-color: rgba(255, 255, 255, 0.05);
   color: #94a3b8;
   font-size: 1.1rem;
-  transition: all 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1), background-color 0.25s ease, color 0.25s ease;
   text-decoration: none;
 }
+
 .social-icon:hover {
-  background-color: #3b82f6;
+  background-color: #1d4ed8;
   color: #ffffff;
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.06);
 }
 </style>

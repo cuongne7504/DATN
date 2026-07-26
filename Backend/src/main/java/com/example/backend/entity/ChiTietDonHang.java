@@ -36,8 +36,8 @@ public class ChiTietDonHang implements Persistable<Integer> {
         return newEntity;
     }
 
-    @PostPersist
     @PostLoad
+    @PostPersist
     void markNotNew() {
         this.newEntity = false;
     }
@@ -54,5 +54,3 @@ public class ChiTietDonHang implements Persistable<Integer> {
     @Column(name = "don_gia")
     private BigDecimal donGia;
 }
-
-

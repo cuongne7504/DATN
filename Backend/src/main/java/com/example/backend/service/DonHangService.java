@@ -106,9 +106,6 @@ public class DonHangService {
                 throw new BadRequestException("Sản phẩm SKU [" + ctSp.getMaVachSku() + "] không đủ tồn kho. Còn: " + ctSp.getSoLuongTon());
             }
 
-            // Trừ tồn kho
-            ctSp.setSoLuongTon(ctSp.getSoLuongTon() - item.getSoLuong());
-            chiTietSanPhamRepository.save(ctSp);
         }
 
         // Tính tổng tiền
@@ -141,7 +138,6 @@ public class DonHangService {
                 }
             }
         }
-
         // Tạo đơn hàng
         DonHang donHang = new DonHang();
         donHang.setMaDonHang(generateNextDonHangId());
@@ -160,7 +156,7 @@ public class DonHangService {
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
-            ctdh.setMaCtDonHang(generateNextChiTietId());
+            ctdh.setMaCtDonHang(generateNextCtDonHangId());
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());
@@ -174,9 +170,7 @@ public class DonHangService {
         emailService.sendOrderReceipt(donHang, user.getEmail());
 
         return new DonHangDetailResponse(donHang, mapChiTietList(chiTietList), km);
-    }
-
-    @Transactional
+    }    @Transactional
     public DonHang updateTrangThai(Integer id, String trangThai) {
         DonHang donHang = donHangRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng có mã: " + id));
@@ -186,8 +180,29 @@ public class DonHangService {
             throw new BadRequestException("Trạng thái không hợp lệ: " + trangThai);
         }
 
-        // Nếu chuyển sang Đã hủy và trạng thái cũ khác Đã hủy
-        if ("Đã hủy".equals(trangThai) && !"Đã hủy".equals(donHang.getTrangThai())) {
+        String oldStatus = donHang.getTrangThai();
+
+        // 1. Nếu đơn hàng trước đó ở trạng thái "Chờ xử lý" và chuyển sang các trạng thái đã xác nhận tiếp theo
+        if ("Chờ xử lý".equals(oldStatus) && ("Đang xử lý".equals(trangThai) || "Đang giao hàng".equals(trangThai) || "Đã giao hàng".equals(trangThai))) {
+            List<ChiTietDonHang> chiTietList = chiTietDonHangRepository.findByMaDonHang(id);
+            // Kiểm tra tồn kho trước
+            for (ChiTietDonHang ct : chiTietList) {
+                ChiTietSanPham ctSp = chiTietSanPhamRepository.findById(ct.getMaChiTietSp())
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy biến thể sản phẩm: " + ct.getMaChiTietSp()));
+                if (ctSp.getSoLuongTon() < ct.getSoLuong()) {
+                    throw new BadRequestException("Sản phẩm SKU [" + ctSp.getMaVachSku() + "] không đủ tồn kho. Còn: " + ctSp.getSoLuongTon());
+                }
+            }
+            // Trừ tồn kho khi xác nhận
+            for (ChiTietDonHang ct : chiTietList) {
+                ChiTietSanPham ctSp = chiTietSanPhamRepository.findById(ct.getMaChiTietSp()).get();
+                ctSp.setSoLuongTon(ctSp.getSoLuongTon() - ct.getSoLuong());
+                chiTietSanPhamRepository.save(ctSp);
+            }
+        }
+
+        // 2. Nếu chuyển sang Đã hủy và trạng thái cũ không phải "Chờ xử lý" và không phải "Đã hủy" (tức là đã trừ kho trước đó)
+        if ("Đã hủy".equals(trangThai) && !"Đã hủy".equals(oldStatus) && !"Chờ xử lý".equals(oldStatus)) {
             // Hoàn lại số lượng tồn kho
             List<ChiTietDonHang> chiTietList = chiTietDonHangRepository.findByMaDonHang(id);
             for (ChiTietDonHang ct : chiTietList) {
@@ -211,7 +226,6 @@ public class DonHangService {
         donHang.setTrangThai(trangThai);
         return donHangRepository.save(donHang);
     }
-
     @Transactional
     public DonHangDetailResponse createPosOrder(TaoDonHangPosRequest request) {
         // Kiểm tra tồn kho và trừ tồn kho cho từng sản phẩm
@@ -256,7 +270,6 @@ public class DonHangService {
                 }
             }
         }
-
         // Tạo đơn hàng POS
         DonHang donHang = new DonHang();
         donHang.setMaDonHang(generateNextDonHangId());
@@ -285,7 +298,7 @@ public class DonHangService {
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
-            ctdh.setMaCtDonHang(generateNextChiTietId());
+            ctdh.setMaCtDonHang(generateNextCtDonHangId());
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());
@@ -316,6 +329,27 @@ public class DonHangService {
 
         // 1. Phân tích địa chỉ giao hàng
         String diaChi = donHang.getDiaChiGiao() != null ? donHang.getDiaChiGiao() : "Khách hàng - 0900000000 - Hà Nội";
+        
+        String toWardCode = "20308"; // Mặc định Phường 14, Quận 10
+        int toDistrictId = 1442;
+        if (diaChi.contains("| [GHN:")) {
+            int startIndex = diaChi.indexOf("| [GHN:") + 7;
+            int endIndex = diaChi.indexOf("]", startIndex);
+            if (endIndex > startIndex) {
+                String ghnInfo = diaChi.substring(startIndex, endIndex);
+                String[] ghnParts = ghnInfo.split(":");
+                if (ghnParts.length >= 2) {
+                    toWardCode = ghnParts[0].trim();
+                    try {
+                        toDistrictId = Integer.parseInt(ghnParts[1].trim());
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
+            }
+            diaChi = diaChi.substring(0, diaChi.indexOf("| [GHN:")).trim();
+        }
+
         String[] parts = diaChi.split(" - ");
         String toName = "Khách hàng";
         String toPhone = "0900000000";
@@ -344,9 +378,8 @@ public class DonHangService {
         body.put("to_phone", toPhone);
         body.put("to_address", toAddress);
         
-        // GHN bắt buộc có to_ward_code và to_district_id. Đây là thông tin mẫu thử nghiệm của GHN (Phường 14, Quận 10, TP.HCM)
-        body.put("to_ward_code", "20308");
-        body.put("to_district_id", 1442);
+        body.put("to_ward_code", toWardCode);
+        body.put("to_district_id", toDistrictId);
         
         // Khối lượng/Kích thước mặc định
         body.put("cod_amount", donHang.getTongTien() != null ? donHang.getTongTien().intValue() : 0);
@@ -435,6 +468,7 @@ public class DonHangService {
         com.example.backend.entity.NguoiDung guestUser = nguoiDungRepository.findByEmail(request.getEmail()).orElse(null);
         if (guestUser == null) {
             guestUser = new com.example.backend.entity.NguoiDung();
+            guestUser.setMaNguoiDung(generateNextNguoiDungId());
             guestUser.setEmail(request.getEmail());
             guestUser.setHoTen(request.getHoTen());
             guestUser.setSoDienThoai(request.getSoDienThoai());
@@ -475,9 +509,7 @@ public class DonHangService {
                     khuyenMaiRepository.save(km);
                 }
             }
-        }
-
-        // Tạo đơn hàng
+        }        // Tạo đơn hàng
         DonHang donHang = new DonHang();
         donHang.setMaDonHang(generateNextDonHangId());
         donHang.setMaNguoiDung(guestUser.getMaNguoiDung());
@@ -495,7 +527,7 @@ public class DonHangService {
 
         List<ChiTietDonHang> chiTietList = request.getItems().stream().map(item -> {
             ChiTietDonHang ctdh = new ChiTietDonHang();
-            ctdh.setMaCtDonHang(generateNextChiTietId());
+            ctdh.setMaCtDonHang(generateNextCtDonHangId());
             ctdh.setMaDonHang(maDonHang);
             ctdh.setMaChiTietSp(item.getMaChiTietSp());
             ctdh.setSoLuong(item.getSoLuong());
@@ -513,12 +545,22 @@ public class DonHangService {
 
     private Integer generateNextDonHangId() {
         return donHangRepository.findAll().stream()
-                .mapToInt(DonHang::getMaDonHang).max().orElse(0) + 1;
+                .mapToInt(DonHang::getMaDonHang)
+                .max()
+                .orElse(0) + 1;
     }
 
-    private Integer generateNextChiTietId() {
+    private Integer generateNextCtDonHangId() {
         return chiTietDonHangRepository.findAll().stream()
-                .mapToInt(ChiTietDonHang::getMaCtDonHang).max().orElse(0) + 1;
+                .mapToInt(ChiTietDonHang::getMaCtDonHang)
+                .max()
+                .orElse(0) + 1;
+    }
+
+    private Integer generateNextNguoiDungId() {
+        return nguoiDungRepository.findAll().stream()
+                .mapToInt(NguoiDung::getMaNguoiDung)
+                .max()
+                .orElse(0) + 1;
     }
 }
-

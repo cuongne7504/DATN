@@ -47,6 +47,7 @@ public class HinhAnhSpService {
         }
 
         HinhAnhSp hinhAnh = new HinhAnhSp();
+        hinhAnh.setMaHinhAnh(generateNextId());
         hinhAnh.setMaSanPham(request.getMaSanPham());
         hinhAnh.setDuongDanAnh(request.getDuongDanAnh());
         hinhAnh.setLaAnhChinh(isMain);

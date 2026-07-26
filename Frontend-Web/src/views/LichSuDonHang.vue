@@ -1,12 +1,14 @@
 <template>
-  <div class="container mt-4">
-    <h2 class="mb-4 fw-bold">Lịch sử Đơn hàng của bạn</h2>
+  <div class="container mt-4 mb-5" v-reveal>
+    <div class="page-kicker">Đơn hàng</div>
+    <h2 class="page-title">Lịch sử đơn hàng</h2>
+    <p class="page-desc">Theo dõi trạng thái và chi tiết các đơn bạn đã đặt.</p>
 
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status"></div>
     </div>
 
-    <div v-else-if="orders.length === 0" class="text-center py-5 bg-light rounded shadow-sm">
+    <div v-else-if="orders.length === 0" class="text-center py-5 sp-soft-panel">
       <i class="bi bi-bag-x text-muted" style="font-size: 4rem;"></i>
       <h4 class="mt-3 text-muted">Chưa có đơn hàng nào</h4>
       <p>Bạn chưa thực hiện bất kỳ giao dịch nào.</p>
@@ -15,7 +17,7 @@
 
     <div v-else class="row">
       <div class="col-12">
-        <div class="card shadow-sm border-0 mb-4" v-for="orderInfo in orders" :key="orderInfo.maDonHang">
+        <div class="card mb-4" v-for="orderInfo in orders" :key="orderInfo.maDonHang">
           <div class="card-header bg-white border-bottom pt-3 pb-3">
             <div class="d-flex justify-content-between align-items-center">
               <div>

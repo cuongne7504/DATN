@@ -37,8 +37,8 @@ public class DonHang implements Persistable<Integer> {
         return newEntity;
     }
 
-    @PostPersist
     @PostLoad
+    @PostPersist
     void markNotNew() {
         this.newEntity = false;
     }
@@ -82,5 +82,3 @@ public class DonHang implements Persistable<Integer> {
     @Column(name = "shipping_code")
     private String shippingCode;
 }
-
-
