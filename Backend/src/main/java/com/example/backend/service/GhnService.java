@@ -33,14 +33,12 @@ public class GhnService {
     }
 
     public Map<String, Object> getDistricts(Integer provinceId) {
-        String url = "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district";
+        String url = "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district?province_id=" + provinceId;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Token", ghnApiToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
-        Map<String, Object> body = new HashMap<>();
-        body.put("province_id", provinceId);
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
         Map<String, Object> resBody = response.getBody();
         if (resBody != null && resBody.containsKey("data") && resBody.get("data") instanceof java.util.List) {
             java.util.List<Map<String, Object>> list = (java.util.List<Map<String, Object>>) resBody.get("data");
@@ -56,14 +54,12 @@ public class GhnService {
     }
 
     public Map<String, Object> getWards(Integer districtId) {
-        String url = "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward";
+        String url = "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id=" + districtId;
         HttpHeaders headers = new HttpHeaders();
         headers.set("Token", ghnApiToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
-        Map<String, Object> body = new HashMap<>();
-        body.put("district_id", districtId);
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
         Map<String, Object> resBody = response.getBody();
         if (resBody != null && resBody.containsKey("data") && resBody.get("data") instanceof java.util.List) {
             java.util.List<Map<String, Object>> list = (java.util.List<Map<String, Object>>) resBody.get("data");
