@@ -208,8 +208,8 @@
               <textarea v-model="returnForm.lyDo" class="form-control" rows="3" placeholder="Nhập lý do chi tiết..." required></textarea>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold">Link hình ảnh minh họa (tuỳ chọn):</label>
-              <input type="text" v-model="returnForm.hinhAnhMinhHoa" class="form-control" placeholder="URL hình ảnh sản phẩm lỗi">
+              <label class="form-label fw-bold">Link hình ảnh minh họa <span class="text-danger">*</span>:</label>
+              <input type="text" v-model="returnForm.hinhAnhMinhHoa" class="form-control" placeholder="URL hình ảnh sản phẩm lỗi" required>
             </div>
             <div class="alert alert-info small mt-2">
               <strong>Lưu ý:</strong> Chúng tôi sẽ kiểm tra và xét duyệt yêu cầu của bạn. Sau khi duyệt, bạn cần gửi hàng về cho shop để hoàn tất quá trình hoàn tiền.
@@ -336,8 +336,8 @@ const openReturnModal = (order) => {
 }
 
 const submitReturnRequest = async () => {
-  if (!returnForm.value.lyDo) {
-    alert('Vui lòng nhập lý do hoàn hàng.')
+  if (!returnForm.value.lyDo || !returnForm.value.hinhAnhMinhHoa) {
+    alert('Vui lòng nhập lý do hoàn hàng và cung cấp link hình ảnh minh chứng.')
     return
   }
   try {

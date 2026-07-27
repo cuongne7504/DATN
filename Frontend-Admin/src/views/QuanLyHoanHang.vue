@@ -11,7 +11,6 @@
             <thead class="table-light">
               <tr>
                 <th>Mã YC</th>
-                <th>Mã ĐH</th>
                 <th>Lý do</th>
                 <th>Hình ảnh</th>
                 <th>Số tiền hoàn</th>
@@ -29,7 +28,6 @@
               </tr>
               <tr v-for="req in requests" :key="req.maYeuCau">
                 <td class="fw-bold">#{{ req.maYeuCau }}</td>
-                <td><router-link :to="'/orders/' + req.maDonHang">#{{ req.maDonHang }}</router-link></td>
                 <td style="max-width: 200px;" class="text-truncate" :title="req.lyDo">{{ req.lyDo }}</td>
                 <td>
                   <a v-if="req.hinhAnhMinhHoa" :href="req.hinhAnhMinhHoa" target="_blank" class="btn btn-sm btn-outline-secondary">Xem ảnh</a>
@@ -43,21 +41,78 @@
                 </td>
                 <td>{{ formatDate(req.ngayTao) }}</td>
                 <td class="text-center">
-                  <select 
-                    class="form-select form-select-sm border-primary shadow-sm" 
-                    style="width: 150px; display: inline-block; cursor: pointer;" 
-                    @change="updateStatus(req, $event.target.value); $event.target.value = ''"
-                  >
-                    <option value="" disabled selected>Chọn thao tác...</option>
-                    <option value="Đã duyệt">✅ Duyệt yêu cầu</option>
-                    <option value="Đã nhận hàng (Nhập kho)">📦 Nhập lại kho</option>
-                    <option value="Đã hoàn tiền">💸 Đã hoàn tiền</option>
-                    <option value="Từ chối">❌ Từ chối</option>
-                  </select>
+                  <div class="d-flex justify-content-center gap-2">
+                    <button @click="viewDetail(req)" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#orderDetailModal">Chi tiết</button>
+                    <select 
+                      class="form-select form-select-sm border-primary shadow-sm" 
+                      style="width: 140px; display: inline-block; cursor: pointer;" 
+                      @change="updateStatus(req, $event.target.value); $event.target.value = ''"
+                    >
+                      <option value="" disabled selected>Chọn thao tác...</option>
+                      <option value="Đã duyệt">✅ Duyệt yêu cầu</option>
+                      <option value="Đã hoàn tiền">💸 Đã hoàn tiền</option>
+                      <option value="Từ chối">❌ Từ chối</option>
+                    </select>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Chi Tiết Đơn Hàng -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Chi tiết đơn hàng #{{ selectedOrder?.maDonHang }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" v-if="selectedOrder">
+            <div class="row mb-4 g-3">
+              <div class="col-md-6">
+                <div class="border p-3 rounded h-100 bg-light">
+                  <h6 class="fw-bold">Thông tin giao hàng</h6>
+                  <p class="mb-1"><strong>Ngày đặt:</strong> {{ formatDate(selectedOrder.ngayDat) }}</p>
+                  <p class="mb-0"><strong>Địa chỉ:</strong> {{ selectedOrder.diaChiGiao || 'Bán tại quầy' }}</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="border p-3 rounded h-100 bg-light">
+                  <h6 class="fw-bold">Thanh toán</h6>
+                  <p class="mb-1"><strong>Phương thức:</strong> {{ selectedOrder.phuongThucTt }}</p>
+                  <p class="mb-1"><strong>Trạng thái:</strong> <span class="badge bg-secondary">{{ selectedOrder.trangThai }}</span></p>
+                </div>
+              </div>
+            </div>
+            <h6 class="fw-bold border-bottom pb-2">Sản phẩm</h6>
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Sản phẩm</th>
+                  <th>Số lượng</th>
+                  <th>Đơn giá</th>
+                  <th>Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in selectedOrder.chiTietList" :key="item.maCtDonHang">
+                  <td>
+                    <div>{{ item.sanPham?.tenSanPham }}</div>
+                    <small class="text-muted">Màu {{ item.chiTietSanPham?.mauSac }} - Size {{ item.chiTietSanPham?.kichCo }}</small>
+                  </td>
+                  <td>{{ item.soLuong }}</td>
+                  <td>{{ formatPrice(item.donGia) }}</td>
+                  <td>{{ formatPrice(item.soLuong * item.donGia) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
         </div>
       </div>
     </div>
@@ -71,6 +126,7 @@ import { API_URL } from '@/config.js'
 
 const requests = ref([])
 const loading = ref(false)
+const selectedOrder = ref(null)
 
 const formatPrice = (price) => {
   return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
@@ -107,6 +163,10 @@ const fetchRequests = async () => {
 }
 
 const updateStatus = async (req, newStatus) => {
+  if (newStatus === 'Đã hoàn tiền' && req.trangThai !== 'Đã duyệt') {
+    alert('Vui lòng "Duyệt yêu cầu" trước khi tiến hành hoàn tiền!')
+    return
+  }
   if (!confirm(`Bạn chắc chắn muốn cập nhật yêu cầu #${req.maYeuCau} thành "${newStatus}"?`)) return
   
   try {
@@ -116,6 +176,17 @@ const updateStatus = async (req, newStatus) => {
   } catch (error) {
     console.error('Lỗi cập nhật:', error)
     alert('Không thể cập nhật trạng thái!')
+  }
+}
+
+const viewDetail = async (req) => {
+  selectedOrder.value = null
+  try {
+    const res = await axios.get(`${API_URL}/api/don-hang/${req.maDonHang}`)
+    selectedOrder.value = res.data.data || res.data
+  } catch (error) {
+    console.error('Lỗi tải chi tiết đơn hàng:', error)
+    alert('Không thể lấy chi tiết đơn hàng!')
   }
 }
 
