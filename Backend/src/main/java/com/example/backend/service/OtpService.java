@@ -1,25 +1,34 @@
 package com.example.backend.service;
 
-import com.twilio.Twilio;
-import com.twilio.rest.api.v2010.account.Message;
-import com.twilio.type.PhoneNumber;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class OtpService {
 
-    @Value("${twilio.account-sid}")
-    private String accountSid;
+    @Value("${speedsms.access-token:}")
+    private String accessToken;
 
-    @Value("${twilio.auth-token}")
-    private String authToken;
+    @Value("${speedsms.sms-type:4}") // Mặc định là 4 (Verify/Notify Brandname quảng cáo hoặc dùng chung)
+    private String smsType;
 
-    @Value("${twilio.phone-number}")
-    private String fromPhoneNumber;
+    @Value("${speedsms.sender:}")
+    private String senderName;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     // Lưu OTP kèm thời gian tạo. Key: Số điện thoại, Value: OTP. (Thực tế nên dùng Redis)
     private final ConcurrentHashMap<String, String> otpStorage = new ConcurrentHashMap<>();
@@ -28,10 +37,10 @@ public class OtpService {
     private static final long OTP_VALID_DURATION = 3 * 60 * 1000; // 3 phút
 
     public String generateAndSendOtp(String toPhoneNumber) {
-        // Format lại số điện thoại Việt Nam (+84) cho Twilio
-        String formattedPhone = toPhoneNumber;
+        // Format lại số điện thoại Việt Nam dạng 84xxxxxxx cho SpeedSMS (nếu bắt đầu bằng 0)
+        String formattedPhone = toPhoneNumber.trim();
         if (formattedPhone.startsWith("0")) {
-            formattedPhone = "+84" + formattedPhone.substring(1);
+            formattedPhone = "84" + formattedPhone.substring(1);
         }
 
         // Tạo mã ngẫu nhiên 6 số
@@ -41,28 +50,50 @@ public class OtpService {
         otpStorage.put(toPhoneNumber, otpCode);
         otpExpiry.put(toPhoneNumber, System.currentTimeMillis() + OTP_VALID_DURATION);
 
-        // Kiểm tra xem đã cấu hình Twilio chưa
-        if (accountSid == null || accountSid.trim().isEmpty()) {
-            System.out.println("======== MÔ PHỎNG SMS ========");
+        // Kiểm tra xem đã cấu hình SpeedSMS chưa
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            System.out.println("======== MÔ PHỎNG SMS (SPEEDSMS) ========");
             System.out.println("Gửi tới: " + formattedPhone);
             System.out.println("Mã OTP: " + otpCode);
-            System.out.println("===============================");
+            System.out.println("=========================================");
             return otpCode;
         }
 
         try {
-            // Gửi SMS qua Twilio
-            Twilio.init(accountSid, authToken);
-            Message message = Message.creator(
-                    new PhoneNumber(formattedPhone),
-                    new PhoneNumber(fromPhoneNumber),
-                    "Mã xác thực SportPro của bạn là: " + otpCode + ". Mã có hiệu lực trong 3 phút."
-            ).create();
+            // Chuẩn bị URL và body cho SpeedSMS
+            String url = "https://api.speedsms.vn/index.php/sms/send";
+
+            // Headers Basic Authentication
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
             
-            System.out.println("Đã gửi SMS qua Twilio: " + message.getSid());
+            // Basic Auth: AccessToken:x
+            String auth = accessToken + ":x";
+            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+            headers.set("Authorization", "Basic " + encodedAuth);
+
+            // Request body
+            Map<String, Object> body = new HashMap<>();
+            body.put("to", List.of(formattedPhone));
+            body.put("content", "Ma xac thuc SportPro cua ban la " + otpCode + ". Ma co hieu luc trong 3 phut.");
+            body.put("sms_type", smsType);
+            body.put("sender", senderName != null ? senderName : "");
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            System.out.println("Đang gửi SMS qua SpeedSMS tới: " + formattedPhone);
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Map responseBody = response.getBody();
+                System.out.println("Kết quả SpeedSMS: " + responseBody);
+            } else {
+                System.err.println("Gửi SMS qua SpeedSMS thất bại, status code: " + response.getStatusCode());
+            }
+
         } catch (Exception e) {
-            System.err.println("Lỗi gửi SMS qua Twilio: " + e.getMessage());
-            // Fallback: Nếu lỗi (do chưa verify số đt ở Twilio trial), vẫn trả về OTP để test
+            System.err.println("Lỗi gửi SMS qua SpeedSMS: " + e.getMessage());
+            // In ra OTP fallback để test nếu gặp lỗi
             System.out.println("Mã OTP (Fallback): " + otpCode);
         }
 
