@@ -21,10 +21,8 @@ public class OtpService {
 
     @Value("${speedsms.access-token:}")
     private String accessToken;
-
-    @Value("${speedsms.sms-type:4}") // Mặc định là 4 (Verify/Notify Brandname quảng cáo hoặc dùng chung)
-    private String smsType;
-
+    @Value("${speedsms.sms-type:4}")
+    private Integer smsType;
     @Value("${speedsms.sender:}")
     private String senderName;
 
