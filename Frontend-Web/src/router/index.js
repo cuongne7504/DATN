@@ -1,36 +1,30 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TrangChu from '../views/TrangChu.vue'
-import ChiTietSanPham from '../views/ChiTietSanPham.vue'
-import GioHang from '../views/GioHang.vue'
-import ThanhToan from '../views/ThanhToan.vue'
-import LichSuDonHang from '../views/LichSuDonHang.vue'
-import DangNhap from '../views/DangNhap.vue'
 
 const routes = [
   {
     path: '/',
     name: 'TrangChu',
-    component: TrangChu
+    component: () => import('../views/TrangChu.vue')
   },
   {
     path: '/product/:id',
     name: 'ChiTietSanPham',
-    component: ChiTietSanPham
+    component: () => import('../views/ChiTietSanPham.vue')
   },
   {
     path: '/cart',
     name: 'GioHang',
-    component: GioHang
+    component: () => import('../views/GioHang.vue')
   },
   {
     path: '/checkout',
     name: 'ThanhToan',
-    component: ThanhToan
+    component: () => import('../views/ThanhToan.vue')
   },
   {
     path: '/history',
     name: 'LichSuDonHang',
-    component: LichSuDonHang,
+    component: () => import('../views/LichSuDonHang.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -38,7 +32,6 @@ const routes = [
     name: 'TraCuuDonHang',
     component: () => import('../views/TraCuuDonHang.vue')
   },
-
   {
     path: '/account',
     name: 'TaiKhoan',
@@ -48,7 +41,7 @@ const routes = [
   {
     path: '/login',
     name: 'DangNhap',
-    component: DangNhap
+    component: () => import('../views/DangNhap.vue')
   },
   {
     path: '/register',
@@ -59,12 +52,15 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior() {
+    return { top: 0 }
+  }
 })
 
 router.beforeEach((to, from, next) => {
   const user = JSON.parse(localStorage.getItem('user'))
-  
+
   if (to.meta.requiresAuth && !user) {
     next('/login')
   } else {

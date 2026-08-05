@@ -299,10 +299,11 @@ const form = ref({
 })
 const imageUrl = (path) => {
   if (!path) return ''
-  if (String(path).startsWith('http')) return path
-  if (String(path).startsWith('/uploads/')) return `${API_URL}${path}`
-  if (String(path).startsWith('uploads/')) return `${API_URL}/${path}`
-  return `${API_URL}/uploads/${path}`
+  const raw = String(path).trim()
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw
+  if (raw.startsWith('/uploads/')) return `${API_URL}${raw}`
+  if (raw.startsWith('uploads/')) return `${API_URL}/${raw}`
+  return `${API_URL}/uploads/${raw}`
 }
 
 const uploadImage = async (event) => {

@@ -1,12 +1,14 @@
 <template>
-  <div class="container mt-4">
-    <h2 class="mb-4 fw-bold">Thanh Toán</h2>
+  <div class="container mt-4 mb-5" v-reveal>
+    <div class="page-kicker">Thanh toán</div>
+    <h2 class="page-title">Thanh toán đơn hàng</h2>
+    <p class="page-desc">Điền thông tin giao hàng và chọn phương thức thanh toán phù hợp.</p>
 
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status"></div>
     </div>
 
-    <div v-else-if="cartItems.length === 0" class="text-center py-5">
+    <div v-else-if="cartItems.length === 0" class="text-center py-5 sp-soft-panel">
       <h4 class="text-muted">Không có sản phẩm nào để thanh toán</h4>
       <router-link to="/" class="btn btn-primary mt-3">Tiếp tục mua sắm</router-link>
     </div>
@@ -14,7 +16,7 @@
     <div v-else class="row">
       <!-- Thông tin nhận hàng -->
       <div class="col-md-7 mb-4">
-        <div class="card shadow-sm border-0">
+        <div class="card">
           <div class="card-body">
             <h5 class="fw-bold mb-4 border-bottom pb-2">Thông tin giao hàng</h5>
             
@@ -118,60 +120,57 @@
 
       <!-- Đơn hàng -->
       <div class="col-md-5">
-        <div class="card shadow-sm border-0 bg-light">
-          <div class="card-body p-4">
-            <h5 class="fw-bold mb-4">Chi tiết đơn hàng</h5>
-            
-            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2" v-for="item in cartItems" :key="item.maCtGioHang">
-              <div>
-                <div class="fw-bold">{{ item.tenSanPham || 'Sản phẩm' }}</div>
-                <small class="text-muted">SL: {{ item.soLuong }} | Size: {{ item.kichCo }} - Màu: {{ item.mauSac }}</small>
-              </div>
-              <div class="fw-bold text-end">{{ formatPrice(item.soLuong * (item.donGia || 0)) }}</div>
+        <div class="summary-card">
+          <h5 class="fw-bold mb-4">Chi tiết đơn hàng</h5>
+          
+          <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2" v-for="item in cartItems" :key="item.maCtGioHang">
+            <div>
+              <div class="fw-bold">{{ item.tenSanPham || 'Sản phẩm' }}</div>
+              <small class="text-muted">SL: {{ item.soLuong }} | Size: {{ item.kichCo }} - Màu: {{ item.mauSac }}</small>
             </div>
-
-            <!-- Khuyến Mãi -->
-            <div class="mt-4 mb-3 pb-3 border-bottom">
-              <label class="form-label fw-semibold">Mã khuyến mãi (Voucher)</label>
-              <div class="input-group">
-                <input type="text" v-model="voucherCodeInput" class="form-control" placeholder="Nhập mã..." :disabled="appliedVoucher">
-                <button v-if="!appliedVoucher" @click="applyVoucher" class="btn btn-outline-primary fw-bold" type="button" :disabled="applyingVoucher">Áp dụng</button>
-                <button v-else @click="removeVoucher" class="btn btn-outline-danger fw-bold" type="button">Xóa mã</button>
-              </div>
-              <div v-if="appliedVoucher" class="text-success small mt-1">
-                <i class="bi bi-check-circle-fill"></i> Đã áp dụng giảm {{ appliedVoucher.phanTramGiam }}%
-              </div>
-            </div>
-
-            <div class="d-flex justify-content-between mb-2">
-              <span class="text-muted">Tổng tiền hàng:</span>
-              <span class="fw-bold">{{ formatPrice(subTotal) }}</span>
-            </div>
-            
-            <div v-if="discountAmount > 0" class="d-flex justify-content-between mb-2 text-success">
-              <span>Khuyến mãi giảm:</span>
-              <span class="fw-bold">-{{ formatPrice(discountAmount) }}</span>
-            </div>
-            
-            <div class="d-flex justify-content-between mb-2">
-              <span class="text-muted">Phí giao hàng:</span>
-              <span class="fw-bold text-primary">
-                <span v-if="calculatingFee" class="spinner-border spinner-border-sm" role="status"></span>
-                <span v-else-if="phiShip > 0">{{ formatPrice(phiShip) }}</span>
-                <span v-else class="text-muted">Chưa tính (chọn địa chỉ)</span>
-              </span>
-            </div>
-            
-            <hr>
-            <div class="d-flex justify-content-between mb-4 align-items-end">
-              <span class="fw-bold fs-5">Thành tiền:</span>
-              <span class="fw-bold fs-3 text-danger">{{ formatPrice(finalTotal) }}</span>
-            </div>
-            
-            <button @click="submitOrder" class="btn btn-danger btn-lg w-100 fw-bold shadow-sm" :disabled="loadingSubmit">
-              {{ loadingSubmit ? 'Đang xử lý...' : (form.phuongThucThanhToan === 'VNPay' ? 'THANH TOÁN VNPAY' : 'ĐẶT HÀNG NGAY') }}
-            </button>
+            <div class="fw-bold text-end">{{ formatPrice(item.soLuong * (item.donGia || 0)) }}</div>
           </div>
+
+          <div class="mt-4 mb-3 pb-3 border-bottom">
+            <label class="form-label">Mã khuyến mãi (Voucher)</label>
+            <div class="input-group">
+              <input type="text" v-model="voucherCodeInput" class="form-control" placeholder="Nhập mã..." :disabled="appliedVoucher">
+              <button v-if="!appliedVoucher" @click="applyVoucher" class="btn btn-outline-primary fw-bold" type="button" :disabled="applyingVoucher">Áp dụng</button>
+              <button v-else @click="removeVoucher" class="btn btn-outline-danger fw-bold" type="button">Xóa mã</button>
+            </div>
+            <div v-if="appliedVoucher" class="text-success small mt-1">
+              <i class="bi bi-check-circle-fill"></i> Đã áp dụng giảm {{ appliedVoucher.phanTramGiam }}%
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Tổng tiền hàng:</span>
+            <span class="fw-bold">{{ formatPrice(subTotal) }}</span>
+          </div>
+          
+          <div v-if="discountAmount > 0" class="d-flex justify-content-between mb-2 text-success">
+            <span>Khuyến mãi giảm:</span>
+            <span class="fw-bold">-{{ formatPrice(discountAmount) }}</span>
+          </div>
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Phí giao hàng:</span>
+            <span class="fw-bold text-primary">
+              <span v-if="calculatingFee" class="spinner-border spinner-border-sm" role="status"></span>
+              <span v-else-if="phiShip > 0">{{ formatPrice(phiShip) }}</span>
+              <span v-else class="text-muted">Chưa tính (chọn địa chỉ)</span>
+            </span>
+          </div>
+          
+          <hr>
+          <div class="d-flex justify-content-between mb-4 align-items-end">
+            <span class="fw-bold fs-5">Thành tiền:</span>
+            <span class="fw-bold fs-3 text-danger">{{ formatPrice(finalTotal) }}</span>
+          </div>
+          
+          <button @click="submitOrder" class="btn btn-primary btn-lg w-100 fw-bold" :disabled="loadingSubmit">
+            {{ loadingSubmit ? 'Đang xử lý...' : (form.phuongThucThanhToan === 'VNPay' ? 'Thanh toán VNPay' : 'Đặt hàng ngay') }}
+          </button>
         </div>
       </div>
     </div>
@@ -335,33 +334,32 @@ const fetchCartAndUser = async () => {
     const res = await axios.get(`${API_URL}/api/gio-hang/cua-toi/${user.value.maNguoiDung}`)
     const items = res.data.data || res.data || []
 
-    // Enrich từng item với đầy đủ thông tin
-    const enriched = []
-    for (let item of items) {
-      const maChiTietSp = item.maChiTietSp
-      if (!maChiTietSp) { enriched.push(item); continue }
-      try {
-        const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${maChiTietSp}`)
-        const ct = ctRes.data.data || ctRes.data
-        const spRes = await axios.get(`${API_URL}/api/san-pham/${ct.maSanPham}`)
-        const sp = spRes.data.data || spRes.data
-        enriched.push({
-          maCtGioHang: item.maCtGioHang,
-          maChiTietSp: maChiTietSp,
-          soLuong: item.soLuong,
-          tenSanPham: sp.tenSanPham,
-          mauSac: ct.mauSac,
-          kichCo: ct.kichCo,
-          donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
-          chiTietSanPham: { maChiTietSp, mauSac: ct.mauSac, kichCo: ct.kichCo, sanPham: sp }
-        })
-      } catch (e) {
-        console.error('Lỗi fetch biến thể', e)
-        enriched.push(item)
-      }
-    }
-
-    cartItems.value = enriched
+    // Enrich cart items in parallel (tránh N+1 tuần tự)
+    cartItems.value = await Promise.all(
+      items.map(async (item) => {
+        const maChiTietSp = item.maChiTietSp
+        if (!maChiTietSp) return item
+        try {
+          const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${maChiTietSp}`)
+          const ct = ctRes.data.data || ctRes.data
+          const spRes = await axios.get(`${API_URL}/api/san-pham/${ct.maSanPham}`)
+          const sp = spRes.data.data || spRes.data
+          return {
+            maCtGioHang: item.maCtGioHang,
+            maChiTietSp,
+            soLuong: item.soLuong,
+            tenSanPham: sp.tenSanPham,
+            mauSac: ct.mauSac,
+            kichCo: ct.kichCo,
+            donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
+            chiTietSanPham: { maChiTietSp, mauSac: ct.mauSac, kichCo: ct.kichCo, sanPham: sp }
+          }
+        } catch (e) {
+          console.error('Lỗi fetch biến thể', e)
+          return item
+        }
+      })
+    )
     if (cartItems.value.length === 0) {
       router.push('/cart')
     }

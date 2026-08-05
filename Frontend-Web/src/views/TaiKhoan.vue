@@ -1,8 +1,11 @@
 <template>
-  <div class="container mt-5">
+  <div class="container mt-4 mb-5">
+    <div class="page-kicker mb-3">Tài khoản</div>
+    <h2 class="page-title">Hồ sơ cá nhân</h2>
+    <p class="page-desc">Quản lý thông tin tài khoản và bảo mật của bạn.</p>
     <div class="row">
       <div class="col-md-3 mb-4">
-        <div class="card shadow-sm border-0">
+        <div class="card">
           <div class="card-body p-4 text-center">
             <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
               {{ user?.hoTen ? user.hoTen.charAt(0).toUpperCase() : 'U' }}
@@ -10,10 +13,9 @@
             <h5 class="fw-bold mb-1">{{ user?.hoTen }}</h5>
             <p class="text-muted small mb-3">{{ user?.email }}</p>
             <hr>
-            <div class="nav flex-column nav-pills text-start">
-              <router-link to="/account" class="nav-link text-dark fw-semibold active-link"><i class="bi bi-person me-2"></i> Hồ sơ của tôi</router-link>
-              <router-link to="/history" class="nav-link text-dark fw-semibold"><i class="bi bi-bag-check me-2"></i> Đơn hàng</router-link>
-              <router-link to="/wishlist" class="nav-link text-dark fw-semibold"><i class="bi bi-heart me-2"></i> Yêu thích</router-link>
+            <div class="nav flex-column nav-pills text-start gap-1">
+              <router-link to="/account" class="nav-link account-link active-link"><i class="bi bi-person me-2"></i> Hồ sơ của tôi</router-link>
+              <router-link to="/history" class="nav-link account-link"><i class="bi bi-bag-check me-2"></i> Đơn hàng</router-link>
               <a href="#" @click="logout" class="nav-link text-danger fw-semibold mt-2"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a>
             </div>
           </div>
@@ -21,9 +23,9 @@
       </div>
       
       <div class="col-md-9">
-        <div class="card shadow-sm border-0">
+        <div class="card">
           <div class="card-body p-4">
-            <h4 class="fw-bold mb-4 border-bottom pb-3">Hồ Sơ Của Tôi</h4>
+            <h4 class="fw-bold mb-4 border-bottom pb-3">Hồ sơ của tôi</h4>
             
             <div v-if="successMsg" class="alert alert-success">{{ successMsg }}</div>
             <div v-if="errorMsg" class="alert alert-danger">{{ errorMsg }}</div>
@@ -131,11 +133,19 @@ const logout = () => {
 </script>
 
 <style scoped>
-.active-link {
-  background-color: #f8f9fa;
-  border-left: 3px solid #000;
+.account-link {
+  border-radius: 10px;
+  color: #475569 !important;
+  font-weight: 650;
 }
+
+.active-link {
+  background: rgba(29, 78, 216, 0.1) !important;
+  color: #1d4ed8 !important;
+  border-left: 3px solid #1d4ed8;
+}
+
 .nav-link:hover {
-  background-color: #f8f9fa;
+  background: #f8fafc;
 }
 </style>

@@ -3,22 +3,23 @@
     <div class="row justify-content-center">
       <div class="col-md-8">
         <!-- Card tìm kiếm -->
-        <div class="card shadow border-0 mb-4 rounded-4 p-3 bg-light">
+        <div class="card mb-4 p-3">
           <div class="card-body text-center">
-            <h2 class="fw-bold mb-3 text-primary text-uppercase">Tra cứu đơn hàng</h2>
-            <p class="text-muted">Nhập mã đơn hàng (được gửi trong email của bạn) để theo dõi trạng thái và lộ trình giao hàng.</p>
+            <div class="page-kicker">Theo dõi đơn</div>
+            <h2 class="page-title">Tra cứu đơn hàng</h2>
+            <p class="page-desc mx-auto">Nhập mã đơn hàng (được gửi trong email của bạn) để theo dõi trạng thái và lộ trình giao hàng.</p>
             
-            <form @submit.prevent="searchOrder" class="d-flex gap-2 mt-4 justify-content-center">
+            <form @submit.prevent="searchOrder" class="d-flex gap-2 mt-4 justify-content-center flex-wrap">
               <div class="position-relative flex-grow-1" style="max-width: 450px;">
                 <input 
                   type="text" 
-                  class="form-control form-control-lg rounded-pill ps-4 border-2" 
-                  placeholder="Nhập mã đơn hàng của bạn (Ví dụ: 3, 5...)"
+                  class="form-control form-control-lg" 
+                  placeholder="Nhập mã đơn hàng (ví dụ: 3, 5...)"
                   v-model.trim="searchQuery"
                   required
                 />
               </div>
-              <button type="submit" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2">
+              <button type="submit" class="btn btn-primary btn-lg px-4 fw-bold d-flex align-items-center gap-2">
                 <i class="bi bi-search"></i> Tra cứu
               </button>
             </form>

@@ -1,12 +1,14 @@
 <template>
-  <div class="container mt-4">
-    <h2 class="mb-4 fw-bold">Giỏ hàng của bạn</h2>
+  <div class="container mt-4 mb-5" v-reveal>
+    <div class="page-kicker">Giỏ hàng</div>
+    <h2 class="page-title">Giỏ hàng của bạn</h2>
+    <p class="page-desc">Kiểm tra sản phẩm trước khi tiến hành thanh toán.</p>
 
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status"></div>
     </div>
 
-    <div v-else-if="!cartItems || cartItems.length === 0" class="text-center py-5 bg-light rounded shadow-sm">
+    <div v-else-if="!cartItems || cartItems.length === 0" class="text-center py-5 sp-soft-panel">
       <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
       <h4 class="mt-3 text-muted">Giỏ hàng trống</h4>
       <p>Có vẻ như bạn chưa thêm sản phẩm nào vào giỏ hàng.</p>
@@ -15,9 +17,9 @@
 
     <div v-else class="row">
       <div class="col-lg-8 mb-4">
-        <div class="card shadow-sm border-0">
+        <div class="card">
           <div class="card-body">
-            <div class="table-responsive">
+            <div class="table-responsive border-0 shadow-none">
               <table class="table align-middle">
                 <thead>
                   <tr>
@@ -31,12 +33,12 @@
                   <tr v-for="item in cartItems" :key="item.maCtGioHang">
                     <td>
                       <div class="d-flex align-items-center">
-                        <img v-if="item.hinhAnh" 
-                             :src="item.hinhAnh" 
-                             class="img-thumbnail me-3 object-fit-cover" 
-                             style="width: 80px; height: 80px;" alt="Product">
-                        <img v-else src="https://via.placeholder.com/80?text=No+Image" class="img-thumbnail me-3" style="width: 80px; height: 80px;">
-                        
+                        <img
+                          :src="item.hinhAnh || NO_IMAGE"
+                          class="img-thumbnail me-3 object-fit-cover"
+                          style="width: 80px; height: 80px;"
+                          alt="Product"
+                        >
                         <div>
                           <h6 class="mb-0 fw-bold">{{ item.tenSanPham || 'Sản phẩm' }}</h6>
                           <small class="text-muted">
@@ -57,7 +59,12 @@
 
                     <td class="fw-bold text-primary">{{ formatPrice(item.soLuong * item.donGia) }}</td>
                     <td>
-                      <button @click="removeItem(item.maCtGioHang)" class="btn btn-sm btn-outline-danger border-0">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger border-0"
+                        title="Xóa khỏi giỏ"
+                        @click="askRemove(item)"
+                      >
                         <i class="bi bi-trash fs-5"></i>
                       </button>
                     </td>
@@ -70,41 +77,56 @@
       </div>
 
       <div class="col-lg-4">
-        <div class="card shadow-sm border-0 bg-light">
-          <div class="card-body p-4">
-            <h5 class="fw-bold mb-4">Tổng quan giỏ hàng</h5>
-            <div class="d-flex justify-content-between mb-2">
-              <span class="text-muted">Tạm tính:</span>
-              <span class="fw-bold">{{ formatPrice(totalAmount) }}</span>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-between mb-4">
-              <span class="fw-bold fs-5">Tổng cộng:</span>
-              <span class="fw-bold fs-4 text-danger">{{ formatPrice(totalAmount) }}</span>
-            </div>
-            <router-link to="/checkout" class="btn btn-danger btn-lg w-100 fw-bold shadow-sm">
-              TIẾN HÀNH THANH TOÁN
-            </router-link>
-            <router-link to="/" class="btn btn-outline-primary btn-lg w-100 mt-2">
-              Mua thêm sản phẩm
-            </router-link>
+        <div class="summary-card">
+          <h5 class="fw-bold mb-4">Tổng quan giỏ hàng</h5>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted">Tạm tính:</span>
+            <span class="fw-bold">{{ formatPrice(totalAmount) }}</span>
           </div>
+          <hr>
+          <div class="d-flex justify-content-between mb-4">
+            <span class="fw-bold fs-5">Tổng cộng:</span>
+            <span class="fw-bold fs-4 text-danger">{{ formatPrice(totalAmount) }}</span>
+          </div>
+          <router-link to="/checkout" class="btn btn-primary btn-lg w-100 fw-bold">
+            Tiến hành thanh toán
+          </router-link>
+          <router-link to="/" class="btn btn-outline-primary btn-lg w-100 mt-2">
+            Mua thêm sản phẩm
+          </router-link>
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      v-model:open="removeModal.open"
+      tone="danger"
+      title="Xóa sản phẩm khỏi giỏ?"
+      message="Sản phẩm sẽ bị gỡ khỏi giỏ hàng. Bạn có thể thêm lại bất cứ lúc nào."
+      :detail="removeModal.detail"
+      confirm-text="Xóa sản phẩm"
+      cancel-text="Giữ lại"
+      @confirm="confirmRemove"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import axios from 'axios'
-
 import { API_URL } from '@/config.js'
-const router = useRouter()
+import { useToast } from '@/composables/useToast.js'
+import ConfirmModal from '@/components/ConfirmModal.vue'
+import { resolveImageUrl, NO_IMAGE } from '@/utils/image.js'
 
+const toast = useToast()
 const cartItems = ref([])
 const loading = ref(false)
+const removeModal = ref({
+  open: false,
+  id: null,
+  detail: ''
+})
 
 const formatPrice = (price) => {
   return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
@@ -127,9 +149,8 @@ const fetchCart = async () => {
         let hinhAnh = null
         if (item.sanPham.hinhAnh && item.sanPham.hinhAnh.length > 0) {
            const path = item.sanPham.hinhAnh.find(i => i.laAnhChinh)?.duongDanAnh || item.sanPham.hinhAnh[0].duongDanAnh
-           if (path) {
-             hinhAnh = path.startsWith('http') ? path : (path.startsWith('/') ? `${API_URL}${path}` : `${API_URL}/${path}`)
-           }
+           hinhAnh = resolveImageUrl(path)
+           if (hinhAnh === NO_IMAGE) hinhAnh = null
         }
         return {
           maCtGioHang: 'guest_' + index,
@@ -152,52 +173,49 @@ const fetchCart = async () => {
     const res = await axios.get(`${API_URL}/api/gio-hang/cua-toi/${user.maNguoiDung}`)
     const items = res.data.data || res.data || []
 
-    // Với mỗi item, fetch thông tin biến thể + sản phẩm
-    const enriched = []
-    for (let item of items) {
-      const maChiTietSp = item.maChiTietSp
-      if (!maChiTietSp) {
-        enriched.push(item)
-        continue
-      }
-      try {
-        const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${maChiTietSp}`)
-        const ct = ctRes.data.data || ctRes.data
-        const maSanPham = ct.maSanPham
-
-        const spRes = await axios.get(`${API_URL}/api/san-pham/${maSanPham}`)
-        const sp = spRes.data.data || spRes.data
-
-        let hinhAnh = null
+    cartItems.value = await Promise.all(
+      items.map(async (item) => {
+        const maChiTietSp = item.maChiTietSp
+        if (!maChiTietSp) return item
+        let maSanPham = null
         try {
-          const imgRes = await axios.get(`${API_URL}/api/hinh-anh/san-pham/${maSanPham}`)
-          const imgs = imgRes.data.data || imgRes.data || []
-          if (imgs.length > 0) {
-            const path = imgs[0].duongDanAnh
-            if (path) {
-              hinhAnh = path.startsWith('http') ? path : (path.startsWith('/') ? `${API_URL}${path}` : `${API_URL}/${path}`)
-            }
-          }
-        } catch (e) {}
+          const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${maChiTietSp}`)
+          const ct = ctRes.data.data || ctRes.data
+          maSanPham = ct.maSanPham
+        } catch (e) {
+          console.error(e)
+        }
 
-        enriched.push({
-          maCtGioHang: item.maCtGioHang,
-          maChiTietSp: maChiTietSp,
-          maSanPham: maSanPham,
-          soLuong: item.soLuong,
-          tenSanPham: sp.tenSanPham,
-          mauSac: ct.mauSac,
-          kichCo: ct.kichCo,
-          soLuongTon: ct.soLuongTon,
-          donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
-          hinhAnh: hinhAnh
-        })
-      } catch (e) {
-        console.error('Lỗi tải thông tin biến thể:', e)
-        enriched.push({ ...item, tenSanPham: 'Sản phẩm', donGia: 0 })
-      }
-    }
-    cartItems.value = enriched
+        const [spRes, imgRes] = await Promise.all([
+            axios.get(`${API_URL}/api/san-pham/${maSanPham}`),
+            axios.get(`${API_URL}/api/hinh-anh/san-pham/${maSanPham}`).catch(() => ({ data: { data: [] } }))
+          ])
+          const sp = spRes.data.data || spRes.data
+          const imgs = imgRes.data.data || imgRes.data || []
+          let hinhAnh = null
+          if (imgs.length > 0) {
+            const resolved = resolveImageUrl(imgs[0].duongDanAnh)
+            hinhAnh = resolved === NO_IMAGE ? null : resolved
+          }
+
+          return {
+            maCtGioHang: item.maCtGioHang,
+            maChiTietSp,
+            maSanPham,
+            soLuong: item.soLuong,
+            tenSanPham: sp.tenSanPham,
+            mauSac: ct.mauSac,
+            kichCo: ct.kichCo,
+            soLuongTon: ct.soLuongTon,
+            donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
+            hinhAnh
+          }
+        } catch (e) {
+          console.error('Lỗi tải thông tin biến thể:', e)
+          return { ...item, tenSanPham: 'Sản phẩm', donGia: 0 }
+        }
+      })
+    )
   } catch (error) {
     console.error('Lỗi tải giỏ hàng:', error)
   } finally {
@@ -207,18 +225,17 @@ const fetchCart = async () => {
 
 const updateQuantity = async (item, newQuantity) => {
   if (newQuantity < 1) {
-    removeItem(item.maCtGioHang)
+    askRemove(item)
     return
   }
   if (newQuantity > item.soLuongTon) {
-    alert(`Rất tiếc, kho chỉ còn ${item.soLuongTon} sản phẩm.`)
+    toast.warning(`Kho chỉ còn ${item.soLuongTon} sản phẩm.`)
     item.soLuong = item.soLuongTon
     return
   }
-  
+
   const user = JSON.parse(localStorage.getItem('user'))
   if (!user) {
-    // Update local storage
     const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]')
     const idx = parseInt(item.maCtGioHang.split('_')[1])
     if (guestCart[idx]) {
@@ -228,19 +245,28 @@ const updateQuantity = async (item, newQuantity) => {
     }
     return
   }
-  
+
   try {
     item.soLuong = newQuantity
     await axios.put(`${API_URL}/api/gio-hang/cap-nhat/${item.maCtGioHang}`, { soLuong: newQuantity })
   } catch (error) {
     console.error('Lỗi cập nhật số lượng:', error)
-    alert('Lỗi khi cập nhật số lượng!')
+    toast.error('Không thể cập nhật số lượng. Vui lòng thử lại.')
   }
 }
 
-const removeItem = async (id) => {
-  if (!confirm('Bạn muốn bỏ sản phẩm này khỏi giỏ hàng?')) return
-  
+const askRemove = (item) => {
+  removeModal.value = {
+    open: true,
+    id: item.maCtGioHang,
+    detail: `${item.tenSanPham || 'Sản phẩm'} · ${item.mauSac || '-'} / Size ${item.kichCo || '-'}`
+  }
+}
+
+const confirmRemove = async () => {
+  const id = removeModal.value.id
+  if (id == null) return
+
   const user = JSON.parse(localStorage.getItem('user'))
   if (!user) {
     let guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]')
@@ -248,15 +274,17 @@ const removeItem = async (id) => {
     guestCart.splice(idx, 1)
     localStorage.setItem('guestCart', JSON.stringify(guestCart))
     await fetchCart()
+    toast.success('Sản phẩm đã được gỡ khỏi giỏ hàng.', { title: 'Đã xóa khỏi giỏ' })
     return
   }
 
   try {
     await axios.delete(`${API_URL}/api/gio-hang/xoa/${id}`)
     await fetchCart()
+    toast.success('Sản phẩm đã được gỡ khỏi giỏ hàng.', { title: 'Đã xóa khỏi giỏ' })
   } catch (error) {
     console.error('Lỗi xóa sản phẩm:', error)
-    alert('Không thể xóa sản phẩm khỏi giỏ!')
+    toast.error('Không thể xóa sản phẩm khỏi giỏ. Vui lòng thử lại.')
   }
 }
 
