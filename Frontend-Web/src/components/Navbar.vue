@@ -16,10 +16,10 @@
               <router-link to="/" active-class="active">Trang chủ</router-link>
             </li>
             <li>
-              <router-link to="/lookup" active-class="active">Tra cứu đơn</router-link>
+              <router-link to="/lookup" active-class="active">Tra cứu đơn hàng</router-link>
             </li>
             <li>
-              <router-link to="/history" active-class="active">Lịch sử đơn</router-link>
+              <router-link to="/history" active-class="active">Lịch sử đơn hàng</router-link>
             </li>
           </ul>
         </div>
@@ -76,10 +76,10 @@
             <router-link to="/" active-class="active">Trang chủ</router-link>
           </li>
           <li>
-            <router-link to="/lookup" active-class="active">Tra cứu đơn</router-link>
+            <router-link to="/lookup" active-class="active">Tra cứu đơn hàng</router-link>
           </li>
           <li>
-            <router-link to="/history" active-class="active">Lịch sử đơn</router-link>
+            <router-link to="/history" active-class="active">Lịch sử đơn hàng</router-link>
           </li>
           <li v-if="user">
             <router-link to="/account" active-class="active">Tài khoản</router-link>

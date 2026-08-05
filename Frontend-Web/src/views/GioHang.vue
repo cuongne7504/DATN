@@ -172,21 +172,16 @@ const fetchCart = async () => {
     // Lấy danh sách chi tiết giỏ hàng
     const res = await axios.get(`${API_URL}/api/gio-hang/cua-toi/${user.maNguoiDung}`)
     const items = res.data.data || res.data || []
-
     cartItems.value = await Promise.all(
       items.map(async (item) => {
         const maChiTietSp = item.maChiTietSp
         if (!maChiTietSp) return item
-        let maSanPham = null
         try {
           const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/${maChiTietSp}`)
           const ct = ctRes.data.data || ctRes.data
-          maSanPham = ct.maSanPham
-        } catch (e) {
-          console.error(e)
-        }
+          const maSanPham = ct.maSanPham
 
-        const [spRes, imgRes] = await Promise.all([
+          const [spRes, imgRes] = await Promise.all([
             axios.get(`${API_URL}/api/san-pham/${maSanPham}`),
             axios.get(`${API_URL}/api/hinh-anh/san-pham/${maSanPham}`).catch(() => ({ data: { data: [] } }))
           ])

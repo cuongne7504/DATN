@@ -55,11 +55,9 @@
             </div>
 
             <p class="product-desc">{{ product.moTa || 'Chưa có mô tả cho sản phẩm này.' }}</p>
-
             <div class="option-block">
               <div class="option-head">
-                <span>Màu sắc</span>
-                <strong v-if="selectedColor">{{ selectedColor }}</strong>
+                <span>Màu sắc<span v-if="selectedColor">: <strong>{{ selectedColor }}</strong></span></span>
               </div>
               <div class="option-list">
                 <button
@@ -77,8 +75,7 @@
 
             <div class="option-block">
               <div class="option-head">
-                <span>Kích cỡ</span>
-                <strong v-if="selectedSize">{{ selectedSize }}</strong>
+                <span>Kích cỡ<span v-if="selectedSize">: <strong>{{ selectedSize }}</strong></span></span>
               </div>
               <div class="option-list">
                 <button
@@ -94,7 +91,6 @@
                 </button>
               </div>
             </div>
-
             <div
               v-if="selectedVariant"
               class="stock-chip"
