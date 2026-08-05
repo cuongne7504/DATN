@@ -87,20 +87,13 @@ public class YeuCauHoanHangServiceImpl implements YeuCauHoanHangService {
         DonHang donHang = donHangRepository.findById(yeuCau.getMaDonHang())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));
 
-        if ("Đã nhận hàng (Nhập kho)".equals(trangThaiMoi)) {
-            List<ChiTietDonHang> chiTietList = chiTietDonHangRepository.findByMaDonHang(donHang.getMaDonHang());
-            for (ChiTietDonHang ct : chiTietList) {
-                ChiTietSanPham ctsp = chiTietSanPhamRepository.findById(ct.getMaChiTietSp()).orElse(null);
-                if (ctsp != null) {
-                    ctsp.setSoLuongTon(ctsp.getSoLuongTon() + ct.getSoLuong());
-                    chiTietSanPhamRepository.save(ctsp);
-                }
+        if ("Đã hoàn tiền".equals(trangThaiMoi)) {
+            if (!"Đã duyệt".equals(yeuCau.getTrangThai()) && !"Đang xử lý hoàn hàng".equals(yeuCau.getTrangThai())) {
+                throw new BadRequestException("Phải duyệt yêu cầu trước khi tiến hành hoàn tiền!");
             }
-            donHang.setTrangThai("Đã hoàn hàng");
+            donHang.setTrangThai("Đã hoàn tiền");
         } else if ("Từ chối".equals(trangThaiMoi)) {
             donHang.setTrangThai("Đã giao hàng");
-        } else if ("Đã hoàn tiền".equals(trangThaiMoi)) {
-            donHang.setTrangThai("Đã hoàn tiền");
         } else if ("Đã duyệt".equals(trangThaiMoi)) {
             donHang.setTrangThai("Đang xử lý hoàn hàng");
         }
