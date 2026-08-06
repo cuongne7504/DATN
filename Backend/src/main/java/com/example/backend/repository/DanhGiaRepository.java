@@ -10,4 +10,5 @@ import java.util.List;
 public interface DanhGiaRepository extends JpaRepository<DanhGia, Integer> {
     List<DanhGia> findByMaSanPhamOrderByNgayTaoDesc(Integer maSanPham);
     List<DanhGia> findByMaNguoiDung(Integer maNguoiDung);
+    void deleteByMaSanPham(Integer maSanPham);
 }

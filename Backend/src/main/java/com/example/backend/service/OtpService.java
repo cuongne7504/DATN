@@ -70,29 +70,30 @@ public class OtpService {
             String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
             headers.set("Authorization", "Basic " + encodedAuth);
 
-            // Request body
+            // Request body tuân thủ chuẩn Java SDK SpeedSMS
             Map<String, Object> body = new HashMap<>();
             body.put("to", List.of(formattedPhone));
             body.put("content", "Ma xac thuc SportPro cua ban la " + otpCode + ". Ma co hieu luc trong 3 phut.");
-            body.put("sms_type", smsType);
-            body.put("sender", senderName != null ? senderName : "");
+            int selectedType = (smsType != null && smsType > 0) ? smsType : 2;
+            body.put("type", selectedType);
+            body.put("sms_type", selectedType);
+            body.put("sender", (senderName != null) ? senderName.trim() : "");
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-            System.out.println("Đang gửi SMS qua SpeedSMS tới: " + formattedPhone);
+            System.out.println("========== [SPEEDSMS OTP LOG] ==========");
+            System.out.println("SĐT người nhận: " + formattedPhone);
+            System.out.println("MÃ OTP TẠO RA : " + otpCode);
+
             ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
-            
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                Map responseBody = response.getBody();
-                System.out.println("Kết quả SpeedSMS: " + responseBody);
-            } else {
-                System.err.println("Gửi SMS qua SpeedSMS thất bại, status code: " + response.getStatusCode());
+            if (response.getBody() != null) {
+                System.out.println("Phản hồi API SpeedSMS: " + response.getBody());
             }
+            System.out.println("=========================================");
 
         } catch (Exception e) {
-            System.err.println("Lỗi gửi SMS qua SpeedSMS: " + e.getMessage());
-            // In ra OTP fallback để test nếu gặp lỗi
-            System.out.println("Mã OTP (Fallback): " + otpCode);
+            System.err.println("Lỗi gọi API SpeedSMS: " + e.getMessage());
+            System.out.println("Mã OTP (Console Fallback): " + otpCode);
         }
 
         return otpCode;

@@ -9,4 +9,5 @@ public interface YeuCauHoanHangService {
     List<YeuCauHoanHang> getTatCaYeuCau();
     List<YeuCauHoanHang> getYeuCauTheoDonHang(Integer maDonHang);
     YeuCauHoanHang capNhatTrangThai(Integer maYeuCau, String trangThaiMoi);
+    YeuCauHoanHang capNhatTrangThai(Integer maYeuCau, String trangThaiMoi, String lyDoTuChoi);
 }

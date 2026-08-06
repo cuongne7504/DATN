@@ -11,7 +11,8 @@
             <thead class="table-light">
               <tr>
                 <th>Mã YC</th>
-                <th>Lý do</th>
+                <th>Lý do hoàn</th>
+                <th>Lý do từ chối</th>
                 <th>Hình ảnh</th>
                 <th>Số tiền hoàn</th>
                 <th>Trạng thái</th>
@@ -21,16 +22,22 @@
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="8" class="text-center py-4">Đang tải dữ liệu...</td>
+                <td colspan="9" class="text-center py-4">Đang tải dữ liệu...</td>
               </tr>
               <tr v-else-if="requests.length === 0">
-                <td colspan="8" class="text-center py-4 text-muted">Chưa có yêu cầu hoàn hàng nào.</td>
+                <td colspan="9" class="text-center py-4 text-muted">Chưa có yêu cầu hoàn hàng nào.</td>
               </tr>
               <tr v-for="req in requests" :key="req.maYeuCau">
                 <td class="fw-bold">#{{ req.maYeuCau }}</td>
-                <td style="max-width: 200px;" class="text-truncate" :title="req.lyDo">{{ req.lyDo }}</td>
+                <td style="max-width: 180px;" class="text-truncate" :title="req.lyDo">{{ req.lyDo }}</td>
+                <td style="max-width: 180px;" class="text-truncate" :title="req.lyDoTuChoi">
+                  <span v-if="req.lyDoTuChoi" class="text-danger small font-monospace fw-semibold">
+                    <i class="bi bi-x-circle me-1"></i>{{ req.lyDoTuChoi }}
+                  </span>
+                  <span v-else class="text-muted small">-</span>
+                </td>
                 <td>
-                  <a v-if="req.hinhAnhMinhHoa" :href="req.hinhAnhMinhHoa" target="_blank" class="btn btn-sm btn-outline-secondary">Xem ảnh</a>
+                  <a v-if="req.hinhAnhMinhHoa" :href="getImageUrl(req.hinhAnhMinhHoa)" target="_blank" class="btn btn-sm btn-outline-secondary">Xem ảnh</a>
                   <span v-else class="text-muted">Không có</span>
                 </td>
                 <td class="text-danger fw-bold">{{ formatPrice(req.soTienHoan) }}</td>
@@ -132,6 +139,15 @@ const formatPrice = (price) => {
   return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
 }
 
+const getImageUrl = (path) => {
+  if (!path) return '#'
+  const raw = String(path).trim()
+  if (raw.startsWith('http://') || raw.startsWith('https://')) return raw
+  if (raw.startsWith('/uploads/')) return `${API_URL}${raw}`
+  if (raw.startsWith('uploads/')) return `${API_URL}/${raw}`
+  return `${API_URL}/uploads/${raw}`
+}
+
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleString('vi-VN')
@@ -163,6 +179,17 @@ const fetchRequests = async () => {
 }
 
 const updateStatus = async (req, newStatus) => {
+  let lyDoTuChoi = ''
+  if (newStatus === 'Từ chối') {
+    const reason = prompt(`Nhập lý do từ chối yêu cầu #${req.maYeuCau} (Bắt buộc):`)
+    if (reason === null) return
+    if (!reason.trim()) {
+      alert('Vui lòng nhập lý do từ chối!')
+      return
+    }
+    lyDoTuChoi = reason.trim()
+  }
+
   if (newStatus === 'Đã hoàn tiền' && req.trangThai !== 'Đã duyệt') {
     alert('Vui lòng "Duyệt yêu cầu" trước khi tiến hành hoàn tiền!')
     return
@@ -170,7 +197,11 @@ const updateStatus = async (req, newStatus) => {
   if (!confirm(`Bạn chắc chắn muốn cập nhật yêu cầu #${req.maYeuCau} thành "${newStatus}"?`)) return
   
   try {
-    await axios.put(`${API_URL}/api/hoan-hang/${req.maYeuCau}/trang-thai?trangThaiMoi=${newStatus}`)
+    let url = `${API_URL}/api/hoan-hang/${req.maYeuCau}/trang-thai?trangThaiMoi=${encodeURIComponent(newStatus)}`
+    if (lyDoTuChoi) {
+      url += `&lyDoTuChoi=${encodeURIComponent(lyDoTuChoi)}`
+    }
+    await axios.put(url)
     alert('Cập nhật trạng thái thành công!')
     await fetchRequests()
   } catch (error) {

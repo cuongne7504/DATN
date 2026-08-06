@@ -72,8 +72,8 @@
               đến {{ formatDate(v.ngayKetThuc) }}
             </td>
             <td>
-              <span class="badge" :class="isActive(v) ? 'bg-primary' : 'bg-secondary'">
-                {{ isActive(v) ? 'Hoạt động' : 'Đã hết hạn/Hủy' }}
+              <span class="badge" :class="getVoucherStatusBadgeClass(v)">
+                {{ getVoucherStatus(v) }}
               </span>
             </td>
             <td>
@@ -117,12 +117,27 @@ const formatDate = (dateStr) => {
   return d.toLocaleString('vi-VN')
 }
 
-const isActive = (v) => {
-  if (!v.ngayBatDau || !v.ngayKetThuc) return false
+const getVoucherStatus = (v) => {
+  if (!v.ngayBatDau || !v.ngayKetThuc) return 'Không xác định'
   const now = new Date()
   const start = new Date(v.ngayBatDau)
   const end = new Date(v.ngayKetThuc)
-  return now >= start && now <= end && (v.soLuongDung == null || v.soLuongDung > 0)
+
+  if (v.soLuongDung != null && v.soLuongDung <= 0) return 'Hết lượt dùng'
+  if (now < start) return 'Sắp diễn ra'
+  if (now > end) return 'Đã hết hạn'
+  return 'Hoạt động'
+}
+
+const getVoucherStatusBadgeClass = (v) => {
+  const status = getVoucherStatus(v)
+  switch (status) {
+    case 'Hoạt động': return 'bg-success'
+    case 'Sắp diễn ra': return 'bg-info text-dark'
+    case 'Hết lượt dùng': return 'bg-danger'
+    case 'Đã hết hạn': return 'bg-secondary'
+    default: return 'bg-secondary'
+  }
 }
 
 // Convert "2026-06-27T10:00:00" to "2026-06-27T10:00" for datetime-local input

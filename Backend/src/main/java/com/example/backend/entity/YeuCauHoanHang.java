@@ -38,6 +38,9 @@ public class YeuCauHoanHang {
     @Column(name = "trang_thai")
     private String trangThai;
 
+    @Column(name = "ly_do_tu_choi")
+    private String lyDoTuChoi;
+
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
 

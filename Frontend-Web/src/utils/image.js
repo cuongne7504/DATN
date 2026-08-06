@@ -23,9 +23,10 @@ export function resolveImageUrl(path) {
     return `${API_URL}/uploads/${raw}`
   }
 
-  // URL http(s) ngoài (unsplash/pexels...) — bỏ, dùng no-image
+  // URL http(s) ngoài (Unsplash, CDN...) — trả về trực tiếp URL ảnh
   if (raw.startsWith('http://') || raw.startsWith('https://')) {
-    return NO_IMAGE
+    if (raw.includes('via.placeholder')) return NO_IMAGE
+    return raw
   }
 
   return NO_IMAGE

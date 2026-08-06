@@ -55,7 +55,18 @@
         </thead>
         <tbody>
           <tr v-for="variant in variants" :key="variant.maChiTietSp">
-            <td class="fw-bold text-secondary">{{ variant.maChiTietSp }}</td>
+            <td>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary font-monospace"
+                @click="copyText(variant.maVachSku || variant.maChiTietSp)"
+                :title="'Click để copy mã: ' + (variant.maVachSku || variant.maChiTietSp)"
+              >
+                <i class="bi bi-clipboard me-1"></i>
+                <span class="fw-bold">#{{ variant.maChiTietSp }}</span>
+                <span v-if="variant.maVachSku"> / {{ variant.maVachSku }}</span>
+              </button>
+            </td>
             <td class="fw-bold">{{ getProductName(variant.maSanPham) }}</td>
             <td>{{ variant.mauSac }}</td>
             <td>{{ variant.kichCo }}</td>
@@ -65,7 +76,10 @@
               </span>
             </td>
             <td>
-              <button @click="editVariant(variant)" class="btn btn-sm btn-outline-primary me-2">Sửa</button>
+              <button @click="printBarcode(variant)" class="btn btn-sm btn-outline-dark me-1" title="In tem mã vạch">
+                <i class="bi bi-printer me-1"></i>In mã
+              </button>
+              <button @click="editVariant(variant)" class="btn btn-sm btn-outline-primary me-1">Sửa</button>
               <button @click="deleteVariant(variant.maChiTietSp)" class="btn btn-sm btn-outline-danger">Xóa</button>
             </td>
           </tr>
@@ -75,6 +89,37 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Modal In Mã Vạch Biến Thể -->
+    <div v-if="showBarcodeModal" class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 1070;" @click.self="showBarcodeModal = false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold"><i class="bi bi-printer me-2"></i>In Tem Mã Vạch Biến Thể</h5>
+            <button type="button" class="btn-close" @click="showBarcodeModal = false"></button>
+          </div>
+          <div class="modal-body text-center" v-if="selectedBarcodeVariant">
+            <div id="printableBarcodeArea" class="barcode-card p-3 border rounded shadow-sm bg-white mx-auto" style="max-width: 320px;">
+              <div class="fw-bold text-uppercase small text-muted">SPORTPRO ATHLETICS</div>
+              <div class="fw-bold fs-6 text-dark text-truncate mb-1">{{ getProductName(selectedBarcodeVariant.maSanPham) }}</div>
+              <div class="small text-secondary mb-2">
+                Phân loại: <strong>Màu {{ selectedBarcodeVariant.mauSac }} - Size {{ selectedBarcodeVariant.kichCo }}</strong>
+              </div>
+              <div class="my-2 d-flex justify-content-center" v-html="barcodeSvg"></div>
+              <div class="fw-bold fs-5 text-danger mt-1">
+                {{ formatPrice(getProductPrice(selectedBarcodeVariant.maSanPham) + (selectedBarcodeVariant.giaCongThem || 0)) }}
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showBarcodeModal = false">Đóng</button>
+            <button type="button" class="btn btn-primary fw-bold" @click="triggerPrintBarcode">
+              <i class="bi bi-printer-fill me-1"></i>In tem ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -82,13 +127,58 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import PageHeader from '@/components/PageHeader.vue'
-
+import { useToast } from '@/composables/useToast.js'
 import { API_URL } from '@/config.js'
+import { generateBarcodeSVG } from '@/utils/barcode.js'
+
+const { success } = useToast()
 const variants = ref([])
 const products = ref([])
 const loading = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
+
+const showBarcodeModal = ref(false)
+const selectedBarcodeVariant = ref(null)
+const barcodeSvg = ref('')
+
+const formatPrice = (price) => {
+  return price ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price) : '0 ₫'
+}
+
+const getProductPrice = (id) => {
+  const p = products.value.find(x => x.maSanPham === id)
+  return p ? (p.giaGoc || 0) : 0
+}
+
+const printBarcode = (variant) => {
+  selectedBarcodeVariant.value = variant
+  const code = variant.maVachSku || variant.maChiTietSp
+  barcodeSvg.value = generateBarcodeSVG(code, { width: 2, height: 50, fontSize: 13 })
+  showBarcodeModal.value = true
+}
+
+const triggerPrintBarcode = () => {
+  const area = document.getElementById('printableBarcodeArea')
+  if (!area) return
+  const printContents = area.innerHTML
+  const printWindow = window.open('', '', 'height=500,width=600')
+  printWindow.document.write('<html><head><title>In tem mã vạch</title>')
+  printWindow.document.write('<style>body{font-family:sans-serif;text-align:center;padding:20px;margin:0;}.barcode-card{border:1px dashed #333;padding:15px;border-radius:6px;max-width:280px;margin:auto;}svg{max-width:100%;height:auto;}</style>')
+  printWindow.document.write('</head><body>')
+  printWindow.document.write('<div class="barcode-card">' + printContents + '</div>')
+  printWindow.document.write('</body></html>')
+  printWindow.document.close()
+  printWindow.focus()
+  setTimeout(() => {
+    printWindow.print()
+    printWindow.close()
+  }, 300)
+}
+
+const copyText = (text) => {
+  navigator.clipboard.writeText(String(text)).then(() => success('Đã copy mã SKU'))
+}
 
 const form = ref({
   maSanPham: '',
@@ -140,10 +230,10 @@ const saveVariant = async () => {
 
     if (isEditing.value) {
       await axios.put(`${API_URL}/api/chi-tiet-san-pham/${editingId.value}`, payload)
-      alert('Cập nhật thành công!')
+      success('Cập nhật biến thể thành công')
     } else {
       await axios.post(`${API_URL}/api/chi-tiet-san-pham`, payload)
-      alert('Thêm mới thành công!')
+      success('Thêm biến thể mới thành công')
     }
     
     resetForm()

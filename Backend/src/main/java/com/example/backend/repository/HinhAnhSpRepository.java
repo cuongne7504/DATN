@@ -13,4 +13,6 @@ public interface HinhAnhSpRepository extends JpaRepository<HinhAnhSp, Integer> {
     List<HinhAnhSp> findByMaSanPham(Integer maSanPham);
     
     Optional<HinhAnhSp> findByMaSanPhamAndLaAnhChinh(Integer maSanPham, Boolean laAnhChinh);
+
+    void deleteByMaSanPham(Integer maSanPham);
 }

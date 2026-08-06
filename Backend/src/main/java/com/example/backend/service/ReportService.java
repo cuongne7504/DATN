@@ -49,18 +49,21 @@ public class ReportService {
         for (DonHang donHang : allOrders) {
             List<ChiTietDonHang> chiTietDonHangs = chiTietDonHangRepository.findByMaDonHang(donHang.getMaDonHang());
             for (ChiTietDonHang ctdh : chiTietDonHangs) {
+                if (ctdh.getMaChiTietSp() == null) continue;
+
                 ChiTietSanPham ctsp = chiTietSanPhamRepository.findById(ctdh.getMaChiTietSp()).orElse(null);
-                if (ctsp == null) continue;
+                if (ctsp == null || ctsp.getMaSanPham() == null) continue;
                 
                 SanPham sanPham = sanPhamRepository.findById(ctsp.getMaSanPham()).orElse(null);
                 if (sanPham == null) continue;
 
-                BigDecimal donGiaBan = ctdh.getDonGia();
+                BigDecimal donGiaBan = ctdh.getDonGia() != null ? ctdh.getDonGia() : BigDecimal.ZERO;
                 BigDecimal giaGoc = sanPham.getGiaGoc() != null ? sanPham.getGiaGoc() : BigDecimal.ZERO;
                 // Giả định giá nhập = 70% giá gốc để tính lợi nhuận (vì DB không có trường giá nhập)
                 BigDecimal giaNhap = giaGoc.multiply(BigDecimal.valueOf(0.7));
                 BigDecimal loiNhuanTrenMotSp = donGiaBan.subtract(giaNhap);
-                BigDecimal tongLoiNhuanItem = loiNhuanTrenMotSp.multiply(BigDecimal.valueOf(ctdh.getSoLuong()));
+                int soLuong = ctdh.getSoLuong() != null ? ctdh.getSoLuong() : 0;
+                BigDecimal tongLoiNhuanItem = loiNhuanTrenMotSp.multiply(BigDecimal.valueOf(soLuong));
 
                 reportItems.add(new ProfitReportItemDto(
                         donHang.getMaDonHang(),
@@ -68,7 +71,7 @@ public class ReportService {
                         sanPham.getTenSanPham(),
                         ctsp.getKichCo(),
                         ctsp.getMauSac(),
-                        ctdh.getSoLuong(),
+                        soLuong,
                         donGiaBan,
                         giaGoc,
                         loiNhuanTrenMotSp,

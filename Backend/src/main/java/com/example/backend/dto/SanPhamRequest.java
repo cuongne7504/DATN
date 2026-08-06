@@ -27,7 +27,5 @@ public class SanPhamRequest {
     @DecimalMin(value = "0.0", inclusive = false, message = "Giá gốc phải lớn hơn 0")
     private BigDecimal giaGoc;
 
-    @NotNull(message = "Giá khuyến mãi không được để trống")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Giá khuyến mãi phải lớn hơn 0")
     private BigDecimal giaKhuyenMai;
 }

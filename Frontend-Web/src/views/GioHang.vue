@@ -202,7 +202,7 @@ const fetchCart = async () => {
             mauSac: ct.mauSac,
             kichCo: ct.kichCo,
             soLuongTon: ct.soLuongTon,
-            donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
+            donGia: item.donGia || sp.giaGoc || 0,
             hinhAnh
           }
         } catch (e) {

@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface SanPhamYeuThichRepository extends JpaRepository<SanPhamYeuThich, Integer> {
     List<SanPhamYeuThich> findByMaNguoiDung(Integer maNguoiDung);
     Optional<SanPhamYeuThich> findByMaNguoiDungAndSanPham_MaSanPham(Integer maNguoiDung, Integer maSanPham);
+    void deleteBySanPham_MaSanPham(Integer maSanPham);
 }

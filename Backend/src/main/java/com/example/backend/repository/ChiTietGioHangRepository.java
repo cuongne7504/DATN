@@ -12,4 +12,5 @@ public interface ChiTietGioHangRepository extends JpaRepository<ChiTietGioHang, 
     List<ChiTietGioHang> findByMaGioHang(Integer maGioHang);
     Optional<ChiTietGioHang> findByMaGioHangAndMaChiTietSp(Integer maGioHang, Integer maChiTietSp);
     void deleteByMaGioHang(Integer maGioHang);
+    void deleteByMaChiTietSp(Integer maChiTietSp);
 }

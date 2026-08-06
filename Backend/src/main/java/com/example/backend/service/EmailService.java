@@ -34,7 +34,7 @@ public class EmailService {
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             String tongTienStr = formatter.format(donHang.getTongTien() != null ? donHang.getTongTien() : BigDecimal.ZERO);
             // Đường dẫn tra cứu đơn hàng tự động điền mã (Localhost phục vụ đồ án)
-            String lookupUrl = "http://localhost:5174/lookup?code=" + donHang.getMaDonHang();
+            String lookupUrl = "http://localhost:5173/lookup?code=" + donHang.getMaDonHang();
 
             // Nội dung HTML thiết kế chuyên nghiệp, nổi bật mã đơn hàng
             String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;'>"

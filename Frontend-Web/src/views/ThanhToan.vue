@@ -275,7 +275,7 @@ const formatPrice = (price) => {
 }
 
 const getItemPrice = (item) => {
-  let price = item.chiTietSanPham?.sanPham?.giaKhuyenMai || item.chiTietSanPham?.sanPham?.giaGoc || 0;
+  let price = item.chiTietSanPham?.sanPham?.giaGoc || 0;
   if (item.chiTietSanPham?.giaCongThem) {
     price += item.chiTietSanPham.giaCongThem;
   }
@@ -351,7 +351,7 @@ const fetchCartAndUser = async () => {
             tenSanPham: sp.tenSanPham,
             mauSac: ct.mauSac,
             kichCo: ct.kichCo,
-            donGia: item.donGia || sp.giaKhuyenMai || sp.giaGoc || 0,
+            donGia: item.donGia || sp.giaGoc || 0,
             chiTietSanPham: { maChiTietSp, mauSac: ct.mauSac, kichCo: ct.kichCo, sanPham: sp }
           }
         } catch (e) {

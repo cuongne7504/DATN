@@ -78,11 +78,20 @@ public class YeuCauHoanHangServiceImpl implements YeuCauHoanHangService {
     @Override
     @Transactional
     public YeuCauHoanHang capNhatTrangThai(Integer maYeuCau, String trangThaiMoi) {
+        return capNhatTrangThai(maYeuCau, trangThaiMoi, null);
+    }
+
+    @Override
+    @Transactional
+    public YeuCauHoanHang capNhatTrangThai(Integer maYeuCau, String trangThaiMoi, String lyDoTuChoi) {
         YeuCauHoanHang yeuCau = yeuCauRepository.findById(maYeuCau)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu hoàn hàng"));
 
         yeuCau.setTrangThai(trangThaiMoi);
         yeuCau.setNgayCapNhat(LocalDateTime.now());
+        if (lyDoTuChoi != null && !lyDoTuChoi.trim().isEmpty()) {
+            yeuCau.setLyDoTuChoi(lyDoTuChoi.trim());
+        }
 
         DonHang donHang = donHangRepository.findById(yeuCau.getMaDonHang())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đơn hàng"));

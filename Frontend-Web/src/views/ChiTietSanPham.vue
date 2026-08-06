@@ -49,9 +49,6 @@
 
             <div class="price-row">
               <span class="price-now">{{ formatPrice(currentPrice) }}</span>
-              <span v-if="currentOriginalPrice > currentPrice" class="price-old">
-                {{ formatPrice(currentOriginalPrice) }}
-              </span>
             </div>
 
             <p class="product-desc">{{ product.moTa || 'Chưa có mô tả cho sản phẩm này.' }}</p>
@@ -289,7 +286,7 @@ const selectColor = (color) => {
 
 const currentPrice = computed(() => {
   if (!product.value) return 0;
-  let basePrice = product.value.giaKhuyenMai || product.value.GiKhuyenMai || product.value.giaGoc || product.value.GiGoc || 0;
+  let basePrice = product.value.giaGoc || product.value.GiGoc || 0;
   if (selectedVariant.value && selectedVariant.value.giaCongThem) {
     basePrice += selectedVariant.value.giaCongThem;
   }

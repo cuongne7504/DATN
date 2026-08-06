@@ -210,8 +210,19 @@
               <textarea v-model="returnForm.lyDo" class="form-control" rows="3" placeholder="Nhập lý do chi tiết..." required></textarea>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-bold">Link hình ảnh minh họa <span class="text-danger">*</span>:</label>
-              <input type="text" v-model="returnForm.hinhAnhMinhHoa" class="form-control" placeholder="URL hình ảnh sản phẩm lỗi" required>
+              <label class="form-label fw-bold">Link/Ảnh minh họa <span class="text-danger">*</span>:</label>
+              <div class="input-group">
+                <input type="text" v-model="returnForm.hinhAnhMinhHoa" class="form-control" placeholder="Dán URL hoặc chọn tệp ảnh từ máy..." required />
+                <input type="file" accept="image/*" ref="fileInput" class="d-none" @change="handleFileUpload" />
+                <button type="button" class="btn btn-outline-primary" @click="$refs.fileInput.click()" :disabled="uploadingImg">
+                  <span v-if="uploadingImg" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                  <i v-else class="bi bi-upload me-1"></i>
+                  {{ uploadingImg ? 'Đang tải...' : 'Tải ảnh từ máy' }}
+                </button>
+              </div>
+              <div v-if="returnForm.hinhAnhMinhHoa" class="mt-2 text-center">
+                <img :src="returnForm.hinhAnhMinhHoa" alt="Ảnh minh chứng" class="img-thumbnail" style="max-height: 140px; object-fit: contain;" />
+              </div>
             </div>
             <div class="alert alert-info small mt-2">
               <strong>Lưu ý:</strong> Chúng tôi sẽ kiểm tra và xét duyệt yêu cầu của bạn. Sau khi duyệt, bạn cần gửi hàng về cho shop để hoàn tất quá trình hoàn tiền.
@@ -241,6 +252,27 @@ const selectedOrder = ref(null)
 
 const orderToReturn = ref(null)
 const returnForm = ref({ lyDo: '', hinhAnhMinhHoa: '' })
+const uploadingImg = ref(false)
+const fileInput = ref(null)
+
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  uploadingImg.value = true
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const res = await axios.post(`${API_URL}/api/upload`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    const uploadedUrl = res.data.data
+    returnForm.value.hinhAnhMinhHoa = uploadedUrl.startsWith('/uploads/') ? `${API_URL}${uploadedUrl}` : uploadedUrl
+  } catch (e) {
+    alert('Không thể tải ảnh lên, vui lòng thử lại!')
+  } finally {
+    uploadingImg.value = false
+  }
+}
 
 const isReturnStatus = computed(() => {
   if (!selectedOrder.value) return false

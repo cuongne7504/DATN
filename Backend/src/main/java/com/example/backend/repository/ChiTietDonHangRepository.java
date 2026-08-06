@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ChiTietDonHangRepository extends JpaRepository<ChiTietDonHang, Integer> {
     List<ChiTietDonHang> findByMaDonHang(Integer maDonHang);
+    boolean existsByMaChiTietSp(Integer maChiTietSp);
 }

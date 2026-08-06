@@ -31,13 +31,9 @@
                 <option v-for="b in brands" :key="b.maThuongHieu" :value="b.maThuongHieu">{{ b.tenThuongHieu }}</option>
               </select>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-6 mb-3">
               <label class="form-label">Giá gốc <span class="text-danger">*</span></label>
-              <input type="number" v-model="form.giaGoc" class="form-control" min="0" required />
-            </div>
-            <div class="col-md-3 mb-3">
-              <label class="form-label">Giá khuyến mãi</label>
-              <input type="number" v-model="form.giaKhuyenMai" class="form-control" min="0" />
+              <input type="number" v-model="form.giaGoc" class="form-control" min="0" max="99999999" required />
             </div>
           </div>
           <div class="row">
@@ -107,8 +103,7 @@
               <th>Tên sản phẩm</th>
               <th>Danh mục</th>
               <th>Thương hiệu</th>
-              <th>Giá</th>
-              <th>SKU / Biến thể</th>
+              <th>Giá gốc</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -118,51 +113,33 @@
               <td class="fw-bold">{{ p.tenSanPham }}</td>
               <td>{{ getCategoryName(p.maDanhMuc) }}</td>
               <td>{{ getBrandName(p.maThuongHieu) }}</td>
-            <td>
-              <div class="fw-semibold text-danger">{{ formatPrice(p.giaKhuyenMai || p.giaGoc) }}</div>
-              <small v-if="p.giaKhuyenMai" class="text-muted text-decoration-line-through">{{ formatPrice(p.giaGoc) }}</small>
-            </td>
-            <td>
-              <div class="d-flex flex-wrap gap-1">
-                <button
-                  v-for="v in (productSkuMap[p.maSanPham] || []).slice(0, 3)"
-                  :key="v.maChiTietSp"
-                  class="btn btn-sm btn-outline-secondary"
-                  type="button"
-                  @click="copyText(v.maVachSku || v.maChiTietSp)"
-                  :title="'Copy ' + (v.maVachSku || v.maChiTietSp)"
-                >
-                  <i class="bi bi-clipboard me-1"></i>{{ v.maVachSku || v.maChiTietSp }}
-                </button>
-                <span v-if="(productSkuMap[p.maSanPham] || []).length > 3" class="badge bg-light text-dark border">
-                  +{{ (productSkuMap[p.maSanPham] || []).length - 3 }}
-                </span>
-              </div>
-            </td>
-            <td>
-              <div class="d-flex flex-wrap gap-1">
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#variantModal"
-                  @click="openVariantModal(p)"
-                >
-                  Biến thể
-                </button>
-                <button @click="editProduct(p)" class="btn btn-sm btn-outline-secondary">Sửa</button>
-                <button @click="deleteProduct(p.maSanPham)" class="btn btn-sm btn-outline-danger">Xóa</button>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="filteredProducts.length === 0">
-            <td colspan="7" class="text-center text-muted py-4">Chưa có dữ liệu sản phẩm</td>
-          </tr>
-        </tbody>
-      </table>
+              <td>
+                <div class="fw-semibold text-primary">{{ formatPrice(p.giaGoc) }}</div>
+              </td>
+              <td>
+                <div class="d-flex flex-wrap gap-1">
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#variantModal"
+                    @click="openVariantModal(p)"
+                  >
+                    Biến thể
+                  </button>
+                  <button @click="editProduct(p)" class="btn btn-sm btn-outline-secondary">Sửa</button>
+                  <button @click="deleteProduct(p.maSanPham)" class="btn btn-sm btn-outline-danger">Xóa</button>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="filteredProducts.length === 0">
+              <td colspan="6" class="text-center text-muted py-4">Chưa có dữ liệu sản phẩm</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
-  <div class="modal fade" id="variantModal" tabindex="-1">
+    <div class="modal fade" id="variantModal" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -225,9 +202,17 @@
                 </thead>
                 <tbody>
                   <tr v-for="variant in productVariants" :key="variant.maChiTietSp">
-                    <td class="fw-bold text-secondary">
-                      {{ variant.maChiTietSp }}
-                      <span v-if="variant.maVachSku"> / {{ variant.maVachSku }}</span>
+                    <td>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary font-monospace"
+                        @click="copyText(variant.maVachSku || variant.maChiTietSp)"
+                        :title="'Click để copy mã SKU: ' + (variant.maVachSku || variant.maChiTietSp)"
+                      >
+                        <i class="bi bi-clipboard me-1"></i>
+                        <span class="fw-bold">#{{ variant.maChiTietSp }}</span>
+                        <span v-if="variant.maVachSku"> / {{ variant.maVachSku }}</span>
+                      </button>
                     </td>
                     <td>{{ variant.mauSac }}</td>
                     <td>{{ variant.kichCo }}</td>
@@ -238,7 +223,10 @@
                     </td>
                     <td class="text-danger fw-semibold">+{{ formatPrice(variant.giaCongThem || 0) }}</td>
                     <td>
-                      <button @click="editVariant(variant)" class="btn btn-sm btn-outline-primary me-2">Sửa</button>
+                      <button @click="printBarcode(variant)" class="btn btn-sm btn-outline-dark me-1" title="In tem mã vạch">
+                        <i class="bi bi-printer me-1"></i>In mã
+                      </button>
+                      <button @click="editVariant(variant)" class="btn btn-sm btn-outline-primary me-1">Sửa</button>
                       <button @click="deleteVariant(variant.maChiTietSp)" class="btn btn-sm btn-outline-danger">Xóa</button>
                     </td>
                   </tr>
@@ -252,6 +240,37 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal In Mã Vạch Biến Thể -->
+    <div v-if="showBarcodeModal" class="modal fade show d-block" style="background: rgba(0,0,0,0.6); z-index: 1070;" @click.self="showBarcodeModal = false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold"><i class="bi bi-printer me-2"></i>In Tem Mã Vạch Biến Thể</h5>
+            <button type="button" class="btn-close" @click="showBarcodeModal = false"></button>
+          </div>
+          <div class="modal-body text-center" v-if="selectedBarcodeVariant">
+            <div id="printableBarcodeArea" class="barcode-card p-3 border rounded shadow-sm bg-white mx-auto" style="max-width: 320px;">
+              <div class="fw-bold text-uppercase small text-muted">SPORTPRO ATHLETICS</div>
+              <div class="fw-bold fs-6 text-dark text-truncate mb-1">{{ selectedProduct?.tenSanPham }}</div>
+              <div class="small text-secondary mb-2">
+                Phân loại: <strong>Màu {{ selectedBarcodeVariant.mauSac }} - Size {{ selectedBarcodeVariant.kichCo }}</strong>
+              </div>
+              <div class="my-2 d-flex justify-content-center" v-html="barcodeSvg"></div>
+              <div class="fw-bold fs-5 text-danger mt-1">
+                {{ formatPrice((selectedProduct?.giaGoc || 0) + (selectedBarcodeVariant.giaCongThem || 0)) }}
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showBarcodeModal = false">Đóng</button>
+            <button type="button" class="btn btn-primary fw-bold" @click="triggerPrintBarcode">
+              <i class="bi bi-printer-fill me-1"></i>In tem ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
@@ -260,6 +279,7 @@ import axios from 'axios'
 import PageHeader from '@/components/PageHeader.vue'
 import { useToast } from '@/composables/useToast.js'
 import { API_URL } from '@/config.js'
+import { generateBarcodeSVG } from '@/utils/barcode.js'
 
 const { success, error } = useToast()
 const products = ref([])
@@ -269,7 +289,6 @@ const loading = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
 const uploadingImg = ref(false)
-const productSkuMap = ref({})
 
 // Bộ lọc tìm kiếm
 const searchQuery = ref('')
@@ -294,7 +313,6 @@ const form = ref({
   tenSanPham: '',
   moTa: '',
   giaGoc: '',
-  giaKhuyenMai: '',
   hinhAnh: ''
 })
 const imageUrl = (path) => {
@@ -341,16 +359,6 @@ const fetchData = async () => {
     products.value = prodRes.data.data || prodRes.data || []
     categories.value = catRes.data.data || catRes.data || []
     brands.value = brandRes.data.data || brandRes.data || []
-    const skuMap = {}
-    for (const p of products.value) {
-      try {
-        const ctRes = await axios.get(`${API_URL}/api/chi-tiet-san-pham/san-pham/${p.maSanPham}`)
-        skuMap[p.maSanPham] = ctRes.data.data || ctRes.data || []
-      } catch {
-        skuMap[p.maSanPham] = []
-      }
-    }
-    productSkuMap.value = skuMap
   } catch (e) {
     error('Không tải được dữ liệu sản phẩm')
   } finally {
@@ -366,8 +374,7 @@ const saveProduct = async () => {
       maThuongHieu: Number(form.value.maThuongHieu),
       tenSanPham: form.value.tenSanPham,
       moTa: form.value.moTa,
-      giaGoc: Number(form.value.giaGoc),
-      giaKhuyenMai: Number(form.value.giaKhuyenMai)
+      giaGoc: Number(form.value.giaGoc)
     }
 
     if (isEditing.value) {
@@ -410,7 +417,12 @@ const saveProduct = async () => {
     resetForm()
     await fetchData()
   } catch (e) {
-    error(e.response?.data?.message || e.message)
+    const rawMsg = String(e.response?.data?.message || e.message || '')
+    if (rawMsg.includes('overflow') || rawMsg.includes('numeric')) {
+      error('Giá gốc vượt quá giới hạn cho phép (tối đa 99.999.999 ₫)!')
+    } else {
+      error(rawMsg)
+    }
   } finally {
     loading.value = false
   }
@@ -430,7 +442,6 @@ const editProduct = async (product) => {
     tenSanPham: product.tenSanPham,
     moTa: product.moTa || '',
     giaGoc: product.giaGoc || product.GiGoc || 0,
-    giaKhuyenMai: product.giaKhuyenMai || product.GiKhuyenMai || 0,
     hinhAnh
   }
 }
@@ -439,10 +450,11 @@ const deleteProduct = async (id) => {
   if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) return
   try {
     await axios.delete(`${API_URL}/api/san-pham/${id}`)
-    success('Đã xóa sản phẩm')
+    success('Đã xóa sản phẩm thành công')
     await fetchData()
-  } catch {
-    error('Không thể xóa sản phẩm này')
+  } catch (e) {
+    const errorMsg = e.response?.data?.message || 'Không thể xóa sản phẩm này'
+    error(errorMsg)
   }
 }
 
@@ -455,7 +467,6 @@ const resetForm = () => {
     tenSanPham: '',
     moTa: '',
     giaGoc: '',
-    giaKhuyenMai: '',
     hinhAnh: ''
   }
 }
@@ -511,7 +522,6 @@ const saveVariant = async () => {
     }
     resetVariantForm()
     await fetchVariants()
-    productSkuMap.value[selectedProduct.value.maSanPham] = [...productVariants.value]
     success('Lưu biến thể thành công')
   } catch (e) {
     error(e.response?.data?.message || e.message)
@@ -554,6 +564,35 @@ const resetVariantForm = () => {
     soLuongTon: 0,
     giaCongThem: 0
   }
+}
+
+const showBarcodeModal = ref(false)
+const selectedBarcodeVariant = ref(null)
+const barcodeSvg = ref('')
+
+const printBarcode = (variant) => {
+  selectedBarcodeVariant.value = variant
+  const code = variant.maVachSku || variant.maChiTietSp
+  barcodeSvg.value = generateBarcodeSVG(code, { width: 2, height: 50, fontSize: 13 })
+  showBarcodeModal.value = true
+}
+
+const triggerPrintBarcode = () => {
+  const area = document.getElementById('printableBarcodeArea')
+  if (!area) return
+  const printContents = area.innerHTML
+  const printWindow = window.open('', '', 'height=500,width=600')
+  printWindow.document.write('<html><head><title>In tem mã vạch</title>')
+  printWindow.document.write('<style>body{font-family:sans-serif;text-align:center;padding:20px;margin:0;}.barcode-card{border:1px dashed #333;padding:15px;border-radius:6px;max-width:280px;margin:auto;}svg{max-width:100%;height:auto;}</style>')
+  printWindow.document.write('</head><body>')
+  printWindow.document.write('<div class="barcode-card">' + printContents + '</div>')
+  printWindow.document.write('</body></html>')
+  printWindow.document.close()
+  printWindow.focus()
+  setTimeout(() => {
+    printWindow.print()
+    printWindow.close()
+  }, 300)
 }
 
 onMounted(fetchData)

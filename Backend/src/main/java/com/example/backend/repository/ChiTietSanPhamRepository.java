@@ -21,4 +21,6 @@ public interface ChiTietSanPhamRepository extends JpaRepository<ChiTietSanPham, 
 
     @org.springframework.data.jpa.repository.Query("SELECT new com.example.backend.dto.TonKhoResponse(c.maChiTietSp, s.tenSanPham, c.maVachSku, c.mauSac, c.kichCo, c.soLuongTon) FROM ChiTietSanPham c JOIN SanPham s ON c.maSanPham = s.maSanPham ORDER BY c.soLuongTon ASC")
     List<com.example.backend.dto.TonKhoResponse> layDanhSachTonKho();
+
+    void deleteByMaSanPham(Integer maSanPham);
 }

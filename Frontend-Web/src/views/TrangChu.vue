@@ -117,9 +117,6 @@
                   width="400"
                   height="400"
                 />
-                <span v-if="getDiscountPercent(product)" class="sale-badge">
-                  -{{ getDiscountPercent(product) }}%
-                </span>
                 <span class="quick-view">Xem nhanh</span>
               </div>
             </router-link>
@@ -127,13 +124,7 @@
               <h6 class="card-title product-name">{{ product.tenSanPham }}</h6>
               <div class="mt-auto">
                 <div class="price-block mb-3">
-                  <span class="price-now">{{ formatPrice(product.giaKhuyenMai || product.GiKhuyenMai) }}</span>
-                  <span
-                    v-if="(product.giaGoc || product.GiGoc) > (product.giaKhuyenMai || product.GiKhuyenMai)"
-                    class="price-old"
-                  >
-                    {{ formatPrice(product.giaGoc || product.GiGoc) }}
-                  </span>
+                  <span class="price-now">{{ formatPrice(product.giaGoc || product.GiGoc) }}</span>
                 </div>
                 <router-link :to="'/product/' + product.maSanPham" class="btn btn-outline-primary w-100 fw-bold">
                   Xem chi tiết

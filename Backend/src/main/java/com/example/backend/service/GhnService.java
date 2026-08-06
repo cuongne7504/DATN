@@ -29,7 +29,18 @@ public class GhnService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, entity, Map.class);
-        return response.getBody();
+        Map<String, Object> resBody = response.getBody();
+        if (resBody != null && resBody.containsKey("data") && resBody.get("data") instanceof java.util.List) {
+            java.util.List<Map<String, Object>> list = (java.util.List<Map<String, Object>>) resBody.get("data");
+            java.util.List<Map<String, Object>> filtered = list.stream()
+                .filter(item -> {
+                    String name = String.valueOf(item.get("ProvinceName")).toLowerCase();
+                    return !name.contains("test") && !name.contains("alert") && !name.contains("đặc biệt") && !name.contains("hà nội 02");
+                })
+                .collect(java.util.stream.Collectors.toList());
+            resBody.put("data", filtered);
+        }
+        return resBody;
     }
 
     public Map<String, Object> getDistricts(Integer provinceId) {

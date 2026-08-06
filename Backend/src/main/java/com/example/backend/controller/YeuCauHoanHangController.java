@@ -39,8 +39,9 @@ public class YeuCauHoanHangController {
     @PutMapping("/{maYeuCau}/trang-thai")
     public ResponseEntity<ApiResponse<YeuCauHoanHang>> capNhatTrangThai(
             @PathVariable Integer maYeuCau,
-            @RequestParam String trangThaiMoi) {
-        YeuCauHoanHang yeuCau = hoanHangService.capNhatTrangThai(maYeuCau, trangThaiMoi);
+            @RequestParam String trangThaiMoi,
+            @RequestParam(required = false) String lyDoTuChoi) {
+        YeuCauHoanHang yeuCau = hoanHangService.capNhatTrangThai(maYeuCau, trangThaiMoi, lyDoTuChoi);
         return ResponseEntity.ok(new ApiResponse<>(true, "Cập nhật trạng thái thành công", yeuCau));
     }
 }
