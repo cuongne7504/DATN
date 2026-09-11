@@ -67,39 +67,39 @@
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th>Mã HĐ</th>
-                <th>Mã ĐH</th>
-                <th>Khách hàng</th>
-                <th>Ngày lập</th>
-                <th>Loại</th>
-                <th>Tổng tiền</th>
-                <th>Thao tác</th>
+                <th class="text-nowrap">Mã HĐ</th>
+                <th class="text-nowrap">Mã ĐH</th>
+                <th class="text-nowrap">Khách hàng</th>
+                <th class="text-nowrap">Ngày lập</th>
+                <th class="text-nowrap">Loại</th>
+                <th class="text-nowrap">Tổng tiền</th>
+                <th class="text-nowrap">Thao tác</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="order in filteredInvoices" :key="order.maDonHang">
-                <td class="fw-bold text-primary">{{ invoiceNumber(order.maDonHang) }}</td>
-                <td>#{{ order.maDonHang }}</td>
+                <td class="fw-bold text-primary text-nowrap">{{ invoiceNumber(order.maDonHang) }}</td>
+                <td class="text-nowrap">#{{ order.maDonHang }}</td>
                 <td>
                   <div class="fw-semibold">{{ customerName(order) }}</div>
                   <small class="text-muted">{{ customerPhone(order) }}</small>
                 </td>
-                <td>{{ formatDate(order.ngayDat) }}</td>
-                <td>
-                  <span class="badge" :class="isPosOrder(order) ? 'bg-warning text-dark' : 'bg-primary'">
+                <td class="text-nowrap">{{ formatDate(order.ngayDat) }}</td>
+                <td class="text-nowrap">
+                  <span class="badge text-nowrap" :class="isPosOrder(order) ? 'bg-warning text-dark' : 'bg-primary'">
                     {{ isPosOrder(order) ? 'Tại quầy' : 'Online' }}
                   </span>
                 </td>
-                <td class="fw-bold text-danger">{{ formatPrice(order.tongTien) }}</td>
-                <td>
-                  <div class="action-group">
-                    <button class="btn btn-sm btn-outline-primary" @click="openInvoice(order)">
+                <td class="fw-bold text-danger text-nowrap">{{ formatPrice(order.tongTien) }}</td>
+                <td class="text-nowrap">
+                  <div class="action-group d-flex flex-nowrap align-items-center gap-1">
+                    <button class="btn btn-sm btn-outline-primary text-nowrap" @click="openInvoice(order)">
                       <i class="bi bi-eye me-1"></i> Xem
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" @click="quickPrint(order)">
+                    <button class="btn btn-sm btn-outline-secondary text-nowrap" @click="quickPrint(order)" title="In nhanh hóa đơn">
                       <i class="bi bi-printer"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" @click="quickPdf(order)">
+                    <button class="btn btn-sm btn-outline-danger text-nowrap" @click="quickPdf(order)" title="Xuất PDF">
                       <i class="bi bi-file-earmark-pdf"></i>
                     </button>
                   </div>

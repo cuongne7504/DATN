@@ -44,16 +44,6 @@
           <i class="bi bi-arrow-return-left"></i>
           <span>Hoàn hàng</span>
         </router-link>
-        <router-link
-          v-if="user?.maQuyen === 1 || user?.maQuyen === 2"
-          class="sidebar-link"
-          active-class="active"
-          to="/admin/inventory"
-          @click="closeSidebar"
-        >
-          <i class="bi bi-archive"></i>
-          <span>Kho hàng</span>
-        </router-link>
 
         <template v-if="user?.maQuyen === 1">
           <p class="nav-section">Sản phẩm</p>
@@ -61,13 +51,9 @@
             <i class="bi bi-box-seam"></i>
             <span>Sản phẩm</span>
           </router-link>
-          <router-link class="sidebar-link" active-class="active" to="/admin/categories" @click="closeSidebar">
-            <i class="bi bi-tags"></i>
-            <span>Danh mục</span>
-          </router-link>
-          <router-link class="sidebar-link" active-class="active" to="/admin/brands" @click="closeSidebar">
-            <i class="bi bi-award"></i>
-            <span>Thương hiệu</span>
+          <router-link class="sidebar-link" active-class="active" to="/admin/variants" @click="closeSidebar">
+            <i class="bi bi-grid-3x3-gap"></i>
+            <span>Sản phẩm chi tiết</span>
           </router-link>
           <router-link class="sidebar-link" active-class="active" to="/admin/vouchers" @click="closeSidebar">
             <i class="bi bi-ticket-perforated"></i>
@@ -144,6 +130,7 @@ const titleMap = {
   '/admin/categories': 'Danh mục',
   '/admin/brands': 'Thương hiệu',
   '/admin/products': 'Sản phẩm',
+  '/admin/variants': 'Sản phẩm chi tiết',
   '/admin/orders': 'Đơn hàng',
   '/admin/invoices': 'Hóa đơn',
   '/admin/returns': 'Hoàn hàng',

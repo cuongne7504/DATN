@@ -22,4 +22,5 @@ public class UpdateUserRequest {
     private String soDienThoai;
     private String diaChi;
     private Integer maQuyen;
+    private String trangThai;
 }

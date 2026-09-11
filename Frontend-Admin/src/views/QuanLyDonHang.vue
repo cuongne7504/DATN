@@ -35,52 +35,52 @@
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th>Mã ĐH</th>
-                <th>Khách hàng</th>
-                <th>Ngày đặt</th>
-                <th>Tổng tiền</th>
-                <th>Thanh toán</th>
-                <th>Loại đơn</th>
-                <th>Thao tác</th>
+                <th class="text-nowrap">Mã ĐH</th>
+                <th class="text-nowrap">Khách hàng</th>
+                <th class="text-nowrap">Ngày đặt</th>
+                <th class="text-nowrap">Tổng tiền</th>
+                <th class="text-nowrap">Thanh toán</th>
+                <th class="text-nowrap">Loại đơn</th>
+                <th class="text-nowrap">Thao tác</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="order in filteredOrders" :key="order.maDonHang">
-                <td class="fw-bold text-primary">#{{ order.maDonHang }}</td>
+                <td class="fw-bold text-primary text-nowrap">#{{ order.maDonHang }}</td>
                 <td>
                   <div class="fw-semibold">{{ customerName(order) }}</div>
                   <small class="text-muted">{{ customerPhone(order) }}</small>
                 </td>
-                <td>{{ formatDate(order.ngayDat) }}</td>
-                <td class="fw-bold text-danger">{{ formatPrice(order.tongTien) }}</td>
-                <td>
-                  <span class="badge" :class="order.phuongThucTt === 'VNPay' ? 'bg-info text-dark' : 'bg-secondary'">
+                <td class="text-nowrap">{{ formatDate(order.ngayDat) }}</td>
+                <td class="fw-bold text-danger text-nowrap">{{ formatPrice(order.tongTien) }}</td>
+                <td class="text-nowrap">
+                  <span class="badge text-nowrap" :class="order.phuongThucTt === 'VNPay' ? 'bg-info text-dark' : 'bg-secondary'">
                     {{ order.phuongThucTt || 'Tiền mặt' }}
                   </span>
                 </td>
-                <td>
-                  <span class="badge" :class="isPosOrder(order) ? 'bg-warning text-dark' : 'bg-primary'">
+                <td class="text-nowrap">
+                  <span class="badge text-nowrap" :class="isPosOrder(order) ? 'bg-warning text-dark' : 'bg-primary'">
                     {{ isPosOrder(order) ? 'Tại quầy' : 'Online' }}
                   </span>
                 </td>
-                <td>
-                  <div class="action-group">
-                    <button @click="viewDetail(order)" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#orderDetailModal">
+                <td class="text-nowrap">
+                  <div class="action-group d-flex flex-nowrap align-items-center gap-1">
+                    <button @click="viewDetail(order)" class="btn btn-sm btn-outline-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#orderDetailModal">
                       Chi tiết
                     </button>
-                    <button v-if="order.trangThai === 'Chờ xử lý'" @click="updateStatus(order.maDonHang, 'Đang xử lý')" class="btn btn-sm btn-success">
+                    <button v-if="order.trangThai === 'Chờ xử lý'" @click="updateStatus(order.maDonHang, 'Đang xử lý')" class="btn btn-sm btn-success text-nowrap">
                       Xác nhận
                     </button>
-                    <button v-if="order.trangThai === 'Chờ xử lý'" @click="updateStatus(order.maDonHang, 'Đã hủy')" class="btn btn-sm btn-outline-danger">
+                    <button v-if="order.trangThai === 'Chờ xử lý'" @click="updateStatus(order.maDonHang, 'Đã hủy')" class="btn btn-sm btn-outline-danger text-nowrap">
                       Hủy
                     </button>
-                    <button v-if="order.trangThai === 'Đang xử lý'" @click="openShipperModal(order)" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#shipperModal">
+                    <button v-if="order.trangThai === 'Đang xử lý'" @click="openShipperModal(order)" class="btn btn-sm btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#shipperModal">
                       Shipper
                     </button>
-                    <button v-if="order.trangThai === 'Đang xử lý'" @click="sendToGHN(order.maDonHang)" class="btn btn-sm btn-warning">
+                    <button v-if="order.trangThai === 'Đang xử lý'" @click="sendToGHN(order.maDonHang)" class="btn btn-sm btn-warning text-nowrap">
                       GHN
                     </button>
-                    <button v-if="order.trangThai === 'Đang giao hàng'" @click="updateStatus(order.maDonHang, 'Đã giao hàng')" class="btn btn-sm btn-success">
+                    <button v-if="order.trangThai === 'Đang giao hàng'" @click="updateStatus(order.maDonHang, 'Đã giao hàng')" class="btn btn-sm btn-success text-nowrap">
                       Hoàn thành
                     </button>
                   </div>

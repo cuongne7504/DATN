@@ -60,6 +60,12 @@ public class ChiTietSanPhamController {
 
     // --- API nhánh main (/api/chi-tiet-san-pham) ---
 
+    @GetMapping("/api/chi-tiet-san-pham")
+    public ApiResponse<List<ChiTietSanPham>> getAllMain() {
+        List<ChiTietSanPham> list = chiTietSanPhamService.getAll();
+        return ApiResponse.ok("Lấy tất cả biến thể thành công", list);
+    }
+
     @GetMapping("/api/chi-tiet-san-pham/san-pham/{maSanPham}")
     public ApiResponse<List<ChiTietSanPham>> getBySanPham(@PathVariable Integer maSanPham) {
         List<ChiTietSanPham> list = chiTietSanPhamService.getByMaSanPham(maSanPham);
@@ -94,6 +100,23 @@ public class ChiTietSanPhamController {
     public ApiResponse<ChiTietSanPham> capNhat(@PathVariable Integer id, @RequestBody ChiTietSanPham chiTiet) {
         ChiTietSanPham updated = chiTietSanPhamService.capNhat(id, chiTiet);
         return ApiResponse.ok("Cập nhật biến thể thành công", updated);
+    }
+
+    @PutMapping("/api/chi-tiet-san-pham/{id}/trang-thai")
+    public ApiResponse<ChiTietSanPham> toggleStatus(@PathVariable Integer id, @RequestParam(required = false) String trangThai) {
+        ChiTietSanPham updated;
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            updated = chiTietSanPhamService.updateStatus(id, trangThai);
+        } else {
+            updated = chiTietSanPhamService.toggleStatus(id);
+        }
+        return ApiResponse.ok("Cập nhật trạng thái biến thể thành công", updated);
+    }
+
+    @PatchMapping("/api/chi-tiet-san-pham/{id}/trang-thai")
+    public ApiResponse<ChiTietSanPham> toggleStatusPatch(@PathVariable Integer id) {
+        ChiTietSanPham updated = chiTietSanPhamService.toggleStatus(id);
+        return ApiResponse.ok("Đổi trạng thái biến thể thành công", updated);
     }
 
     @DeleteMapping("/api/chi-tiet-san-pham/{id}")

@@ -49,6 +49,7 @@ CREATE TABLE SAN_PHAM (
   mo_ta NVARCHAR(MAX),
   gia_goc DECIMAL(10,2),
   gia_khuyen_mai DECIMAL(10,2),
+  trang_thai NVARCHAR(50) DEFAULT N'Đang kinh doanh',
   ngay_tao DATETIME,
   FOREIGN KEY (ma_danh_muc) REFERENCES DANH_MUC(ma_danh_muc),
   FOREIGN KEY (ma_thuong_hieu) REFERENCES THUONG_HIEU(ma_thuong_hieu)
@@ -71,6 +72,7 @@ CREATE TABLE CHI_TIET_SAN_PHAM (
   kich_co VARCHAR(20),
   so_luong_ton INT,
   gia_cong_them DECIMAL(10,2) DEFAULT 0,
+  trang_thai NVARCHAR(50) DEFAULT N'Đang bán',
   FOREIGN KEY (ma_san_pham) REFERENCES SAN_PHAM(ma_san_pham)
 );
 
@@ -261,34 +263,34 @@ INSERT INTO HINH_ANH_SP (ma_san_pham, duong_dan_anh, la_anh_chinh) VALUES
 ((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Al Rihla%'), 'https://images.unsplash.com/photo-1614632537197-38a17061c2bd?w=600', 1),
 ((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Tất Đá Bóng%'), 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600', 1);
 
--- 7. Thêm Biến Thể Chi Tiết (Mã SKU chuẩn, Màu sắc, Kích cỡ S/M/L/XL & Giày 40/41/42)
-INSERT INTO CHI_TIET_SAN_PHAM (ma_san_pham, ma_vach_sku, mau_sac, kich_co, so_luong_ton, gia_cong_them) VALUES 
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'ARG-WC-HOME-S', N'Trắng Xanh', 'S', 50, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'ARG-WC-HOME-M', N'Trắng Xanh', 'M', 100, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'ARG-WC-HOME-L', N'Trắng Xanh', 'L', 80, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'ARG-WC-HOME-XL', N'Trắng Xanh', 'XL', 40, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Bồ Đào Nha%'), 'POR-WC-HOME-M', N'Đỏ Xanh', 'M', 60, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Bồ Đào Nha%'), 'POR-WC-HOME-L', N'Đỏ Xanh', 'L', 70, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Pháp%'), 'FRA-WC-HOME-M', N'Xanh Navy', 'M', 50, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Pháp%'), 'FRA-WC-HOME-L', N'Xanh Navy', 'L', 60, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Đức%'), 'GER-WC-HOME-M', N'Trắng Đen', 'M', 40, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Đức%'), 'GER-WC-HOME-L', N'Trắng Đen', 'L', 45, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Đá Bóng ĐT Argentina%'), 'Q-ARG-BLK-M', N'Đen', 'M', 100, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Đá Bóng ĐT Argentina%'), 'Q-ARG-BLK-L', N'Đen', 'L', 120, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Short Đá Bóng ĐT Bồ Đào Nha%'), 'Q-POR-BLU-M', N'Xanh Đen', 'M', 80, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Short Đá Bóng ĐT Bồ Đào Nha%'), 'Q-POR-BLU-L', N'Xanh Đen', 'L', 90, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Brazil%'), 'BO-BRA-YEL-M', N'Vàng Xanh', 'M', 50, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Brazil%'), 'BO-BRA-YEL-L', N'Vàng Xanh', 'L', 60, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Nhật Bản%'), 'BO-JPN-BLU-M', N'Xanh Lam', 'M', 40, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Nhật Bản%'), 'BO-JPN-BLU-L', N'Xanh Lam', 'L', 50, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Predator%'), 'AD-PRED-WC-40', N'Trắng Đỏ', '40', 20, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Predator%'), 'AD-PRED-WC-41', N'Trắng Đỏ', '41', 25, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Predator%'), 'AD-PRED-WC-42', N'Trắng Đỏ', '42', 30, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Mercurial%'), 'NK-MERC-WC-41', N'Hồng Vàng', '41', 15, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Mercurial%'), 'NK-MERC-WC-42', N'Hồng Vàng', '42', 20, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Al Rihla%'), 'BAL-AL-RIHLA-5', N'Trắng Đa Sắc', 'Size 5', 200, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Tất Đá Bóng%'), 'SOCK-WC-BLK-FS', N'Đen', 'Freesize', 300, 0),
-((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Tất Đá Bóng%'), 'SOCK-WC-WHT-FS', N'Trắng', 'Freesize', 300, 0);
+-- 7. Thêm Biến Thể Chi Tiết (Mã SPCT chuẩn CTSP01, CTSP02..., Màu sắc, Kích cỡ S/M/L/XL & Giày 40/41/42)
+INSERT INTO CHI_TIET_SAN_PHAM (ma_san_pham, ma_vach_sku, mau_sac, kich_co, so_luong_ton, gia_cong_them, trang_thai) VALUES 
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'CTSP01', N'Trắng Xanh', 'S', 50, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'CTSP02', N'Trắng Xanh', 'M', 100, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'CTSP03', N'Trắng Xanh', 'L', 80, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Argentina%3 Sao%'), 'CTSP04', N'Trắng Xanh', 'XL', 40, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Bồ Đào Nha%'), 'CTSP05', N'Đỏ Xanh', 'M', 60, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Bồ Đào Nha%'), 'CTSP06', N'Đỏ Xanh', 'L', 70, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Pháp%'), 'CTSP07', N'Xanh Navy', 'M', 50, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Pháp%'), 'CTSP08', N'Xanh Navy', 'L', 60, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Đức%'), 'CTSP09', N'Trắng Đen', 'M', 40, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Đức%'), 'CTSP10', N'Trắng Đen', 'L', 45, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Đá Bóng ĐT Argentina%'), 'CTSP11', N'Đen', 'M', 100, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Đá Bóng ĐT Argentina%'), 'CTSP12', N'Đen', 'L', 120, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Short Đá Bóng ĐT Bồ Đào Nha%'), 'CTSP13', N'Xanh Đen', 'M', 80, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Quần Short Đá Bóng ĐT Bồ Đào Nha%'), 'CTSP14', N'Xanh Đen', 'L', 90, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Brazil%'), 'CTSP15', N'Vàng Xanh', 'M', 50, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Brazil%'), 'CTSP16', N'Vàng Xanh', 'L', 60, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Nhật Bản%'), 'CTSP17', N'Xanh Lam', 'M', 40, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Nhật Bản%'), 'CTSP18', N'Xanh Lam', 'L', 50, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Predator%'), 'CTSP19', N'Trắng Đỏ', '40', 20, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Predator%'), 'CTSP20', N'Trắng Đỏ', '41', 25, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Predator%'), 'CTSP21', N'Trắng Đỏ', '42', 30, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Mercurial%'), 'CTSP22', N'Hồng Vàng', '41', 15, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Mercurial%'), 'CTSP23', N'Hồng Vàng', '42', 20, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Al Rihla%'), 'CTSP24', N'Trắng Đa Sắc', 'Size 5', 200, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Tất Đá Bóng%'), 'CTSP25', N'Đen', 'Freesize', 300, 0, N'Đang bán'),
+((SELECT TOP 1 ma_san_pham FROM SAN_PHAM WHERE ten_san_pham LIKE N'%Tất Đá Bóng%'), 'CTSP26', N'Trắng', 'Freesize', 300, 0, N'Đang bán');
 
 -- 8. Thêm Khuyến Mãi World Cup
 INSERT INTO KHUYEN_MAI (ma_code, phan_tram_giam, so_tien_giam, don_toi_thieu, ngay_bat_dau, ngay_ket_thuc, so_luong_dung) VALUES

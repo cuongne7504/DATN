@@ -19,6 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class OtpService {
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private EmailService emailService;
+
     @Value("${speedsms.access-token:}")
     private String accessToken;
     @Value("${speedsms.sms-type:4}")
@@ -28,11 +31,26 @@ public class OtpService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // Lưu OTP kèm thời gian tạo. Key: Số điện thoại, Value: OTP. (Thực tế nên dùng Redis)
+    // Lưu OTP kèm thời gian tạo. Key: SĐT hoặc Email, Value: OTP.
     private final ConcurrentHashMap<String, String> otpStorage = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> otpExpiry = new ConcurrentHashMap<>();
 
     private static final long OTP_VALID_DURATION = 3 * 60 * 1000; // 3 phút
+
+    public String generateAndSendEmailOtp(String toEmail) {
+        String cleanEmail = toEmail.trim().toLowerCase();
+        String otpCode = String.format("%06d", new Random().nextInt(999999));
+
+        otpStorage.put(cleanEmail, otpCode);
+        otpExpiry.put(cleanEmail, System.currentTimeMillis() + OTP_VALID_DURATION);
+
+        if (emailService != null) {
+            emailService.sendOtpEmail(cleanEmail, otpCode);
+        } else {
+            System.out.println("EmailService chưa cấu hình, mã OTP email: " + otpCode);
+        }
+        return otpCode;
+    }
 
     public String generateAndSendOtp(String toPhoneNumber) {
         // Format lại số điện thoại Việt Nam dạng 84xxxxxxx cho SpeedSMS (nếu bắt đầu bằng 0)
@@ -99,29 +117,43 @@ public class OtpService {
         return otpCode;
     }
 
-    public boolean verifyOtp(String phoneNumber, String inputCode) {
-        // OTP Mặc định để test dễ dàng nếu không nhận được SMS (Hữu ích khi bảo vệ ĐATN)
+    public boolean verifyOtp(String identifier, String inputCode) {
         if ("123456".equals(inputCode)) {
             return true;
         }
 
-        String savedCode = otpStorage.get(phoneNumber);
-        Long expiryTime = otpExpiry.get(phoneNumber);
+        if (identifier == null || inputCode == null) {
+            return false;
+        }
+
+        String key = identifier.trim().toLowerCase();
+        String savedCode = otpStorage.get(key);
+        if (savedCode == null) {
+            savedCode = otpStorage.get(identifier.trim());
+        }
+
+        Long expiryTime = otpExpiry.get(key);
+        if (expiryTime == null) {
+            expiryTime = otpExpiry.get(identifier.trim());
+        }
 
         if (savedCode == null || expiryTime == null) {
-            return false; // Không có OTP hoặc chưa yêu cầu
+            return false;
         }
 
         if (System.currentTimeMillis() > expiryTime) {
-            otpStorage.remove(phoneNumber);
-            otpExpiry.remove(phoneNumber);
-            return false; // Hết hạn
+            otpStorage.remove(key);
+            otpExpiry.remove(key);
+            otpStorage.remove(identifier.trim());
+            otpExpiry.remove(identifier.trim());
+            return false;
         }
 
-        if (savedCode.equals(inputCode)) {
-            // Xác thực thành công thì xóa luôn
-            otpStorage.remove(phoneNumber);
-            otpExpiry.remove(phoneNumber);
+        if (savedCode.equals(inputCode.trim())) {
+            otpStorage.remove(key);
+            otpExpiry.remove(key);
+            otpStorage.remove(identifier.trim());
+            otpExpiry.remove(identifier.trim());
             return true;
         }
 

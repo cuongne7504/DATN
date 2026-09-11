@@ -70,6 +70,25 @@ public class NguoiDungController {
         return ResponseEntity.ok(ApiResponse.ok("Cập nhật người dùng thành công", updated));
     }
 
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<ApiResponse<NguoiDungResponse>> toggleStatus(
+            @PathVariable Integer id,
+            @RequestParam(required = false) String trangThai) {
+        NguoiDungResponse updated;
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            updated = nguoiDungService.updateStatus(id, trangThai);
+        } else {
+            updated = nguoiDungService.toggleStatus(id);
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Cập nhật trạng thái người dùng thành công", updated));
+    }
+
+    @PatchMapping("/{id}/trang-thai")
+    public ResponseEntity<ApiResponse<NguoiDungResponse>> toggleStatusPatch(@PathVariable Integer id) {
+        NguoiDungResponse updated = nguoiDungService.toggleStatus(id);
+        return ResponseEntity.ok(ApiResponse.ok("Đổi trạng thái người dùng thành công", updated));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         nguoiDungService.delete(id);

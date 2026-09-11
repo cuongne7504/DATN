@@ -35,4 +35,7 @@ public class NguoiDung {
 
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
+
+    @Column(name = "trang_thai")
+    private String trangThai = "Hoạt động";
 }

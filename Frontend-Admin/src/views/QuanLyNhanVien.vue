@@ -15,24 +15,25 @@
           <table class="table table-hover mb-0 align-middle">
             <thead class="table-light">
               <tr>
-                <th>ID</th>
-                <th>Họ tên</th>
-                <th>Chức vụ</th>
-                <th>Email</th>
-                <th>Số điện thoại</th>
-                <th>Địa chỉ</th>
-                <th>Ngày tham gia</th>
-                <th class="text-end">Thao tác</th>
+                <th class="text-nowrap">ID</th>
+                <th class="text-nowrap">Họ tên</th>
+                <th class="text-nowrap">Chức vụ</th>
+                <th class="text-nowrap">Email</th>
+                <th class="text-nowrap">Số điện thoại</th>
+                <th class="text-nowrap">Địa chỉ</th>
+                <th class="text-nowrap">Ngày tham gia</th>
+                <th class="text-nowrap">Trạng thái</th>
+                <th class="text-end text-nowrap">Thao tác</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="8" class="p-3">
+                <td colspan="9" class="p-3">
                   <SkeletonLoader variant="table" :rows="5" />
                 </td>
               </tr>
               <tr v-else-if="employees.length === 0">
-                <td colspan="8" class="p-0">
+                <td colspan="9" class="p-0">
                   <EmptyState
                     icon="bi bi-person-badge"
                     title="Chưa có nhân viên"
@@ -54,16 +55,43 @@
                 <td>{{ e.soDienThoai || 'Chưa cập nhật' }}</td>
                 <td>{{ e.diaChi || 'Chưa cập nhật' }}</td>
                 <td>{{ formatDate(e.ngayTao) }}</td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-info me-2 text-white" @click="viewOrders(e)">
-                    <i class="bi bi-list-check"></i> Đơn đã xử lý
-                  </button>
-                  <button class="btn btn-sm btn-warning me-2" @click="editEmployee(e)">
-                    <i class="bi bi-pencil"></i> Sửa
-                  </button>
-                  <button class="btn btn-sm btn-danger" @click="deleteEmployee(e.maNguoiDung)">
-                    <i class="bi bi-trash"></i> Xóa
-                  </button>
+                <td class="text-nowrap" style="width: 130px;">
+                  <span
+                    class="badge text-nowrap d-inline-flex align-items-center"
+                    :class="isLocked(e.trangThai) ? 'bg-secondary' : 'bg-success'"
+                    style="cursor: pointer;"
+                    @click="toggleStatus(e)"
+                    :title="'Click để ' + (isLocked(e.trangThai) ? 'Mở khóa tài khoản' : 'Tạm khóa tài khoản')"
+                  >
+                    <i :class="isLocked(e.trangThai) ? 'bi bi-lock-fill me-1' : 'bi bi-check-circle me-1'"></i>
+                    {{ isLocked(e.trangThai) ? 'Tạm khóa' : 'Hoạt động' }}
+                  </span>
+                </td>
+                <td class="text-end text-nowrap" style="width: 280px;">
+                  <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-nowrap">
+                    <button class="btn btn-sm btn-info text-white text-nowrap" @click="viewOrders(e)" title="Xem các đơn hàng đã xử lý">
+                      <i class="bi bi-list-check me-1"></i>Đơn đã xử lý
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary text-nowrap" @click="editEmployee(e)" title="Sửa thông tin nhân viên">
+                      <i class="bi bi-pencil me-1"></i>Sửa
+                    </button>
+                    <button
+                      v-if="isLocked(e.trangThai)"
+                      class="btn btn-sm btn-outline-success text-nowrap"
+                      @click="toggleStatus(e)"
+                      title="Mở khóa tài khoản nhân viên"
+                    >
+                      <i class="bi bi-unlock-fill me-1"></i>Mở khóa
+                    </button>
+                    <button
+                      v-else
+                      class="btn btn-sm btn-outline-warning text-nowrap"
+                      @click="toggleStatus(e)"
+                      title="Tạm khóa tài khoản nhân viên"
+                    >
+                      <i class="bi bi-lock-fill me-1"></i>Tạm khóa
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -108,6 +136,13 @@
               <div class="mb-3">
                 <label class="form-label">Địa chỉ</label>
                 <input type="text" class="form-control" v-model="form.diaChi">
+              </div>
+              <div class="mb-3" v-if="isEditing">
+                <label class="form-label">Trạng thái tài khoản</label>
+                <select class="form-select" v-model="form.trangThai">
+                  <option value="Hoạt động">Hoạt động</option>
+                  <option value="Tạm khóa">Tạm khóa</option>
+                </select>
               </div>
             </form>
           </div>
@@ -269,8 +304,15 @@ const form = ref({
   matKhau: '',
   soDienThoai: '',
   diaChi: '',
-  maQuyen: 2
+  maQuyen: 2,
+  trangThai: 'Hoạt động'
 })
+
+const isLocked = (status) => {
+  if (!status) return false
+  const s = status.toLowerCase()
+  return s.includes('khóa') || s.includes('khoa') || s.includes('nghỉ') || s.includes('nghi') || s.includes('ngừng') || s.includes('ngung')
+}
 
 // Orders state
 const currentEmployee = ref(null)
@@ -299,7 +341,16 @@ onMounted(() => {
 
 const openCreateModal = () => {
   isEditing.value = false
-  form.value = { maNguoiDung: null, hoTen: '', email: '', matKhau: '', soDienThoai: '', diaChi: '', maQuyen: 2 }
+  form.value = {
+    maNguoiDung: null,
+    hoTen: '',
+    email: '',
+    matKhau: '',
+    soDienThoai: '',
+    diaChi: '',
+    maQuyen: 2,
+    trangThai: 'Hoạt động'
+  }
   employeeModal.show()
 }
 
@@ -312,9 +363,30 @@ const editEmployee = (e) => {
     matKhau: '',
     soDienThoai: e.soDienThoai || '',
     diaChi: e.diaChi || '',
-    maQuyen: e.maQuyen || 2
+    maQuyen: e.maQuyen || 2,
+    trangThai: e.trangThai || 'Hoạt động'
   }
   employeeModal.show()
+}
+
+const toggleStatus = async (e) => {
+  const currentlyLocked = isLocked(e.trangThai)
+  const actionText = currentlyLocked ? 'mở khóa' : 'tạm khóa'
+  const newStatus = currentlyLocked ? 'Hoạt động' : 'Tạm khóa'
+  
+  if (!confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản nhân viên "${e.hoTen}"?`)) {
+    return
+  }
+
+  try {
+    await axios.put(`${API_URL}/api/nguoi-dung/${e.maNguoiDung}/trang-thai`, {
+      trangThai: newStatus
+    })
+    e.trangThai = newStatus
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    alert(error.response?.data?.message || 'Có lỗi xảy ra khi đổi trạng thái!')
+  }
 }
 
 const saveEmployee = async () => {
@@ -340,19 +412,6 @@ const saveEmployee = async () => {
     alert(error.response?.data?.message || 'Có lỗi xảy ra!')
   } finally {
     saving.value = false
-  }
-}
-
-const deleteEmployee = async (id) => {
-  if (confirm('Bạn có chắc chắn muốn xóa nhân viên này không?')) {
-    try {
-      await axios.delete(`${API_URL}/api/nguoi-dung/${id}`)
-      alert('Xóa thành công!')
-      fetchEmployees()
-    } catch (error) {
-      console.error('Lỗi khi xóa:', error)
-      alert('Có lỗi xảy ra, có thể nhân viên này đã xử lý đơn hàng nên không thể xóa!')
-    }
   }
 }
 

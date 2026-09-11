@@ -56,13 +56,32 @@ public class SanPhamService {
     }
 
     @Transactional
+    public SanPham toggleStatus(Integer id) {
+        SanPham sanPham = getById(id);
+        String current = sanPham.getTrangThai();
+        if (current != null && (current.toLowerCase().contains("ngừng") || current.toLowerCase().contains("ngung") || current.toLowerCase().contains("tạm") || current.toLowerCase().contains("tam"))) {
+            sanPham.setTrangThai("Đang bán");
+        } else {
+            sanPham.setTrangThai("Tạm ngừng");
+        }
+        return sanPhamRepository.save(sanPham);
+    }
+
+    @Transactional
+    public SanPham updateStatus(Integer id, String trangThai) {
+        SanPham sanPham = getById(id);
+        sanPham.setTrangThai(trangThai);
+        return sanPhamRepository.save(sanPham);
+    }
+
+    @Transactional
     public void delete(Integer id) {
         SanPham sanPham = getById(id);
 
         List<ChiTietSanPham> variants = chiTietSanPhamRepository.findByMaSanPham(id);
         for (ChiTietSanPham ctsp : variants) {
             if (chiTietDonHangRepository.existsByMaChiTietSp(ctsp.getMaChiTietSp())) {
-                throw new BadRequestException("Không thể xóa! Sản phẩm này đã phát sinh đơn hàng trong hệ thống.");
+                throw new BadRequestException("Không thể xóa vĩnh viễn sản phẩm đã phát sinh đơn hàng! Vui lòng chuyển trạng thái sang 'Tạm ngừng' để ẩn sản phẩm mà vẫn bảo toàn lịch sử hóa đơn.");
             }
         }
 
@@ -85,6 +104,11 @@ public class SanPhamService {
         sanPham.setMoTa(request.getMoTa());
         sanPham.setGiaGoc(request.getGiaGoc());
         sanPham.setGiaKhuyenMai(request.getGiaKhuyenMai() != null ? request.getGiaKhuyenMai() : request.getGiaGoc());
+        if (request.getTrangThai() != null && !request.getTrangThai().trim().isEmpty()) {
+            sanPham.setTrangThai(request.getTrangThai());
+        } else if (sanPham.getTrangThai() == null) {
+            sanPham.setTrangThai("Đang bán");
+        }
     }
 
     private Integer generateNextId() {

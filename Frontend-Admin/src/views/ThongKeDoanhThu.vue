@@ -66,6 +66,62 @@
         </div>
       </div>
     </div>
+
+    <!-- Bảng chi tiết giao dịch bán hàng -->
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2 text-primary"></i>Chi tiết sản phẩm đã bán</h5>
+        <span class="badge bg-primary-subtle text-primary border">{{ filteredReportData.length }} bản ghi</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Mã ĐH</th>
+                <th>Ngày đặt</th>
+                <th>Tên sản phẩm</th>
+                <th>Phân loại</th>
+                <th class="text-center">Số lượng</th>
+                <th class="text-end">Đơn giá bán</th>
+                <th class="text-end">Doanh thu</th>
+                <th class="text-end">Lợi nhuận</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, idx) in paginatedReportData" :key="idx">
+                <td class="fw-bold text-primary">#{{ item.maDonHang }}</td>
+                <td>{{ formatDate(item.ngayDat) }}</td>
+                <td class="fw-semibold">{{ item.tenSanPham }}</td>
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ item.mauSac || '-' }} / {{ item.kichCo || '-' }}
+                  </span>
+                </td>
+                <td class="text-center fw-bold">{{ item.soLuong }}</td>
+                <td class="text-end">{{ formatPrice(item.donGiaBan) }}</td>
+                <td class="text-end fw-semibold text-primary">{{ formatPrice((item.donGiaBan || 0) * (item.soLuong || 0)) }}</td>
+                <td class="text-end fw-bold text-success">{{ formatPrice(item.tongLoiNhuanItem) }}</td>
+              </tr>
+              <tr v-if="filteredReportData.length === 0">
+                <td colspan="8" class="text-center py-4 text-muted">Không có dữ liệu chi tiết trong khoảng thời gian này</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer bg-white py-2 d-flex justify-content-between align-items-center" v-if="totalPages > 1">
+        <small class="text-muted">Hiển thị trang {{ currentPage }} / {{ totalPages }}</small>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-secondary" :disabled="currentPage <= 1" @click="currentPage--">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="btn btn-outline-secondary" :disabled="currentPage >= totalPages" @click="currentPage++">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -209,6 +265,30 @@ const exportExcel = async () => {
   } finally {
     loadingExport.value = false
   }
+}
+
+const currentPage = ref(1)
+const pageSize = 10
+const totalPages = computed(() => Math.ceil(filteredReportData.value.length / pageSize) || 1)
+const paginatedReportData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredReportData.value.slice(start, start + pageSize)
+})
+
+watch([startDate, endDate], () => {
+  currentPage.value = 1
+})
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '-'
+  const d = new Date(dateStr)
+  return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 onMounted(fetchReport)

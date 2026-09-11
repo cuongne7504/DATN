@@ -178,18 +178,35 @@
     <!-- OTP Modal -->
     <div v-if="showOtpModal" class="otp-modal-overlay">
       <div class="otp-modal">
-        <h4 class="fw-bold mb-3">Xác thực số điện thoại</h4>
-        <p class="text-muted mb-4">
-          Mã xác thực đã được gửi qua số điện thoại <br>
-          <strong class="text-primary fs-5">{{ form.soDienThoai }}</strong>
-        </p>
-        <div class="mb-4">
-          <input type="text" v-model="otpCode" class="form-control form-control-lg text-center fw-bold fs-4" placeholder="Nhập mã 6 số" maxlength="6" style="letter-spacing: 5px;">
+        <div class="text-center mb-3">
+          <div class="d-inline-flex p-3 rounded-circle bg-primary-subtle text-primary mb-2">
+            <i class="bi bi-envelope-check fs-2"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Xác thực đơn hàng qua Email</h4>
+          <p class="text-muted small mb-0">
+            Mã xác thực (OTP) đã được gửi tới địa chỉ email:
+          </p>
+          <strong class="text-primary fs-5 d-block mt-1">{{ form.email }}</strong>
         </div>
+
+        <div class="mb-4">
+          <input
+            type="text"
+            v-model="otpCode"
+            class="form-control form-control-lg text-center fw-bold fs-4"
+            placeholder="Nhập mã 6 số"
+            maxlength="6"
+            style="letter-spacing: 5px;"
+          >
+          <small class="text-muted d-block text-center mt-2">
+            <i class="bi bi-info-circle me-1"></i>Kiểm tra hộp thư đến (Inbox) hoặc Spam
+          </small>
+        </div>
+
         <button @click="confirmOrder" class="btn btn-primary btn-lg w-100 fw-bold mb-3" :disabled="loadingSubmit || otpCode.length !== 6">
-          {{ loadingSubmit ? 'Đang xác thực...' : 'Xác nhận' }}
+          {{ loadingSubmit ? 'Đang xác thực...' : 'Xác nhận đặt hàng' }}
         </button>
-        <button @click="showOtpModal = false" class="btn btn-outline-secondary w-100">Đổi số điện thoại khác</button>
+        <button @click="showOtpModal = false" class="btn btn-outline-secondary w-100">Thay đổi email</button>
         <p class="text-muted mt-3 mb-0" style="font-size: 14px;">
           Không nhận được mã? <span v-if="countdown > 0">{{ countdown }} giây</span>
           <a href="#" v-else @click.prevent="requestOtp" class="text-decoration-none fw-bold">Gửi lại mã</a>
@@ -486,8 +503,8 @@ const getAddressText = () => {
 
 const submitOrder = async () => {
   // 1. Kiểm tra các trường bắt buộc không được để trống
-  if (!form.value.tenNguoiNhan || !form.value.soDienThoai || !selectedProvince.value || !selectedDistrict.value || !selectedWard.value || !form.value.diaChiChiTiet || (!user.value && !form.value.email)) {
-    alert('Vui lòng nhập đầy đủ thông tin giao hàng và chọn địa chỉ (Tỉnh, Quận, Phường)!')
+  if (!form.value.tenNguoiNhan || !form.value.soDienThoai || !selectedProvince.value || !selectedDistrict.value || !selectedWard.value || !form.value.diaChiChiTiet || !form.value.email) {
+    alert('Vui lòng nhập đầy đủ thông tin giao hàng, số điện thoại và email nhận mã xác thực!')
     return
   }
 
@@ -496,7 +513,7 @@ const submitOrder = async () => {
   const isEmailValid = validateEmail()
   
   if (!isPhoneValid || !isEmailValid) {
-    alert('Vui lòng nhập thông tin liên hệ hợp lệ trước khi đặt hàng!')
+    alert('Vui lòng nhập số điện thoại và email hợp lệ trước khi đặt hàng!')
     return
   }
 
@@ -509,15 +526,26 @@ const countdown = ref(0)
 let timer = null
 
 const requestOtp = async () => {
+  if (!form.value.email) {
+    alert('Vui lòng nhập email để nhận mã xác thực đơn hàng!')
+    return
+  }
   loadingSubmit.value = true
   try {
-    await axios.post(`${API_URL}/api/otp/send`, { soDienThoai: form.value.soDienThoai })
+    await axios.post(`${API_URL}/api/otp/send-email`, { email: form.value.email })
     showOtpModal.value = true
     otpCode.value = ''
     startCountdown(60) // 60 giây
   } catch (error) {
     console.error('Lỗi yêu cầu OTP:', error)
-    alert('Lỗi: Không thể gửi mã OTP. Vui lòng kiểm tra lại số điện thoại.')
+    try {
+      await axios.post(`${API_URL}/api/otp/send`, { soDienThoai: form.value.soDienThoai, email: form.value.email })
+      showOtpModal.value = true
+      otpCode.value = ''
+      startCountdown(60)
+    } catch {
+      alert('Không thể gửi mã xác thực về email. Vui lòng kiểm tra lại hòm thư email của bạn!')
+    }
   } finally {
     loadingSubmit.value = false
   }

@@ -34,4 +34,7 @@ public class ChiTietSanPham {
 
     @Column(name = "gia_cong_them")
     private BigDecimal giaCongThem;
+
+    @Column(name = "trang_thai")
+    private String trangThai = "Đang bán";
 }

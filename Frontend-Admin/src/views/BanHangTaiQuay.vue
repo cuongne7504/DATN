@@ -357,8 +357,17 @@ const scanBarcode = async () => {
         const prodRes = await axios.get(`${API_URL}/api/san-pham/${data.maSanPham}`)
         const prodData = prodRes.data.data || prodRes.data
         if (prodData) {
+          const st = String(prodData.trangThai || '').toLowerCase()
+          if (st.includes('ngừng') || st.includes('ngung') || st.includes('tạm') || st.includes('tam')) {
+            error(`Sản phẩm "${prodData.tenSanPham}" đã tạm ngừng kinh doanh!`)
+            scannedProduct.value = null
+            return
+          }
           scannedProduct.value.tenSanPham = prodData.tenSanPham
-          scannedProduct.value.giaBan = prodData.giaKhuyenMai || prodData.giaGoc || 0
+          // Ưu tiên lấy giá bán từ biến thể chi tiết (giaCongThem), nếu không có mới lấy từ sản phẩm
+          scannedProduct.value.giaBan = (data.giaCongThem && Number(data.giaCongThem) > 0) 
+            ? Number(data.giaCongThem) 
+            : (prodData.giaKhuyenMai || prodData.giaGoc || 0)
         }
       } catch {}
     } else {

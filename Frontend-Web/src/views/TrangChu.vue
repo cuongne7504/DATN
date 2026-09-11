@@ -240,7 +240,11 @@ const fetchProducts = async (force = false) => {
       axios.get(`${API_URL}/api/san-pham`),
       axios.get(`${API_URL}/api/hinh-anh`).catch(() => ({ data: { data: [] } }))
     ])
-    let allProducts = res.data.data || res.data || []
+    let allProducts = (res.data.data || res.data || []).filter((p) => {
+      if (!p.trangThai) return true
+      const s = String(p.trangThai).toLowerCase()
+      return !s.includes('ngừng') && !s.includes('ngung') && !s.includes('tạm') && !s.includes('tam')
+    })
     const allImages = imgRes.data.data || imgRes.data || []
 
     const imagesByProduct = new Map()

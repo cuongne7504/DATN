@@ -118,7 +118,7 @@ const deleteCategory = async (id) => {
     await axios.delete(`${API_URL}/api/danh-muc/${id}`)
     await fetchCategories()
   } catch (error) {
-    alert('Không thể xóa danh mục này!')
+    alert(error.response?.data?.message || 'Không thể xóa danh mục này!')
   }
 }
 

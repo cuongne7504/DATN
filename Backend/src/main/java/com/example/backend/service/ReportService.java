@@ -47,6 +47,14 @@ public class ReportService {
         List<ProfitReportItemDto> reportItems = new ArrayList<>();
 
         for (DonHang donHang : allOrders) {
+            // Không tính các đơn hàng đã bị hủy vào doanh thu và lợi nhuận
+            if (donHang.getTrangThai() != null) {
+                String tt = donHang.getTrangThai().trim().toLowerCase();
+                if (tt.contains("hủy") || tt.contains("cancel")) {
+                    continue;
+                }
+            }
+
             List<ChiTietDonHang> chiTietDonHangs = chiTietDonHangRepository.findByMaDonHang(donHang.getMaDonHang());
             for (ChiTietDonHang ctdh : chiTietDonHangs) {
                 if (ctdh.getMaChiTietSp() == null) continue;
@@ -59,6 +67,9 @@ public class ReportService {
 
                 BigDecimal donGiaBan = ctdh.getDonGia() != null ? ctdh.getDonGia() : BigDecimal.ZERO;
                 BigDecimal giaGoc = sanPham.getGiaGoc() != null ? sanPham.getGiaGoc() : BigDecimal.ZERO;
+                if (ctsp.getGiaCongThem() != null) {
+                    giaGoc = giaGoc.add(ctsp.getGiaCongThem());
+                }
                 // Giả định giá nhập = 70% giá gốc để tính lợi nhuận (vì DB không có trường giá nhập)
                 BigDecimal giaNhap = giaGoc.multiply(BigDecimal.valueOf(0.7));
                 BigDecimal loiNhuanTrenMotSp = donGiaBan.subtract(giaNhap);

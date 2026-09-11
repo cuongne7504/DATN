@@ -107,6 +107,13 @@
               <span>Tạm hết hàng</span>
             </div>
 
+            <div v-if="isProductPaused" class="alert alert-warning py-2 mb-3">
+              <i class="bi bi-exclamation-triangle me-2"></i>Sản phẩm này hiện đang tạm ngừng kinh doanh
+            </div>
+            <div v-else-if="selectedVariant && isVariantPaused(selectedVariant)" class="alert alert-warning py-2 mb-3">
+              <i class="bi bi-pause-circle me-2"></i>Biến thể (Màu {{ selectedVariant.mauSac }} - Size {{ selectedVariant.kichCo }}) hiện đang tạm ngừng kinh doanh
+            </div>
+
             <div class="cart-row">
               <div class="qty-box">
                 <button type="button" @click="quantity > 1 && quantity--">−</button>
@@ -116,11 +123,11 @@
               <button
                 type="button"
                 class="btn btn-primary btn-lg cart-btn"
-                :disabled="!selectedVariant || selectedVariant.soLuongTon < 1 || loadingCart"
+                :disabled="!selectedVariant || selectedVariant.soLuongTon < 1 || loadingCart || isProductPaused || isVariantPaused(selectedVariant)"
                 @click="addToCart"
               >
-                <i class="bi bi-bag-plus me-2" v-if="selectedVariant && selectedVariant.soLuongTon > 0"></i>
-                {{ loadingCart ? 'Đang thêm...' : (selectedVariant && selectedVariant.soLuongTon > 0 ? 'Thêm vào giỏ' : 'Tạm hết hàng') }}
+                <i class="bi bi-bag-plus me-2" v-if="selectedVariant && selectedVariant.soLuongTon > 0 && !isProductPaused && !isVariantPaused(selectedVariant)"></i>
+                {{ loadingCart ? 'Đang thêm...' : (isProductPaused ? 'Tạm ngừng kinh doanh' : (isVariantPaused(selectedVariant) ? 'Biến thể tạm ngừng' : (selectedVariant && selectedVariant.soLuongTon > 0 ? 'Thêm vào giỏ' : 'Tạm hết hàng'))) }}
               </button>
             </div>
           </div>
@@ -230,6 +237,18 @@ const quantity = ref(1)
 
 const isWishlisted = ref(false)
 const wishlistId = ref(null)
+
+const isProductPaused = computed(() => {
+  if (!product.value?.trangThai) return false
+  const s = String(product.value.trangThai).toLowerCase()
+  return s.includes('ngừng') || s.includes('ngung') || s.includes('tạm') || s.includes('tam')
+})
+
+const isVariantPaused = (v) => {
+  if (!v || !v.trangThai) return false
+  const s = String(v.trangThai).toLowerCase()
+  return s.includes('ngừng') || s.includes('ngung') || s.includes('tạm') || s.includes('tam')
+}
 
 const reviews = ref([])
 const reviewLoading = ref(false)
@@ -376,6 +395,16 @@ const toggleWishlist = async () => {
 }
 
 const addToCart = async () => {
+  if (isProductPaused.value) {
+    toast.error('Sản phẩm này hiện đã tạm ngừng kinh doanh!')
+    return
+  }
+
+  if (selectedVariant.value && isVariantPaused(selectedVariant.value)) {
+    toast.error('Phân loại biến thể này hiện đang tạm ngừng kinh doanh!')
+    return
+  }
+
   if (user.value && !user.value.maNguoiDung) {
     toast.error('Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.')
     localStorage.removeItem('user')

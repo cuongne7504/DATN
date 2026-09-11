@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface DonHangRepository extends JpaRepository<DonHang, Integer> {
     List<DonHang> findByMaNguoiDungOrderByNgayDatDesc(Integer maNguoiDung);
+    boolean existsByMaKhuyenMai(Integer maKhuyenMai);
+    boolean existsByMaNguoiDung(Integer maNguoiDung);
 }

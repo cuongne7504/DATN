@@ -21,4 +21,14 @@ public class OtpController {
         String otpCode = otpService.generateAndSendOtp(request.getSoDienThoai());
         return ResponseEntity.ok(ApiResponse.ok("Đã gửi mã OTP đến số điện thoại " + request.getSoDienThoai(), null));
     }
+
+    @PostMapping("/send-email")
+    public ResponseEntity<ApiResponse<String>> sendEmailOtp(@RequestBody java.util.Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.fail("Email không được để trống"));
+        }
+        otpService.generateAndSendEmailOtp(email);
+        return ResponseEntity.ok(ApiResponse.ok("Mã xác thực đã được gửi đến email: " + email, null));
+    }
 }

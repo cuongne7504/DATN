@@ -7,6 +7,7 @@ import com.example.backend.dto.UpdateUserRequest;
 import com.example.backend.entity.NguoiDung;
 import com.example.backend.exception.BadRequestException;
 import com.example.backend.exception.ResourceNotFoundException;
+import com.example.backend.repository.DonHangRepository;
 import com.example.backend.repository.NguoiDungRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class NguoiDungService {
 
     private final NguoiDungRepository nguoiDungRepository;
+    private final DonHangRepository donHangRepository;
     private final PasswordEncoder passwordEncoder;
 
     public List<NguoiDungResponse> getAll() {
@@ -97,6 +99,10 @@ public class NguoiDungService {
             throw new BadRequestException("Email hoặc mật khẩu không chính xác");
         }
 
+        if (nguoiDung.getTrangThai() != null && (nguoiDung.getTrangThai().toLowerCase().contains("khóa") || nguoiDung.getTrangThai().toLowerCase().contains("khoa") || nguoiDung.getTrangThai().toLowerCase().contains("nghỉ") || nguoiDung.getTrangThai().toLowerCase().contains("nghi"))) {
+            throw new BadRequestException("Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ quản trị viên!");
+        }
+
         return new NguoiDungResponse(nguoiDung);
     }
 
@@ -122,7 +128,31 @@ public class NguoiDungService {
         if (request.getMaQuyen() != null) {
             nguoiDung.setMaQuyen(request.getMaQuyen());
         }
+        if (request.getTrangThai() != null && !request.getTrangThai().isBlank()) {
+            nguoiDung.setTrangThai(request.getTrangThai());
+        }
 
+        return new NguoiDungResponse(nguoiDungRepository.save(nguoiDung));
+    }
+
+    @Transactional
+    public NguoiDungResponse toggleStatus(Integer id) {
+        NguoiDung nguoiDung = nguoiDungRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có mã: " + id));
+        String current = nguoiDung.getTrangThai();
+        if (current != null && (current.toLowerCase().contains("khóa") || current.toLowerCase().contains("khoa") || current.toLowerCase().contains("nghỉ") || current.toLowerCase().contains("nghi") || current.toLowerCase().contains("ngừng") || current.toLowerCase().contains("ngung"))) {
+            nguoiDung.setTrangThai("Hoạt động");
+        } else {
+            nguoiDung.setTrangThai("Tạm khóa");
+        }
+        return new NguoiDungResponse(nguoiDungRepository.save(nguoiDung));
+    }
+
+    @Transactional
+    public NguoiDungResponse updateStatus(Integer id, String trangThai) {
+        NguoiDung nguoiDung = nguoiDungRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có mã: " + id));
+        nguoiDung.setTrangThai(trangThai);
         return new NguoiDungResponse(nguoiDungRepository.save(nguoiDung));
     }
 
@@ -130,6 +160,9 @@ public class NguoiDungService {
     public void delete(Integer id) {
         NguoiDung nguoiDung = nguoiDungRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng có mã: " + id));
+        if (donHangRepository.existsByMaNguoiDung(id)) {
+            throw new BadRequestException("Không thể xóa tài khoản này vì đã phát sinh đơn hàng trong hệ thống! Vui lòng chuyển trạng thái sang 'Tạm khóa'.");
+        }
         nguoiDungRepository.delete(nguoiDung);
     }
 

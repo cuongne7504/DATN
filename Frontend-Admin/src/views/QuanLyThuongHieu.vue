@@ -111,7 +111,7 @@ const deleteBrand = async (id) => {
     await axios.delete(`${API_URL}/api/thuong-hieu/${id}`)
     await fetchBrands()
   } catch (error) {
-    alert('Không thể xóa thương hiệu này!')
+    alert(error.response?.data?.message || 'Không thể xóa thương hiệu này!')
   }
 }
 

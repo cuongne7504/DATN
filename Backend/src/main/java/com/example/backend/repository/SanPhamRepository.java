@@ -30,5 +30,8 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Integer> {
         @Param("kichCo") String kichCo,
         @Param("mauSac") String mauSac
     );
+
+    boolean existsByMaDanhMuc(Integer maDanhMuc);
+    boolean existsByMaThuongHieu(Integer maThuongHieu);
 }
 

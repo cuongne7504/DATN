@@ -16,23 +16,24 @@
           <table class="table table-hover mb-0 align-middle">
             <thead class="table-light">
               <tr>
-                <th>ID</th>
-                <th>Họ tên</th>
-                <th>Email</th>
-                <th>Số điện thoại</th>
-                <th>Địa chỉ</th>
-                <th>Ngày tạo</th>
-                <th class="text-end">Thao tác</th>
+                <th class="text-nowrap">ID</th>
+                <th class="text-nowrap">Họ tên</th>
+                <th class="text-nowrap">Email</th>
+                <th class="text-nowrap">Số điện thoại</th>
+                <th class="text-nowrap">Địa chỉ</th>
+                <th class="text-nowrap">Ngày tạo</th>
+                <th class="text-nowrap">Trạng thái</th>
+                <th class="text-end text-nowrap">Thao tác</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="loading">
-                <td colspan="7" class="p-3">
+                <td colspan="8" class="p-3">
                   <SkeletonLoader variant="table" :rows="5" />
                 </td>
               </tr>
               <tr v-else-if="customers.length === 0">
-                <td colspan="7" class="p-0">
+                <td colspan="8" class="p-0">
                   <EmptyState
                     icon="bi bi-people"
                     title="Chưa có khách hàng"
@@ -47,16 +48,43 @@
                 <td>{{ c.soDienThoai || 'Chưa cập nhật' }}</td>
                 <td>{{ c.diaChi || 'Chưa cập nhật' }}</td>
                 <td>{{ formatDate(c.ngayTao) }}</td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-info me-2 text-white" @click="viewOrders(c)">
-                    <i class="bi bi-box-seam"></i> Đơn hàng
-                  </button>
-                  <button class="btn btn-sm btn-warning me-2" @click="editCustomer(c)">
-                    <i class="bi bi-pencil"></i> Sửa
-                  </button>
-                  <button class="btn btn-sm btn-danger" @click="deleteCustomer(c.maNguoiDung)">
-                    <i class="bi bi-trash"></i> Xóa
-                  </button>
+                <td class="text-nowrap" style="width: 130px;">
+                  <span
+                    class="badge text-nowrap d-inline-flex align-items-center"
+                    :class="isLocked(c.trangThai) ? 'bg-secondary' : 'bg-success'"
+                    style="cursor: pointer;"
+                    @click="toggleStatus(c)"
+                    :title="'Click để ' + (isLocked(c.trangThai) ? 'Mở khóa tài khoản' : 'Tạm khóa tài khoản')"
+                  >
+                    <i :class="isLocked(c.trangThai) ? 'bi bi-lock-fill me-1' : 'bi bi-check-circle me-1'"></i>
+                    {{ isLocked(c.trangThai) ? 'Tạm khóa' : 'Hoạt động' }}
+                  </span>
+                </td>
+                <td class="text-end text-nowrap" style="width: 260px;">
+                  <div class="d-inline-flex align-items-center justify-content-end gap-1 flex-nowrap">
+                    <button class="btn btn-sm btn-info text-white text-nowrap" @click="viewOrders(c)" title="Xem danh sách đơn hàng">
+                      <i class="bi bi-box-seam me-1"></i>Đơn hàng
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary text-nowrap" @click="editCustomer(c)" title="Sửa thông tin khách hàng">
+                      <i class="bi bi-pencil me-1"></i>Sửa
+                    </button>
+                    <button
+                      v-if="isLocked(c.trangThai)"
+                      class="btn btn-sm btn-outline-success text-nowrap"
+                      @click="toggleStatus(c)"
+                      title="Mở khóa tài khoản khách hàng"
+                    >
+                      <i class="bi bi-unlock-fill me-1"></i>Mở khóa
+                    </button>
+                    <button
+                      v-else
+                      class="btn btn-sm btn-outline-warning text-nowrap"
+                      @click="toggleStatus(c)"
+                      title="Tạm khóa tài khoản khách hàng"
+                    >
+                      <i class="bi bi-lock-fill me-1"></i>Tạm khóa
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -94,6 +122,13 @@
               <div class="mb-3">
                 <label class="form-label">Địa chỉ</label>
                 <input type="text" class="form-control" v-model="form.diaChi">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Trạng thái tài khoản</label>
+                <select class="form-select" v-model="form.trangThai">
+                  <option value="Hoạt động">Hoạt động</option>
+                  <option value="Tạm khóa">Tạm khóa</option>
+                </select>
               </div>
             </form>
           </div>
@@ -265,8 +300,15 @@ const form = ref({
   email: '',
   matKhau: '',
   soDienThoai: '',
-  diaChi: ''
+  diaChi: '',
+  trangThai: 'Hoạt động'
 })
+
+const isLocked = (status) => {
+  if (!status) return false
+  const s = status.toLowerCase()
+  return s.includes('khóa') || s.includes('khoa') || s.includes('ngừng') || s.includes('ngung')
+}
 
 // Orders state
 const currentCustomer = ref(null)
@@ -300,9 +342,30 @@ const editCustomer = (c) => {
     email: c.email,
     matKhau: '', // Không hiển thị mật khẩu cũ
     soDienThoai: c.soDienThoai || '',
-    diaChi: c.diaChi || ''
+    diaChi: c.diaChi || '',
+    trangThai: c.trangThai || 'Hoạt động'
   }
   customerModal.show()
+}
+
+const toggleStatus = async (c) => {
+  const currentlyLocked = isLocked(c.trangThai)
+  const actionText = currentlyLocked ? 'mở khóa' : 'tạm khóa'
+  const newStatus = currentlyLocked ? 'Hoạt động' : 'Tạm khóa'
+  
+  if (!confirm(`Bạn có chắc chắn muốn ${actionText} tài khoản khách hàng "${c.hoTen}"?`)) {
+    return
+  }
+
+  try {
+    await axios.put(`${API_URL}/api/nguoi-dung/${c.maNguoiDung}/trang-thai`, {
+      trangThai: newStatus
+    })
+    c.trangThai = newStatus
+  } catch (error) {
+    console.error('Lỗi khi cập nhật trạng thái:', error)
+    alert(error.response?.data?.message || 'Có lỗi xảy ra khi đổi trạng thái!')
+  }
 }
 
 const saveCustomer = async () => {
@@ -324,19 +387,6 @@ const saveCustomer = async () => {
     alert(error.response?.data?.message || 'Có lỗi xảy ra!')
   } finally {
     saving.value = false
-  }
-}
-
-const deleteCustomer = async (id) => {
-  if (confirm('Bạn có chắc chắn muốn xóa khách hàng này không?')) {
-    try {
-      await axios.delete(`${API_URL}/api/nguoi-dung/${id}`)
-      alert('Xóa thành công!')
-      fetchCustomers()
-    } catch (error) {
-      console.error('Lỗi khi xóa:', error)
-      alert('Có lỗi xảy ra, có thể khách hàng này đã có đơn hàng nên không thể xóa!')
-    }
   }
 }
 

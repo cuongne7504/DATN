@@ -3,7 +3,10 @@ package com.example.backend.service;
 import com.example.backend.dto.ChiTietSanPhamRequest;
 import com.example.backend.dto.TonKhoResponse;
 import com.example.backend.entity.ChiTietSanPham;
+import com.example.backend.exception.BadRequestException;
 import com.example.backend.exception.ResourceNotFoundException;
+import com.example.backend.repository.ChiTietDonHangRepository;
+import com.example.backend.repository.ChiTietGioHangRepository;
 import com.example.backend.repository.ChiTietSanPhamRepository;
 import com.example.backend.repository.SanPhamRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,8 @@ public class ChiTietSanPhamService {
     private final ChiTietSanPhamRepository chiTietSanPhamRepository;
     private final SanPhamRepository sanPhamRepository;
     private final SkuGeneratorService skuGeneratorService;
+    private final ChiTietDonHangRepository chiTietDonHangRepository;
+    private final ChiTietGioHangRepository chiTietGioHangRepository;
 
     public List<ChiTietSanPham> getAll() {
         return chiTietSanPhamRepository.findAll();
@@ -77,8 +82,7 @@ public class ChiTietSanPhamService {
 
     @Transactional
     public void delete(Integer id) {
-        ChiTietSanPham chiTiet = getById(id);
-        chiTietSanPhamRepository.delete(chiTiet);
+        xoa(id);
     }
 
     @Transactional
@@ -110,8 +114,32 @@ public class ChiTietSanPhamService {
     }
 
     @Transactional
+    public ChiTietSanPham toggleStatus(Integer id) {
+        ChiTietSanPham chiTiet = getById(id);
+        String current = chiTiet.getTrangThai();
+        if (current != null && (current.toLowerCase().contains("ngừng") || current.toLowerCase().contains("ngung") || current.toLowerCase().contains("tạm") || current.toLowerCase().contains("tam"))) {
+            chiTiet.setTrangThai("Đang bán");
+        } else {
+            chiTiet.setTrangThai("Tạm ngừng");
+        }
+        return chiTietSanPhamRepository.save(chiTiet);
+    }
+
+    @Transactional
+    public ChiTietSanPham updateStatus(Integer id, String trangThai) {
+        ChiTietSanPham chiTiet = getById(id);
+        chiTiet.setTrangThai(trangThai);
+        return chiTietSanPhamRepository.save(chiTiet);
+    }
+
+    @Transactional
     public void xoa(Integer id) {
-        chiTietSanPhamRepository.deleteById(id);
+        ChiTietSanPham chiTiet = getById(id);
+        if (chiTietDonHangRepository.existsByMaChiTietSp(id)) {
+            throw new BadRequestException("Không thể xóa! Biến thể sản phẩm này đã phát sinh đơn hàng. Vui lòng chuyển trạng thái sang 'Tạm ngừng'.");
+        }
+        chiTietGioHangRepository.deleteByMaChiTietSp(id);
+        chiTietSanPhamRepository.delete(chiTiet);
     }
 
     private void mapRequestToEntity(ChiTietSanPhamRequest request, ChiTietSanPham chiTiet) {
@@ -121,5 +149,10 @@ public class ChiTietSanPhamService {
         chiTiet.setKichCo(request.getKichCo());
         chiTiet.setSoLuongTon(request.getSoLuongTon());
         chiTiet.setGiaCongThem(request.getGiaCongThem());
+        if (request.getTrangThai() != null && !request.getTrangThai().trim().isEmpty()) {
+            chiTiet.setTrangThai(request.getTrangThai());
+        } else if (chiTiet.getTrangThai() == null) {
+            chiTiet.setTrangThai("Đang bán");
+        }
     }
 }

@@ -52,33 +52,36 @@
       <table class="table table-hover align-middle">
         <thead class="table-light">
           <tr>
-            <th>Mã Code</th>
-            <th>Mô tả</th>
-            <th>Giảm (%)</th>
-            <th>Số lượng</th>
-            <th>Thời gian</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
+            <th class="text-nowrap">Mã Code</th>
+            <th class="text-nowrap">Mô tả</th>
+            <th class="text-nowrap">Giảm (%)</th>
+            <th class="text-nowrap">Số lượng</th>
+            <th class="text-nowrap">Thời gian</th>
+            <th class="text-nowrap">Trạng thái</th>
+            <th class="text-nowrap">Thao tác</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="v in vouchers" :key="v.maKhuyenMai">
-            <td class="fw-bold text-danger">{{ v.maCode }}</td>
+            <td class="fw-bold text-danger text-nowrap">{{ v.maCode }}</td>
             <td>{{ v.moTa }}</td>
-            <td><span class="badge bg-success">{{ v.phanTramGiam }}%</span></td>
-            <td>{{ v.soLuongDung }}</td>
-            <td style="font-size: 0.85rem;">
+            <td class="text-nowrap"><span class="badge bg-success">{{ v.phanTramGiam }}%</span></td>
+            <td class="text-nowrap">{{ v.soLuongDung }}</td>
+            <td class="text-nowrap" style="font-size: 0.85rem;">
               {{ formatDate(v.ngayBatDau) }}<br>
               đến {{ formatDate(v.ngayKetThuc) }}
             </td>
-            <td>
-              <span class="badge" :class="getVoucherStatusBadgeClass(v)">
+            <td class="text-nowrap">
+              <span class="badge text-nowrap" :class="getVoucherStatusBadgeClass(v)">
                 {{ getVoucherStatus(v) }}
               </span>
             </td>
-            <td>
-              <button @click="editVoucher(v)" class="btn btn-sm btn-outline-primary me-2">Sửa</button>
-              <button @click="deleteVoucher(v.maKhuyenMai)" class="btn btn-sm btn-outline-danger">Xóa</button>
+            <td class="text-nowrap">
+              <div class="d-flex flex-nowrap align-items-center gap-1">
+                <button @click="editVoucher(v)" class="btn btn-sm btn-outline-primary text-nowrap">Sửa</button>
+                <button v-if="getVoucherStatus(v) === 'Hoạt động'" @click="stopVoucher(v)" class="btn btn-sm btn-outline-warning text-nowrap" title="Dừng áp dụng mã">Dừng</button>
+                <button @click="deleteVoucher(v.maKhuyenMai)" class="btn btn-sm btn-outline-danger text-nowrap">Xóa</button>
+              </div>
             </td>
           </tr>
           <tr v-if="vouchers.length === 0">
@@ -205,13 +208,34 @@ const editVoucher = (v) => {
   }
 }
 
+const stopVoucher = async (v) => {
+  if (!confirm(`Bạn có chắc muốn dừng áp dụng mã "${v.maCode}" ngay bây giờ?`)) return
+  try {
+    const payload = {
+      maCode: v.maCode,
+      moTa: v.moTa,
+      phanTramGiam: v.phanTramGiam,
+      soTienGiam: v.soTienGiam || 0,
+      donToiThieu: v.donToiThieu || 0,
+      ngayBatDau: v.ngayBatDau,
+      ngayKetThuc: new Date().toISOString().slice(0, 19),
+      soLuongDung: 0
+    }
+    await axios.put(`${API_URL}/api/khuyen-mai/${v.maKhuyenMai}`, payload)
+    await fetchVouchers()
+    alert(`Đã dừng áp dụng mã "${v.maCode}" thành công`)
+  } catch (err) {
+    alert(err.response?.data?.message || 'Không thể dừng mã khuyến mãi!')
+  }
+}
+
 const deleteVoucher = async (id) => {
   if (!confirm('Bạn có chắc muốn xóa mã này?')) return
   try {
     await axios.delete(`${API_URL}/api/khuyen-mai/${id}`)
     await fetchVouchers()
   } catch (error) {
-    alert('Không thể xóa!')
+    alert(error.response?.data?.message || 'Không thể xóa mã khuyến mãi này!')
   }
 }
 

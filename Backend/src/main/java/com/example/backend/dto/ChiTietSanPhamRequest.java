@@ -32,4 +32,6 @@ public class ChiTietSanPhamRequest {
     @NotNull(message = "Giá cộng thêm không được để trống")
     @DecimalMin(value = "0.0", inclusive = true, message = "Giá cộng thêm phải lớn hơn hoặc bằng 0")
     private BigDecimal giaCongThem;
+
+    private String trangThai;
 }

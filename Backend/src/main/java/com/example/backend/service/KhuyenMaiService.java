@@ -4,6 +4,7 @@ import com.example.backend.dto.KhuyenMaiRequest;
 import com.example.backend.entity.KhuyenMai;
 import com.example.backend.exception.BadRequestException;
 import com.example.backend.exception.ResourceNotFoundException;
+import com.example.backend.repository.DonHangRepository;
 import com.example.backend.repository.KhuyenMaiRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class KhuyenMaiService {
 
     private final KhuyenMaiRepository khuyenMaiRepository;
+    private final DonHangRepository donHangRepository;
 
     public List<KhuyenMai> getAll() {
         return khuyenMaiRepository.findAll();
@@ -69,6 +71,9 @@ public class KhuyenMaiService {
     @Transactional
     public void delete(Integer id) {
         KhuyenMai km = getById(id);
+        if (donHangRepository.existsByMaKhuyenMai(id)) {
+            throw new BadRequestException("Không thể xóa mã khuyến mãi này vì đã có đơn hàng áp dụng!");
+        }
         khuyenMaiRepository.delete(km);
     }
 

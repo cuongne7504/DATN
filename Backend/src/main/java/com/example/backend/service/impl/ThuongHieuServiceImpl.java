@@ -1,6 +1,8 @@
 package com.example.backend.service.impl;
 
 import com.example.backend.entity.ThuongHieu;
+import com.example.backend.exception.BadRequestException;
+import com.example.backend.repository.SanPhamRepository;
 import com.example.backend.repository.ThuongHieuRepository;
 import com.example.backend.service.ThuongHieuService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,9 @@ public class ThuongHieuServiceImpl implements ThuongHieuService {
 
     @Autowired
     private ThuongHieuRepository thuongHieuRepository;
+
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
 
     @Override
     public List<ThuongHieu> getAll() {
@@ -32,6 +37,9 @@ public class ThuongHieuServiceImpl implements ThuongHieuService {
 
     @Override
     public void delete(Integer id) {
+        if (sanPhamRepository.existsByMaThuongHieu(id)) {
+            throw new BadRequestException("Không thể xóa thương hiệu này vì đang có sản phẩm thuộc thương hiệu!");
+        }
         thuongHieuRepository.deleteById(id);
     }
 }

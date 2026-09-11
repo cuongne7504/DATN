@@ -80,4 +80,46 @@ public class EmailService {
             System.err.println("Lỗi gửi email xác nhận đơn hàng: " + e.getMessage());
         }
     }
+
+    public void sendOtpEmail(String toEmail, String otpCode) {
+        if (javaMailSender == null || toEmail == null || toEmail.trim().isEmpty()) {
+            System.out.println("========== [MÔ PHỎNG EMAIL OTP] ==========");
+            System.out.println("Email nhận : " + toEmail);
+            System.out.println("Mã OTP     : " + otpCode);
+            System.out.println("==========================================");
+            return;
+        }
+
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(toEmail.trim());
+            helper.setSubject("[SportPro] Mã xác thực đơn hàng của bạn: " + otpCode);
+
+            String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;'>"
+                    + "  <div style='text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 16px; margin-bottom: 20px;'>"
+                    + "    <h2 style='color: #1e3a8a; margin: 0; letter-spacing: 1px;'>SPORTPRO ATHLETICS</h2>"
+                    + "    <p style='color: #64748b; font-size: 13px; margin: 4px 0 0 0;'>Hệ thống bán lẻ dụng cụ & trang phục thể thao</p>"
+                    + "  </div>"
+                    + "  <div style='text-align: center; padding: 10px 0;'>"
+                    + "    <h3 style='color: #0f172a; margin-bottom: 8px;'>Xác thực đơn hàng của bạn</h3>"
+                    + "    <p style='color: #475569; font-size: 14px; margin-bottom: 20px;'>Vui lòng sử dụng mã xác thực (OTP) dưới đây để hoàn tất thủ tục đặt hàng tại SportPro:</p>"
+                    + "    <div style='display: inline-block; background-color: #eff6ff; border: 2px dashed #3b82f6; border-radius: 10px; padding: 12px 32px; margin-bottom: 20px;'>"
+                    + "      <span style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #1d4ed8; font-family: monospace;'>" + otpCode + "</span>"
+                    + "    </div>"
+                    + "    <p style='color: #dc2626; font-size: 13px; margin: 0;'>* Mã có hiệu lực trong vòng <strong>3 phút</strong>. Không chia sẻ mã này cho bất kỳ ai.</p>"
+                    + "  </div>"
+                    + "  <hr style='border: none; border-top: 1px solid #e2e8f0; margin: 24px 0 16px;'>"
+                    + "  <p style='color: #94a3b8; font-size: 12px; text-align: center; margin: 0;'>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>"
+                    + "</div>";
+
+            helper.setText(htmlContent, true);
+            javaMailSender.send(message);
+            System.out.println("=> [GMAIL OTP] Đã gửi mã " + otpCode + " tới email: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi email OTP: " + e.getMessage());
+            System.out.println("Mã OTP (Console Fallback): " + otpCode);
+        }
+    }
 }

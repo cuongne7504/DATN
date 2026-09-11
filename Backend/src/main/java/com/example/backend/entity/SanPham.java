@@ -41,6 +41,9 @@ public class SanPham {
     @Column(name = "gia_khuyen_mai")
     private BigDecimal giaKhuyenMai;
 
+    @Column(name = "trang_thai")
+    private String trangThai = "Đang bán";
+
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
 }

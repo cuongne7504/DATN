@@ -60,6 +60,25 @@ public class SanPhamController {
         return ResponseEntity.ok(ApiResponse.ok("Cập nhật sản phẩm thành công", updated));
     }
 
+    @PatchMapping("/{id}/trang-thai")
+    public ResponseEntity<ApiResponse<SanPham>> toggleStatus(@PathVariable Integer id) {
+        SanPham updated = sanPhamService.toggleStatus(id);
+        return ResponseEntity.ok(ApiResponse.ok("Đổi trạng thái sản phẩm thành công", updated));
+    }
+
+    @PutMapping("/{id}/trang-thai")
+    public ResponseEntity<ApiResponse<SanPham>> updateStatus(
+            @PathVariable Integer id,
+            @RequestParam(required = false) String trangThai) {
+        SanPham updated;
+        if (trangThai != null && !trangThai.trim().isEmpty()) {
+            updated = sanPhamService.updateStatus(id, trangThai);
+        } else {
+            updated = sanPhamService.toggleStatus(id);
+        }
+        return ResponseEntity.ok(ApiResponse.ok("Cập nhật trạng thái sản phẩm thành công", updated));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         sanPhamService.delete(id);

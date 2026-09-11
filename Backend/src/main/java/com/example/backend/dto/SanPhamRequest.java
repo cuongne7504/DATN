@@ -23,9 +23,11 @@ public class SanPhamRequest {
 
     private String moTa;
 
-    @NotNull(message = "Giá gốc không được để trống")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Giá gốc phải lớn hơn 0")
+    // Giá gốc: Đã chuyển sang quản lý ở bảng CHI_TIET_SAN_PHAM nên cho phép = 0
+    @DecimalMin(value = "0.0", inclusive = true, message = "Giá gốc phải lớn hơn hoặc bằng 0")
     private BigDecimal giaGoc;
 
     private BigDecimal giaKhuyenMai;
+
+    private String trangThai;
 }

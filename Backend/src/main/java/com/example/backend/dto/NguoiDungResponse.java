@@ -19,6 +19,7 @@ public class NguoiDungResponse {
     private String soDienThoai;
     private String diaChi;
     private LocalDateTime ngayTao;
+    private String trangThai;
 
     public NguoiDungResponse(NguoiDung nguoiDung) {
         this.maNguoiDung = nguoiDung.getMaNguoiDung();
@@ -28,5 +29,6 @@ public class NguoiDungResponse {
         this.soDienThoai = nguoiDung.getSoDienThoai();
         this.diaChi = nguoiDung.getDiaChi();
         this.ngayTao = nguoiDung.getNgayTao();
+        this.trangThai = nguoiDung.getTrangThai() != null ? nguoiDung.getTrangThai() : "Hoạt động";
     }
 }
